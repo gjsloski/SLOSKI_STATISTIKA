@@ -1,0 +1,10 @@
+{
+ "coverage": {
+  "2026/27": {
+   "alpine": "v teku",
+   "jumping": "v teku"
+  }
+ },
+ "updated": "2026-11-08",
+ "next": "2026-11-15"
+}
