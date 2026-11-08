@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """SloSki statistika: zbira uvrstitve slovenskih tekmovalcev v svetovnem pokalu (FIS).
 
-Podprta sta alpsko smucanje (AL) in smucarski skoki (JP), samo posamicne tekme svetovnega pokala.
+Zimska sezona: alpsko smucanje (AL) in smucarski skoki (JP), posamicne tekme svetovnega pokala (WC).
+Poletna sezona: FIS Grand Prix (GP) v smucarskih skokih (JP) in nordijski kombinaciji (NK), od leta 2026 naprej.
 Nacini:
   --mode weekly    samo tekoca sezona (vsako nedeljo)
   --mode backfill  vse sezone od --from-season (privzeto 1992 = sezona 1991/92) do danes
@@ -28,7 +29,11 @@ DELAY = 1.0
 SPORTS = {
     "alpine": {"code": "AL", "path": "alpine-skiing", "label": "Alpsko smučanje"},
     "jumping": {"code": "JP", "path": "ski-jumping", "label": "Smučarski skoki"},
+    "nordic": {"code": "NK", "path": "nordic-combined", "label": "Nordijska kombinacija"},
 }
+WINTER_SPORTS = ["alpine", "jumping"]
+SUMMER_SPORTS = ["jumping", "nordic"]
+SUMMER_FROM = 2027  # koda sezone FIS (2027 = julij 2026 - junij 2027), torej poletje 2026
 
 DISC = [
     ("Alpine Combined", "Kombinacija"),
@@ -42,6 +47,7 @@ DISC = [
     ("Flying", "Letalnica"),
     ("Large Hill", "Velika skakalnica"),
     ("Normal Hill", "Normalna skakalnica"),
+    ("Gundersen", "Gundersen"),
 ]
 
 # FIS zapisuje imena brez strešic; tukaj so popravki za pogosta slovenska imena.
@@ -130,8 +136,8 @@ def fix_name(name, cid, extra):
 
 
 # ----------------------------------------------------------------- razclenjevanje
-def parse_calendar(html):
-    """Vrne seznam (eventid, url) za dogodke svetovnega pokala (oznaka WC v vrstici)."""
+def parse_calendar(html, cat="WC"):
+    """Vrne seznam (eventid, url) za dogodke dane kategorije (WC ali GP) po oznaki v vrstici."""
     soup = BeautifulSoup(html, "lxml") if _has_lxml() else BeautifulSoup(html, "html.parser")
     events = {}
     for a in soup.find_all("a", href=True):
@@ -145,7 +151,7 @@ def parse_calendar(html):
         e["text"].append(a.get_text(" ", strip=True))
     out = []
     for eid, e in events.items():
-        if re.search(r"\bWC\b", " ".join(e["text"])):
+        if re.search(r"\b" + cat + r"\b", " ".join(e["text"])):
             out.append((eid, e["url"]))
     return out
 
@@ -204,13 +210,14 @@ def parse_row(text, href):
     return {"cid": cid, "name": name, "rank": int(tokens[0]), "nat": tokens[y + 1]}
 
 
-def parse_race(html, sport_key, raceid, extra_names):
+def parse_race(html, sport_key, raceid, extra_names, cat="WC"):
     """Vrne (status, race). status: ok | skip | empty | fail"""
     cfg = SPORTS[sport_key]
     soup = BeautifulSoup(html, "lxml") if _has_lxml() else BeautifulSoup(html, "html.parser")
     lines = [l for l in soup.get_text("\n", strip=True).split("\n") if l]
     head = lines[:90]
-    if not any("World Cup" in l for l in head):
+    needle = "World Cup" if cat == "WC" else "Grand Prix"
+    if not any(needle.lower() in l.lower() for l in head):
         return "skip", None
     title = next((l for l in head if TITLE_RE.match(l) and len(l) < 90), None)
     date = None
@@ -267,6 +274,8 @@ def parse_race(html, sport_key, raceid, extra_names):
         "t": "posamicno",
         "res": sorted(res, key=lambda x: x["r"]),
     }
+    if cat == "GP":
+        race["summer"] = True
     return "ok", race
 
 
@@ -283,20 +292,20 @@ def save_all(races, state, meta, today):
     (DATA / "state.json").write_text(json.dumps(state, ensure_ascii=False) + "\n", encoding="utf-8")
 
 
-def process_season(code, sport_key, races, state, meta, cur, extra_names, deadline):
+def process_season(code, sport_key, races, state, cat, label, finished, extra_names, deadline):
+    """Obdela koledar ene sezone/kategorije. Vrne: popolno | delno | v teku | None (cas potekel)."""
     cfg = SPORTS[sport_key]
-    label = season_code_label(code)
     cal_url = (f"{BASE}/DB/{cfg['path']}/calendar-results.html?sectorcode={cfg['code']}"
-               f"&seasoncode={code}&categorycode=WC")
+               f"&seasoncode={code}&categorycode={cat}")
     html = get(cal_url)
     failures = 0
     if not html:
         log(f"  koledar ni dosegljiv: {cal_url}")
         return "delno"
-    events = parse_calendar(html)
-    log(f"{label} {cfg['label']}: {len(events)} dogodkov WC")
+    events = parse_calendar(html, cat)
+    log(f"{label} {cfg['label']} ({cat}): {len(events)} dogodkov")
     if not events:
-        return "delno"
+        return "delno" if finished else "v teku"
     for eid, eurl in events:
         if time.time() > deadline:
             return None
@@ -312,7 +321,7 @@ def process_season(code, sport_key, races, state, meta, cur, extra_names, deadli
             if not rhtml:
                 failures += 1
                 continue
-            status, race = parse_race(rhtml, sport_key, rid, extra_names)
+            status, race = parse_race(rhtml, sport_key, rid, extra_names, cat)
             if status == "ok":
                 if race["res"]:
                     races[race["id"]] = race
@@ -322,12 +331,12 @@ def process_season(code, sport_key, races, state, meta, cur, extra_names, deadli
             elif status == "skip":
                 state["seen"][key] = "skip"
             elif status == "empty":
-                if code < cur:
+                if finished:
                     state["seen"][key] = "empty"
             else:
                 failures += 1
                 log(f"  NAPAKA razclenjevanja: {rurl}")
-    if code == cur:
+    if not finished:
         return "v teku"
     return "popolno" if failures == 0 else "delno"
 
@@ -335,8 +344,8 @@ def process_season(code, sport_key, races, state, meta, cur, extra_names, deadli
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--mode", choices=["weekly", "backfill"], default="weekly")
-    ap.add_argument("--from-season", type=int, default=1992, help="koda sezone = koncno leto (1992 = 1991/92)")
-    ap.add_argument("--sports", default="alpine,jumping")
+    ap.add_argument("--from-season", type=int, default=1992, help="zimska sezona: koda = koncno leto (1992 = 1991/92)")
+    ap.add_argument("--no-summer", action="store_true", help="preskoci poletno sezono (Grand Prix)")
     ap.add_argument("--max-minutes", type=int, default=330)
     ap.add_argument("--force", action="store_true", help="ponovno obdela tudi sezone, oznacene kot popolne")
     args = ap.parse_args()
@@ -350,22 +359,33 @@ def main():
     meta.setdefault("coverage", {})
     extra_names = load_json(DATA / "names.json", {})
     deadline = time.time() + args.max_minutes * 60
-    seasons = [cur] if args.mode == "weekly" else list(range(cur, args.from_season - 1, -1))
-    sports = [s for s in args.sports.split(",") if s in SPORTS]
 
-    for code in seasons:
-        label = season_code_label(code)
-        for sk in sports:
-            cov = meta["coverage"].setdefault(label, {})
-            if (not args.force and code < cur and cov.get(sk) == "popolno"):
+    jobs = []  # (code, sport, cat, label, finished)
+    winter_codes = [cur] if args.mode == "weekly" else list(range(cur, args.from_season - 1, -1))
+    for code in winter_codes:
+        for sk in WINTER_SPORTS:
+            jobs.append((code, sk, "WC", season_code_label(code), code < cur))
+    if not args.no_summer:
+        summer_codes = [cur] if args.mode == "weekly" else list(range(cur, SUMMER_FROM - 1, -1))
+        for code in summer_codes:
+            if code < SUMMER_FROM:
                 continue
-            result = process_season(code, sk, races, state, meta, cur, extra_names, deadline)
-            if result is None:
-                log("Casovna omejitev dosezena: shranjujem in koncam. Ponovni zagon nadaljuje.")
-                save_all(races, state, meta, today)
-                return 0
-            cov[sk] = result
+            year = code - 1
+            finished = today > datetime.date(year, 11, 1)
+            for sk in SUMMER_SPORTS:
+                jobs.append((code, sk, "GP", f"Poletje {year}", finished))
+
+    for code, sk, cat, label, finished in jobs:
+        cov = meta["coverage"].setdefault(label, {})
+        if not args.force and finished and cov.get(sk) == "popolno":
+            continue
+        result = process_season(code, sk, races, state, cat, label, finished, extra_names, deadline)
+        if result is None:
+            log("Casovna omejitev dosezena: shranjujem in koncam. Ponovni zagon nadaljuje.")
             save_all(races, state, meta, today)
+            return 0
+        cov[sk] = result
+        save_all(races, state, meta, today)
     save_all(races, state, meta, today)
     log(f"Konec. Tekem s slovenskimi uvrstitvami: {len(races)}")
     return 0
