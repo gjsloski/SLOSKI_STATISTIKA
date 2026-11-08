@@ -70,9 +70,9 @@ footer{font-size:12px;color:var(--muted);padding:0 4px}
 <div class="bar"></div>
 <main>
   <div class="kpis">
-    <div class="kpi"><b id="k1">0</b><span>tekem z uvrstitvami</span></div>
-    <div class="kpi"><b id="k2">0</b><span>športnikov</span></div>
-    <div class="kpi"><b id="k3">0</b><span>uvrstitev v top 30</span></div>
+    <div class="kpi"><b id="k1">0</b><span id="k1l">tekem z uvrstitvami</span></div>
+    <div class="kpi"><b id="k2">0</b><span id="k2l">športnikov</span></div>
+    <div class="kpi"><b id="k3">0</b><span id="k3l">uvrstitev v top 30</span></div>
   </div>
   <div class="card">
     <div class="filters">
@@ -80,7 +80,7 @@ footer{font-size:12px;color:var(--muted);padding:0 4px}
       <div><label for="fs">Šport</label><select id="fs"></select></div>
       <div><label for="fd">Disciplina</label><select id="fd"></select></div>
       <div><label for="fg">Spol</label><select id="fg"><option value="">Vsi</option><option value="M">Moški</option><option value="Ž">Ženske</option></select></div>
-      <div><label for="ft">Vrsta tekme</label><select id="ft"><option value="">Posamične + ekipne</option><option value="posamicno">Samo posamične</option><option value="ekipno">Samo ekipne</option></select></div>
+      <div hidden><label for="ft">Vrsta tekme</label><select id="ft"><option value="">Posamične + ekipne</option><option value="posamicno">Samo posamične</option><option value="ekipno">Samo ekipne</option></select></div>
     </div>
   </div>
   <div class="tabs" role="tablist">
@@ -92,7 +92,7 @@ footer{font-size:12px;color:var(--muted);padding:0 4px}
   <div class="card"><div class="scroll" id="out"></div></div>
   <footer>
     <p id="upd"></p>
-    <p>Vir rezultatov: FIS (fis-ski.com), samo posamične tekme svetovnega pokala. Šteje se uvrstitev slovenskih športnikov v tekmah svetovnega pokala; pri ekipnih tekmah vsak član ekipe prejme uvrstitev ekipe. Stolpci 1., 2. in 3. štejejo točno to mesto; Top 5, 10, 15 in 30 so kumulativni (2. mesto šteje tudi v Top 5). Ekipne tekme zaenkrat niso vključene. Posodobitve: vsako nedeljo od 1. 9. 2026 do 30. 4. 2027. Zgodovina od sezone 1991/92; stolpec »Stanje« v pogledu »Po sezonah« pove, ali je sezona popolna.</p>
+    <p>Vir rezultatov: FIS (fis-ski.com). Štejejo se samo posamične tekme svetovnega pokala v alpskem smučanju in smučarskih skokih; ekipne tekme niso vključene. Stolpci 1., 2. in 3. štejejo točno to mesto, stolpci Top 5, Top 10, Top 15 in Top 30 pa so kumulativni (2. mesto šteje tudi v Top 5). Podatki se posodobijo vsako nedeljo od 1. 9. 2026 do 30. 4. 2027. Zgodovina sega do sezone 1991/92; stolpec »Stanje« v pogledu »Po sezonah« pove, ali je sezona popolna.</p>
   </footer>
 </main>
 <script>
@@ -103,6 +103,11 @@ const TOPS=[5,10,15,30];
 const $=id=>document.getElementById(id);
 const el=(tag,cls,txt)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(txt!==undefined)e.textContent=txt;return e};
 let tab="name";
+/* slovenski mnozinski sklon: 1 = ednina, 2 = dvojina, 3-4 = mnozina, ostalo = rodilnik mnozine */
+function pl(n,f){const m=n%100;return m===1?f[0]:m===2?f[1]:(m===3||m===4)?f[2]:f[3]}
+const L_RACE=["tekma z uvrstitvijo","tekmi z uvrstitvama","tekme z uvrstitvami","tekem z uvrstitvami"];
+const L_ATH=["športnik","športnika","športniki","športnikov"];
+const L_RES=["uvrstitev v top 30","uvrstitvi v top 30","uvrstitve v top 30","uvrstitev v top 30"];
 function fmtDate(s){const [y,m,d]=s.split("-");return d.replace(/^0/,"")+". "+m.replace(/^0/,"")+". "+y}
 function init(){
   const fs=$("fs");
@@ -144,9 +149,10 @@ function render(){
   const rs=filtered();
   const people={};
   rs.forEach(r=>r.res.forEach(x=>{const k=x.id||x.n;(people[k]=people[k]||{n:x.n,g:r.g,items:[]}).items.push({r:x.r,x:x.x,race:r})}));
-  $("k1").textContent=RACES.length;
-  $("k2").textContent=Object.keys(people).length;
-  $("k3").textContent=Object.values(people).reduce((a,p)=>a+p.items.length,0);
+  const nr=RACES.length,na=Object.keys(people).length,nu=Object.values(people).reduce((a,p)=>a+p.items.length,0);
+  $("k1").textContent=nr;$("k1l").textContent=pl(nr,L_RACE);
+  $("k2").textContent=na;$("k2l").textContent=pl(na,L_ATH);
+  $("k3").textContent=nu;$("k3l").textContent=pl(nu,L_RES);
   const out=$("out");out.textContent="";
   if(!rs.length&&tab!=="season"){out.appendChild(el("div","empty","Za izbrane filtre še ni rezultatov (podatki za starejše sezone se še dopolnjujejo)."));return}
   const table=el("table");
@@ -184,7 +190,7 @@ function render(){
       const lab=s+"/"+String(s+1).slice(2);
       const sr=rs.filter(r=>seasonOf(r.d)===lab);
       const tr=el("tr");
-      const a=el("td","name",lab);a.appendChild(el("small",null,sr.length+" tekem z uvrstitvami"));tr.appendChild(a);
+      const a=el("td","name",lab);a.appendChild(el("small",null,sr.length+" "+pl(sr.length,L_RACE)));tr.appendChild(a);
       counts(sr.flatMap(r=>r.res.map(x=>x.r))).forEach((v,i)=>tr.appendChild(cell(v,i===0)));
       tr.appendChild(el("td","note",covText(lab)));
       tb.appendChild(tr);
