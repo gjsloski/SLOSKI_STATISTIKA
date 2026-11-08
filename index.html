@@ -59,6 +59,21 @@ tr.row:hover td{background:rgba(0,106,182,.06)}
 .kpi span{font-size:12px;color:var(--muted)}
 footer{font-size:12px;color:var(--muted);padding:0 4px}
 .bar{height:4px;background:linear-gradient(90deg,var(--led),var(--smreka))}
+.xbtns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.xbtns button{cursor:pointer}
+#printArea{display:none}
+@media print{
+  body{background:#fff}
+  body>*:not(#printArea){display:none!important}
+  #printArea{display:block;color:#000;font:12px Arial,Helvetica,sans-serif}
+  #printArea h1{font-size:18px;margin:0 0 4px;color:#00364f}
+  #printArea p{margin:0 0 10px;color:#444;font-size:11px}
+  #printArea table{min-width:0;width:100%;border-collapse:collapse;font-size:11px}
+  #printArea th{background:#00364f!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;position:static}
+  #printArea td,#printArea th{border:1px solid #b5b5b5;padding:4px 6px;text-align:center}
+  #printArea td:first-child,#printArea th:first-child{text-align:left}
+  @page{margin:12mm}
+}
 </style>
 </head>
 <body>
@@ -90,11 +105,28 @@ footer{font-size:12px;color:var(--muted);padding:0 4px}
     <button class="tab" role="tab" data-t="log" aria-selected="false">Rezultati tekem</button>
   </div>
   <div class="card"><div class="scroll" id="out"></div></div>
+  <div class="card" id="exp">
+    <b>Izvoz podatkov</b>
+    <div class="filters" style="margin-top:8px">
+      <div><label for="xk">Vsebina izvoza</label><select id="xk">
+        <option value="ath">Statistika po tekmovalcih</option>
+        <option value="sea">Statistika po sezonah</option>
+        <option value="aths">Tekmovalec po sezonah</option>
+        <option value="races">Seznam vseh uvrstitev</option></select></div>
+      <div id="xaw" hidden><label for="xa">Tekmovalec</label><select id="xa"></select></div>
+    </div>
+    <div class="xbtns">
+      <button class="tab" id="xx" type="button">Prenesi Excel (.xlsx)</button>
+      <button class="tab" id="xp" type="button">Shrani kot PDF</button>
+    </div>
+    <p class="note">Izvoz upošteva filtre zgoraj (sezona, šport, disciplina, spol). Za PDF v oknu za tiskanje izberite »Shrani kot PDF«.</p>
+  </div>
   <footer>
     <p id="upd"></p>
     <p>Vir rezultatov: FIS (fis-ski.com). Štejejo se samo posamične tekme svetovnega pokala v alpskem smučanju in smučarskih skokih; ekipne tekme niso vključene. Stolpci 1., 2. in 3. štejejo točno to mesto, stolpci Top 5, Top 10, Top 15 in Top 30 pa so kumulativni (2. mesto šteje tudi v Top 5). Podatki se posodobijo vsako nedeljo od 1. 9. 2026 do 30. 4. 2027. Zgodovina sega do sezone 1991/92; stolpec »Stanje« v pogledu »Po sezonah« pove, ali je sezona popolna.</p>
   </footer>
 </main>
+<div id="printArea"></div>
 <script>
 let META={updated:"",next:"",coverage:{}};
 let RACES=[];
@@ -152,7 +184,7 @@ function render(){
   const nr=RACES.length,na=Object.keys(people).length,nu=Object.values(people).reduce((a,p)=>a+p.items.length,0);
   $("k1").textContent=nr;$("k1l").textContent=pl(nr,L_RACE);
   $("k2").textContent=na;$("k2l").textContent=pl(na,L_ATH);
-  $("k3").textContent=nu;$("k3l").textContent=pl(nu,L_RES);
+  $("k3").textContent=nu;$("k3l").textContent=pl(nu,L_RES);fillAthletes(people);
   const out=$("out");out.textContent="";
   if(!rs.length&&tab!=="season"){out.appendChild(el("div","empty","Za izbrane filtre še ni rezultatov (podatki za starejše sezone se še dopolnjujejo)."));return}
   const table=el("table");
@@ -209,6 +241,104 @@ function render(){
     table.appendChild(tb);out.appendChild(table);
   }
 }
+/* ---------- izvoz (Excel, PDF) ---------- */
+const XH=["1.","2.","3.","Top 5","Top 10","Top 15","Top 30"];
+function groupPeople(rs){const p={};rs.forEach(r=>r.res.forEach(x=>{const k=x.id||x.n;(p[k]=p[k]||{n:x.n,g:r.g,items:[]}).items.push({r:x.r,x:x.x,race:r})}));return p}
+function fillAthletes(p){
+  const sel=$("xa"),cur=sel.value;sel.textContent="";
+  Object.entries(p).sort((a,b)=>a[1].n.localeCompare(b[1].n,"sl")).forEach(([k,v])=>sel.appendChild(new Option(v.n,String(k))));
+  if(cur&&p[cur])sel.value=cur;
+}
+function selText(id){const e=$(id);return e.options&&e.selectedIndex>=0?e.options[e.selectedIndex].text:""}
+function filterText(){
+  const parts=[];
+  if($("fse").value)parts.push("sezona "+$("fse").value);
+  if($("fs").value)parts.push($("fs").value);
+  if($("fd").value)parts.push($("fd").value);
+  if($("fg").value)parts.push($("fg").value==="M"?"moški":"ženske");
+  return parts.length?"Filtri: "+parts.join(", "):"Filtri: vse sezone, vsi športi, vse discipline";
+}
+function rankText(x){return x.x?"16.–30.":x.r}
+function exportData(kind){
+  const rs=filtered(),p=groupPeople(rs);
+  const base={kind,filters:filterText()};
+  if(kind==="ath"){
+    const rows=Object.values(p).map(a=>({a,c:counts(a.items.map(i=>i.r))}))
+      .sort((x,y)=>{for(let i=0;i<7;i++){if(y.c[i]!==x.c[i])return y.c[i]-x.c[i]}return x.a.n.localeCompare(y.a.n,"sl")})
+      .map(({a,c})=>[a.n,a.g==="M"?"Moški":"Ženske",...c]);
+    return {...base,title:"Statistika po tekmovalcih",file:"statistika-po-tekmovalcih",head:["Tekmovalec","Spol",...XH],rows};
+  }
+  if(kind==="sea"){
+    const g={};rs.forEach(r=>(g[seasonOf(r.d)]=g[seasonOf(r.d)]||[]).push(r));
+    const rows=Object.keys(g).sort().reverse().map(k=>[k,g[k].length,...counts(g[k].flatMap(r=>r.res.map(x=>x.r)))]);
+    return {...base,title:"Statistika po sezonah",file:"statistika-po-sezonah",head:["Sezona","Št. tekem",...XH],rows};
+  }
+  if(kind==="aths"){
+    const a=p[$("xa").value];if(!a)return null;
+    const g={};a.items.forEach(i=>(g[seasonOf(i.race.d)]=g[seasonOf(i.race.d)]||[]).push(i.r));
+    const rows=Object.keys(g).sort().reverse().map(k=>[k,...counts(g[k])]);
+    rows.push(["Skupaj",...counts(a.items.map(i=>i.r))]);
+    return {...base,title:"Tekmovalec: "+a.n+" – po sezonah",file:"tekmovalec-"+a.n.toLowerCase().replace(/[^a-z0-9]+/g,"-"),head:["Sezona",...XH],rows};
+  }
+  const rows=[];
+  rs.forEach(r=>r.res.forEach(x=>rows.push([r.d,seasonOf(r.d),r.sport,r.disc,r.g==="M"?"Moški":"Ženske",r.place,x.n,rankText(x)])));
+  rows.sort((a,b)=>b[0].localeCompare(a[0])||String(a[7]).localeCompare(String(b[7]),undefined,{numeric:true}));
+  return {...base,title:"Seznam vseh uvrstitev",file:"seznam-uvrstitev",head:["Datum","Sezona","Šport","Disciplina","Spol","Kraj","Tekmovalec","Uvrstitev"],rows};
+}
+function download(blob,name){
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;
+  document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000);
+}
+function csvFallback(d){
+  const q=v=>'"'+String(v).replace(/"/g,'""')+'"';
+  const txt="\uFEFF"+[d.head,...d.rows].map(r=>r.map(q).join(";")).join("\r\n");
+  download(new Blob([txt],{type:"text/csv;charset=utf-8"}),d.file+".csv");
+  alert("Knjižnice za Excel ni bilo mogoče naložiti, zato je izvoz shranjen kot CSV (odpre se v Excelu).");
+}
+function loadXlsx(){
+  return new Promise((res,rej)=>{
+    if(window.XLSX)return res();
+    const s=document.createElement("script");
+    s.src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";
+    s.onload=res;s.onerror=rej;document.head.appendChild(s);
+  });
+}
+async function doXlsx(){
+  const d=exportData($("xk").value);
+  if(!d||!d.rows.length){alert("Za izbrane filtre ni podatkov za izvoz.");return}
+  try{await loadXlsx()}catch(e){csvFallback(d);return}
+  const wb=XLSX.utils.book_new();
+  const ws=XLSX.utils.aoa_to_sheet([[d.title],[d.filters],[],d.head,...d.rows]);
+  ws["!cols"]=d.head.map((h,i)=>({wch:i===0?(d.kind==="races"?12:26):(d.kind==="races"?16:11)}));
+  XLSX.utils.book_append_sheet(wb,ws,"Statistika");
+  if(d.kind!=="races"){
+    const r=exportData("races");
+    const w2=XLSX.utils.aoa_to_sheet([r.head,...r.rows]);
+    w2["!cols"]=r.head.map((h,i)=>({wch:i===6?24:16}));
+    XLSX.utils.book_append_sheet(wb,w2,"Rezultati");
+  }
+  XLSX.writeFile(wb,d.file+".xlsx");
+}
+function doPdf(){
+  const d=exportData($("xk").value);
+  if(!d||!d.rows.length){alert("Za izbrane filtre ni podatkov za izvoz.");return}
+  const pa=$("printArea");pa.textContent="";
+  pa.appendChild(el("h1",null,d.title));
+  pa.appendChild(el("p",null,d.filters+" · Vir: FIS (fis-ski.com) · Izvoženo: "+fmtDate(new Date().toISOString().slice(0,10))));
+  const t=el("table");const th=el("thead"),tr=el("tr");
+  d.head.forEach(h=>tr.appendChild(el("th",null,h)));th.appendChild(tr);t.appendChild(th);
+  const tb=el("tbody");
+  d.rows.forEach(r=>{const x=el("tr");r.forEach(c=>x.appendChild(el("td",null,String(c))));tb.appendChild(x)});
+  t.appendChild(tb);pa.appendChild(t);
+  const old=document.title;document.title=d.file;
+  const done=()=>{document.title=old;pa.textContent="";window.removeEventListener("afterprint",done)};
+  window.addEventListener("afterprint",done);
+  window.print();
+}
+$("xk").addEventListener("change",()=>{$("xaw").hidden=$("xk").value!=="aths"});
+$("xx").addEventListener("click",doXlsx);
+$("xp").addEventListener("click",doPdf);
+
 async function boot(){
   try{
     const [r,m]=await Promise.all([fetch("data/races.json?"+Date.now()),fetch("data/meta.json?"+Date.now())]);
