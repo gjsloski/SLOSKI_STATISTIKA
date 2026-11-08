@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="sl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Slovenski športniki v svetovnem pokalu 2026/27 – statistika</title>
+<style>
+:root{
+  --gora:#00364f; --led:#006ab6; --sijaj:#b5e3f2; --smreka:#8dc63f; --mah:#cfe5b3;
+  --bg:#eaf6f7; --card:#ffffff; --text:#262623; --muted:#5d6264; --line:#dddbda; --head:#00364f; --headtext:#ffffff; --accent:#006ab6; --chip:#b5e3f2; --chiptext:#00364f;
+  color-scheme: light;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#00222f; --card:#00364f; --text:#eaf6f7; --muted:#9fc2d0; --line:#0b4a68; --head:#006ab6; --headtext:#ffffff; --accent:#8dc63f; --chip:#0b4a68; --chiptext:#eaf6f7; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#00222f; --card:#00364f; --text:#eaf6f7; --muted:#9fc2d0; --line:#0b4a68; --head:#006ab6; --headtext:#ffffff; --accent:#8dc63f; --chip:#0b4a68; --chiptext:#eaf6f7; color-scheme: dark;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"General Sans",Arial,Helvetica,sans-serif;line-height:1.4;-webkit-text-size-adjust:100%}
+header{background:var(--gora);color:#fff;padding:22px 16px 18px;position:relative;overflow:hidden}
+header::after{content:"";position:absolute;right:-40px;top:-40px;width:200px;height:200px;border:2px solid rgba(181,227,242,.35);border-radius:50%}
+header .brand{font-weight:700;letter-spacing:.12em;font-size:13px;color:var(--sijaj)}
+header h1{margin:6px 0 4px;font-size:24px;line-height:1.1;letter-spacing:-.02em;max-width:560px}
+header p{margin:0;font-size:13px;color:var(--sijaj)}
+main{max-width:980px;margin:0 auto;padding:14px 12px 40px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:12px}
+.filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}
+label{font-size:12px;color:var(--muted);display:block;margin-bottom:3px}
+select{width:100%;padding:9px 8px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--text);font:inherit;font-size:14px}
+.tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.tab{border:1px solid var(--accent);background:transparent;color:var(--accent);padding:8px 14px;border-radius:999px;font:inherit;font-size:14px;font-weight:600;cursor:pointer}
+.tab[aria-selected="true"]{background:var(--accent);color:#fff}
+:root[data-theme="dark"] .tab[aria-selected="true"], :root:not([data-theme="light"]) .tab[aria-selected="true"]{color:#00222f}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px;min-width:580px}
+th,td{padding:8px 6px;text-align:center;border-bottom:1px solid var(--line)}
+th{background:var(--head);color:var(--headtext);font-weight:600;position:sticky;top:0;white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+th:first-child{border-top-left-radius:8px}th:last-child{border-top-right-radius:8px}
+td.name{font-weight:600}
+td.name small{display:block;font-weight:400;color:var(--muted);font-size:12px}
+tr.row{cursor:pointer}
+tr.row:hover td{background:rgba(0,106,182,.06)}
+.num{font-variant-numeric:tabular-nums}
+.zero{color:var(--muted);opacity:.55}
+.hi{font-weight:700;color:var(--accent)}
+.detail td{background:rgba(181,227,242,.25);text-align:left;font-size:13px;padding:6px 10px}
+.pill{display:inline-block;background:var(--chip);color:var(--chiptext);border-radius:999px;padding:2px 9px;font-size:12px;margin:2px 4px 2px 0}
+.note{font-size:12px;color:var(--muted)}
+.empty{padding:20px;text-align:center;color:var(--muted)}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center}
+.kpi b{display:block;font-size:24px;color:var(--accent);line-height:1.1}
+.kpi span{font-size:12px;color:var(--muted)}
+footer{font-size:12px;color:var(--muted);padding:0 4px}
+.bar{height:4px;background:linear-gradient(90deg,var(--led),var(--smreka))}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">SLOSKI · JUNAKI ZIME</div>
+  <h1>Slovenci v svetovnem pokalu 2026/27</h1>
+  <p>Statistika uvrstitev: 1., 2., 3. mesto, top 5, 10, 15 in 30 · posodobitev vsako nedeljo</p>
+</header>
+<div class="bar"></div>
+<main>
+  <div class="kpis">
+    <div class="kpi"><b id="k1">0</b><span>tekem z uvrstitvami</span></div>
+    <div class="kpi"><b id="k2">0</b><span>športnikov</span></div>
+    <div class="kpi"><b id="k3">0</b><span>uvrstitev v top 30</span></div>
+  </div>
+  <div class="card">
+    <div class="filters">
+      <div><label for="fse">Sezona</label><select id="fse"></select></div>
+      <div><label for="fs">Šport</label><select id="fs"></select></div>
+      <div><label for="fd">Disciplina</label><select id="fd"></select></div>
+      <div><label for="fg">Spol</label><select id="fg"><option value="">Vsi</option><option value="M">Moški</option><option value="Ž">Ženske</option></select></div>
+      <div><label for="ft">Vrsta tekme</label><select id="ft"><option value="">Posamične + ekipne</option><option value="posamicno">Samo posamične</option><option value="ekipno">Samo ekipne</option></select></div>
+    </div>
+  </div>
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" data-t="name" aria-selected="true">Po športnikih</button>
+    <button class="tab" role="tab" data-t="disc" aria-selected="false">Po disciplinah</button>
+    <button class="tab" role="tab" data-t="season" aria-selected="false">Po sezonah</button>
+    <button class="tab" role="tab" data-t="log" aria-selected="false">Rezultati tekem</button>
+  </div>
+  <div class="card"><div class="scroll" id="out"></div></div>
+  <footer>
+    <p id="upd"></p>
+    <p>Vir rezultatov: FIS (fis-ski.com), samo posamične tekme svetovnega pokala. Šteje se uvrstitev slovenskih športnikov v tekmah svetovnega pokala; pri ekipnih tekmah vsak član ekipe prejme uvrstitev ekipe. Stolpci 1., 2. in 3. štejejo točno to mesto; Top 5, 10, 15 in 30 so kumulativni (2. mesto šteje tudi v Top 5). Ekipne tekme zaenkrat niso vključene. Posodobitve: vsako nedeljo od 1. 9. 2026 do 30. 4. 2027. Zgodovina od sezone 1991/92; stolpec »Stanje« v pogledu »Po sezonah« pove, ali je sezona popolna.</p>
+  </footer>
+</main>
+<script>
+let META={updated:"",next:"",coverage:{}};
+let RACES=[];
+const SPORTS=["Alpsko smučanje","Smučarski skoki","Smučarski teki","Nordijska kombinacija","Deskanje na snegu","Freestyle"];
+const TOPS=[5,10,15,30];
+const $=id=>document.getElementById(id);
+const el=(tag,cls,txt)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(txt!==undefined)e.textContent=txt;return e};
+let tab="name";
+function fmtDate(s){const [y,m,d]=s.split("-");return d.replace(/^0/,"")+". "+m.replace(/^0/,"")+". "+y}
+function init(){
+  const fs=$("fs");
+  fs.appendChild(new Option("Vsi športi",""));
+  SPORTS.forEach(s=>fs.appendChild(new Option(s,s)));
+  fillSeason();fillDisc();
+  ["fse","fs","fd","fg","ft"].forEach(i=>$(i).addEventListener("change",()=>{if(i==="fs")fillDisc();render()}));
+  document.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>{
+    tab=b.dataset.t;document.querySelectorAll(".tab").forEach(x=>x.setAttribute("aria-selected",x===b));render()}));
+  $("upd").textContent=META.updated?("Zadnja posodobitev: "+fmtDate(META.updated)+" · naslednja: nedelja, "+fmtDate(META.next)):"Podatki se še nalagajo.";
+  render();
+}
+/* Sezone od 1991/92 (začetek samostojne Slovenije in SZS) do 2026/27. Stanje podatkov: popolno | delno | v teku; kar ni naštetega = še ni vneseno */
+const FIRST=1991,LAST=2026;
+function covText(lab){
+  const c=(META.coverage||{})[lab];
+  if(!c)return "še ni vneseno";
+  const names={alpine:"alpsko",jumping:"skoki"};
+  return Object.keys(c).map(k=>(names[k]||k)+": "+c[k]).join(" · ");
+}
+function seasonOf(d){const y=+d.slice(0,4),m=+d.slice(5,7),s=m>=8?y:y-1;return s+"/"+String(s+1).slice(2)}
+function fillSeason(){
+  const f=$("fse");f.appendChild(new Option("Vse sezone",""));
+  for(let s=LAST;s>=FIRST;s--)f.appendChild(new Option(s+"/"+String(s+1).slice(2),s+"/"+String(s+1).slice(2)));
+}
+function fillDisc(){
+  const s=$("fs").value,d=$("fd");d.textContent="";
+  d.appendChild(new Option("Vse discipline",""));
+  [...new Set(RACES.filter(r=>!s||r.sport===s).map(r=>r.disc))].sort().forEach(x=>d.appendChild(new Option(x,x)));
+}
+function filtered(){
+  const se=$("fse").value,s=$("fs").value,d=$("fd").value,g=$("fg").value,t=$("ft").value;
+  return RACES.filter(r=>(!se||seasonOf(r.d)===se)&&(!s||r.sport===s)&&(!d||r.disc===d)&&(!g||r.g===g)&&(!t||r.t===t));
+}
+function counts(ranks){return [1,2,3].map(n=>ranks.filter(r=>r===n).length).concat(TOPS.map(n=>ranks.filter(r=>r<=n).length))}
+function cell(v,first){const td=el("td","num",String(v));if(v===0)td.classList.add("zero");else if(first)td.classList.add("hi");return td}
+function head(cols){const tr=el("tr");cols.forEach(c=>tr.appendChild(el("th",null,c)));const th=el("thead");th.appendChild(tr);return th}
+function render(){
+  const rs=filtered();
+  const people={};
+  rs.forEach(r=>r.res.forEach(x=>{const k=x.id||x.n;(people[k]=people[k]||{n:x.n,g:r.g,items:[]}).items.push({r:x.r,x:x.x,race:r})}));
+  $("k1").textContent=RACES.length;
+  $("k2").textContent=Object.keys(people).length;
+  $("k3").textContent=Object.values(people).reduce((a,p)=>a+p.items.length,0);
+  const out=$("out");out.textContent="";
+  if(!rs.length&&tab!=="season"){out.appendChild(el("div","empty","Za izbrane filtre še ni rezultatov (podatki za starejše sezone se še dopolnjujejo)."));return}
+  const table=el("table");
+  if(tab==="name"){
+    table.appendChild(head(["Športnik","1.","2.","3.","Top 5","Top 10","Top 15","Top 30"]));
+    const tb=el("tbody");
+    Object.values(people).map(p=>({p,c:counts(p.items.map(i=>i.r))}))
+      .sort((a,b)=>{for(let i=0;i<7;i++){if(b.c[i]!==a.c[i])return b.c[i]-a.c[i]}return a.p.n.localeCompare(b.p.n,"sl")})
+      .forEach(({p,c})=>{
+        const tr=el("tr","row");const td=el("td","name",p.n);
+        const real=p.items.filter(i=>!i.x);const best=real.length?String(Math.min(...real.map(i=>i.r))):"16.–30";
+        td.appendChild(el("small",null,(p.g==="M"?"Moški":"Ženske")+" · najboljša uvrstitev: "+best+"."));
+        tr.appendChild(td);c.forEach((v,i)=>tr.appendChild(cell(v,i===0)));
+        const dt=el("tr","detail");dt.hidden=true;const dd=el("td");dd.colSpan=8;
+        p.items.sort((a,b)=>a.race.d.localeCompare(b.race.d)).forEach(i=>dd.appendChild(el("span","pill",(i.x?"16.–30.":i.r+".")+" · "+i.race.disc+" · "+i.race.place+" · "+fmtDate(i.race.d)+(i.race.t==="ekipno"?" (ekipno)":""))));
+        dt.appendChild(dd);
+        tr.addEventListener("click",()=>{dt.hidden=!dt.hidden});
+        tb.appendChild(tr);tb.appendChild(dt);
+      });
+    table.appendChild(tb);
+    out.appendChild(table);
+    out.appendChild(el("p","note","Tapni na športnika za podrobnosti uvrstitev."));
+  }else if(tab==="disc"){
+    table.appendChild(head(["Disciplina","1.","2.","3.","Top 5","Top 10","Top 15","Top 30"]));
+    const groups={};
+    rs.forEach(r=>{const k=r.sport+" – "+r.disc+(r.g==="M"?" (M)":" (Ž)");(groups[k]=groups[k]||[]).push(...r.res.map(x=>x.r))});
+    const tb=el("tbody");
+    Object.keys(groups).sort((a,b)=>a.localeCompare(b,"sl")).forEach(k=>{
+      const tr=el("tr");tr.appendChild(el("td","name",k));counts(groups[k]).forEach((v,i)=>tr.appendChild(cell(v,i===0)));tb.appendChild(tr)});
+    table.appendChild(tb);out.appendChild(table);
+  }else if(tab==="season"){
+    table.appendChild(head(["Sezona","1.","2.","3.","Top 5","Top 10","Top 15","Top 30","Stanje"]));
+    const tb=el("tbody");
+    for(let s=LAST;s>=FIRST;s--){
+      const lab=s+"/"+String(s+1).slice(2);
+      const sr=rs.filter(r=>seasonOf(r.d)===lab);
+      const tr=el("tr");
+      const a=el("td","name",lab);a.appendChild(el("small",null,sr.length+" tekem z uvrstitvami"));tr.appendChild(a);
+      counts(sr.flatMap(r=>r.res.map(x=>x.r))).forEach((v,i)=>tr.appendChild(cell(v,i===0)));
+      tr.appendChild(el("td","note",covText(lab)));
+      tb.appendChild(tr);
+    }
+    table.appendChild(tb);out.appendChild(table);
+  }else{
+    table.appendChild(head(["Tekma","Datum","Uvrstitve"]));
+    const tb=el("tbody");
+    [...rs].sort((a,b)=>b.d.localeCompare(a.d)).forEach(r=>{
+      const tr=el("tr");
+      const a=el("td","name",r.sport+" – "+r.disc+" ("+(r.g==="M"?"M":"Ž")+")");a.appendChild(el("small",null,r.place+(r.t==="ekipno"?" · ekipno":"")));
+      tr.appendChild(a);tr.appendChild(el("td",null,fmtDate(r.d)));
+      const td=el("td");td.style.textAlign="left";
+      r.res.slice().sort((x,y)=>x.r-y.r).forEach(x=>td.appendChild(el("span","pill",(x.x?"16.–30.":x.r+".")+" "+x.n)));
+      tr.appendChild(td);tb.appendChild(tr)});
+    table.appendChild(tb);out.appendChild(table);
+  }
+}
+async function boot(){
+  try{
+    const [r,m]=await Promise.all([fetch("data/races.json?"+Date.now()),fetch("data/meta.json?"+Date.now())]);
+    RACES=await r.json();META=await m.json();
+  }catch(e){console.error(e)}
+  init();
+}
+boot();
+</script>
+</body>
+</html>
