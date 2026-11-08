@@ -1,0 +1,65 @@
+name: Posodobitev statistike
+
+on:
+  schedule:
+    - cron: "0 7 * * 0"        # vsako nedeljo ob 07:00 UTC
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "weekly = samo tekoča sezona, backfill = vsa zgodovina od 1991/92"
+        default: "weekly"
+        type: choice
+        options: [weekly, backfill]
+  push:
+    branches: [main]
+    paths: [index.html, scripts/**, .github/workflows/update.yml]
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: statistika
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install requests beautifulsoup4 lxml
+      - name: Zberi rezultate
+        run: python scripts/update.py --mode "${{ github.event.inputs.mode || 'weekly' }}" --max-minutes 330
+      - name: Shrani podatke
+        if: always()
+        run: |
+          git config user.name "statistika-bot"
+          git config user.email "statistika-bot@users.noreply.github.com"
+          git add data
+          git diff --staged --quiet || (git commit -m "Posodobitev podatkov $(date +%F)" && git push)
+      - name: Pripravi spletno stran
+        if: always()
+        run: |
+          mkdir site
+          cp index.html site/
+          cp -r data site/data
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: update
+    if: always() && needs.update.result != 'cancelled'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
