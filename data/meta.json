@@ -1,151 +1,118 @@
 {
  "coverage": {
   "2026/27": {
-   "alpine": "v teku",
-   "jumping": "v teku"
+   "jumping": "v teku",
+   "alpine": "v teku"
   },
   "Poletje 2026": {
    "nordic": "popolno",
    "jumping": "popolno"
   },
   "2025/26": {
-   "alpine": "popolno",
-   "jumping": "popolno"
+   "jumping": "popolno",
+   "alpine": "popolno"
   },
   "2024/25": {
-   "alpine": "popolno",
-   "jumping": "popolno"
+   "jumping": "popolno",
+   "alpine": "popolno"
   },
   "2023/24": {
-   "alpine": "popolno",
    "jumping": "popolno"
   },
   "2022/23": {
-   "alpine": "popolno",
    "jumping": "popolno"
   },
   "2021/22": {
-   "alpine": "popolno",
    "jumping": "popolno"
   },
   "2020/21": {
-   "alpine": "popolno",
    "jumping": "popolno"
   },
   "2019/20": {
-   "alpine": "popolno",
    "jumping": "popolno"
   },
   "2018/19": {
-   "alpine": "popolno",
    "jumping": "popolno"
   },
   "2017/18": {
-   "alpine": "popolno",
    "jumping": "popolno"
   },
   "2016/17": {
-   "alpine": "popolno",
    "jumping": "popolno"
   },
   "2015/16": {
-   "alpine": "popolno",
    "jumping": "popolno"
   },
   "2014/15": {
-   "alpine": "popolno",
    "jumping": "popolno"
   },
   "2013/14": {
-   "alpine": "popolno",
    "jumping": "popolno"
   },
   "2012/13": {
-   "alpine": "popolno",
    "jumping": "popolno"
   },
   "2011/12": {
-   "alpine": "popolno",
    "jumping": "delno"
   },
   "2010/11": {
-   "alpine": "popolno",
    "jumping": "popolno"
   },
   "2009/10": {
-   "alpine": "popolno",
    "jumping": "popolno"
   },
   "2008/09": {
-   "alpine": "popolno",
    "jumping": "popolno"
   },
   "2007/08": {
-   "alpine": "popolno",
    "jumping": "popolno"
   },
   "2006/07": {
-   "alpine": "popolno",
    "jumping": "popolno"
   },
   "2005/06": {
-   "alpine": "popolno",
    "jumping": "popolno"
   },
   "2004/05": {
-   "alpine": "popolno",
    "jumping": "popolno"
   },
   "2003/04": {
-   "alpine": "popolno",
    "jumping": "popolno"
   },
   "2002/03": {
-   "alpine": "popolno",
    "jumping": "popolno"
   },
   "2001/02": {
-   "alpine": "popolno",
    "jumping": "popolno"
   },
   "2000/01": {
-   "alpine": "popolno",
    "jumping": "popolno"
   },
   "1999/00": {
-   "alpine": "popolno",
    "jumping": "popolno"
   },
   "1998/99": {
-   "alpine": "popolno",
    "jumping": "popolno"
   },
   "1997/98": {
-   "alpine": "popolno",
    "jumping": "popolno"
   },
   "1996/97": {
-   "alpine": "popolno",
    "jumping": "popolno"
   },
   "1995/96": {
-   "alpine": "popolno",
    "jumping": "popolno"
   },
   "1994/95": {
-   "alpine": "popolno",
    "jumping": "popolno"
   },
   "1993/94": {
-   "alpine": "popolno",
    "jumping": "popolno"
   },
   "1992/93": {
-   "alpine": "popolno",
    "jumping": "popolno"
   },
   "1991/92": {
-   "alpine": "popolno",
    "jumping": "popolno"
   }
  },
