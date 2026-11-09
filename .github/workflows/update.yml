@@ -9,7 +9,7 @@ on:
         description: "weekly = samo tekoča sezona, backfill = vsa zgodovina od 1991/92"
         default: "weekly"
         type: choice
-        options: [weekly, backfill]
+        options: [weekly, backfill, reset-jumping, validate]
   push:
     branches: [main]
     paths: [index.html, scripts/**, .github/workflows/update.yml]
@@ -36,7 +36,15 @@ jobs:
           python-version: "3.12"
       - run: pip install requests beautifulsoup4 lxml
       - name: Zberi rezultate
-        run: python scripts/update.py --mode "${{ github.event.inputs.mode || 'weekly' }}" --max-minutes 330
+        run: |
+          MODE="${{ github.event.inputs.mode || 'weekly' }}"
+          if [ "$MODE" = "validate" ]; then
+            python scripts/update.py --only-validate --max-minutes 120
+          elif [ "$MODE" = "reset-jumping" ]; then
+            python scripts/update.py --mode backfill --reset-sport jumping --validate --max-minutes 330
+          else
+            python scripts/update.py --mode "$MODE" --validate --max-minutes 330
+          fi
       - name: Shrani podatke
         if: always()
         run: |
