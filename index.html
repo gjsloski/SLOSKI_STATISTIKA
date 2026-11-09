@@ -199,7 +199,7 @@ function render(){
   const rs=filtered();
   const people={};
   rs.forEach(r=>r.res.forEach(x=>{const k=x.id||x.n;(people[k]=people[k]||{n:x.n,g:r.g,items:[]}).items.push({r:x.r,x:x.x,race:r})}));
-  const nr=RACES.filter(inMode).length,na=Object.keys(people).length,nu=Object.values(people).reduce((a,p)=>a+p.items.length,0);
+  const nr=rs.filter(r=>r.res.length).length,na=Object.keys(people).length,nu=Object.values(people).reduce((a,p)=>a+p.items.length,0);
   $("k1").textContent=nr;$("k1l").textContent=pl(nr,L_RACE);
   $("k2").textContent=na;$("k2l").textContent=pl(na,L_ATH);
   $("k3").textContent=nu;$("k3l").textContent=pl(nu,L_RES);fillAthletes(people);
