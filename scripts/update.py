@@ -77,7 +77,8 @@ MONTH_RE = r"(January|February|March|April|May|June|July|August|September|Octobe
 DATE_RE = re.compile(r"^" + MONTH_RE + r" \d{1,2}, \d{4}$")
 TITLE_RE = re.compile(r"^(Men|Women|Ladies|Mixed|Team)\b")
 STOP_RE = re.compile(r"^(Did not|Did Not|Disqualified|Not qualified|DNF|DSQ|DNS|DNQ)", re.I)
-SKIP_WORDS = ("Team", "Mixed", "Relay")
+SKIP_WORDS = ("Team", "Mixed", "Relay", "Standings")
+QUAL_RE = re.compile(r"\b(Qualification|Qualifying|Training|Trial|Prologue)\b", re.I)
 
 
 def log(*a):
@@ -231,6 +232,10 @@ def parse_race(html, sport_key, raceid, extra_names, cat="WC"):
         return "fail", None
     if any(w in title for w in SKIP_WORDS):
         return "skip", None
+    # kvalifikacije, treningi in poskusne serije niso tekme za uvrstitve
+    ti = head.index(title)
+    if any(QUAL_RE.search(l) for l in head[ti:ti + 3] if len(l) < 90):
+        return "skip", None
     gender = "M" if title.startswith("Men") else "Ž"
     disc = None
     for key, sl in DISC:
@@ -278,6 +283,73 @@ def parse_race(html, sport_key, raceid, extra_names, cat="WC"):
         race["summer"] = True
     return "ok", race
 
+
+
+# ------------------------------------------------------------- preverjanje s FIS
+def season_of(date):
+    y, m = int(date[:4]), int(date[5:7])
+    return y + 1 if m >= 7 else y
+
+
+def parse_podiums(html):
+    """Iz strani FIS 'Podiums' vrne {sezona: [1., 2., 3.]} ali None, ce tabele ni."""
+    soup = BeautifulSoup(html, "lxml") if _has_lxml() else BeautifulSoup(html, "html.parser")
+    lines = [l for l in soup.get_text("\n", strip=True).split("\n") if l]
+    out = {}
+    for i, l in enumerate(lines):
+        if re.fullmatch(r"(19|20)\d\d", l) and i + 4 < len(lines):
+            nums = lines[i + 1:i + 5]
+            if all(re.fullmatch(r"\d{1,3}", n) for n in nums):
+                a, b, c, tot = (int(n) for n in nums)
+                if a + b + c == tot:
+                    out[int(l)] = [a, b, c]
+    return out or None
+
+
+def validate(races, today, deadline):
+    """Primerja nase stetje 1./2./3. mesta po sezonah s podatki FIS (Podiums) za vsakega sportnika."""
+    ours = {}  # (sport_key, athlete_id) -> {sezona: [1,2,3]}, ime
+    names = {}
+    by_label = {cfg["label"]: k for k, cfg in SPORTS.items()}
+    for r in races.values():
+        if r.get("summer") or r.get("t") != "posamicno":
+            continue
+        sk = by_label.get(r["sport"])
+        if not sk:
+            continue
+        for x in r["res"]:
+            if "id" not in x or x["r"] > 3:
+                continue
+            seas = ours.setdefault((sk, x["id"]), {})
+            seas.setdefault(season_of(r["d"]), [0, 0, 0])[x["r"] - 1] += 1
+            names[(sk, x["id"])] = x["n"]
+    rows, n_ok, n_diff, n_na = [], 0, 0, 0
+    for (sk, aid), seas in sorted(ours.items(), key=lambda kv: names[kv[0]]):
+        if time.time() > deadline:
+            log("Preverjanje: casovna omejitev.")
+            break
+        url = f"{BASE}/DB/general/athlete-biography.html?sectorcode={SPORTS[sk]['code']}&competitorid={aid}&type=podiums"
+        html = get(url)
+        fis = parse_podiums(html) if html else None
+        if fis is None:
+            n_na += 1
+            rows.append({"n": names[(sk, aid)], "id": aid, "sport": SPORTS[sk]["label"], "status": "nepreverjeno"})
+            continue
+        diffs = []
+        for season in sorted(set(seas) | set(fis)):
+            a, b = seas.get(season, [0, 0, 0]), fis.get(season, [0, 0, 0])
+            if a != b:
+                diffs.append({"s": f"{season-1}/{str(season)[2:]}", "nase": a, "fis": b})
+        if diffs:
+            n_diff += 1
+            rows.append({"n": names[(sk, aid)], "id": aid, "sport": SPORTS[sk]["label"], "status": "razlika", "razlike": diffs})
+            log(f"  RAZLIKA {names[(sk, aid)]}: " + "; ".join(f"{d['s']} nase {d['nase']} FIS {d['fis']}" for d in diffs))
+        else:
+            n_ok += 1
+    out = {"updated": today.isoformat(), "ujema": n_ok, "razlike": n_diff, "nepreverjeno": n_na,
+           "athletes": [r for r in rows if r["status"] != "ok"]}
+    (DATA / "validation.json").write_text(json.dumps(out, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+    log(f"Preverjanje s FIS: ujema {n_ok}, razlike {n_diff}, nepreverjeno {n_na}")
 
 # ----------------------------------------------------------------- glavni tok
 def save_all(races, state, meta, today):
@@ -347,6 +419,9 @@ def main():
     ap.add_argument("--from-season", type=int, default=1992, help="zimska sezona: koda = koncno leto (1992 = 1991/92)")
     ap.add_argument("--no-summer", action="store_true", help="preskoci poletno sezono (Grand Prix)")
     ap.add_argument("--max-minutes", type=int, default=330)
+    ap.add_argument("--reset-sport", choices=["alpine", "jumping", "nordic"], help="zavrze zbrane podatke tega sporta (zimske in poletne) in jih zbere znova")
+    ap.add_argument("--validate", action="store_true", help="po zbiranju primerja stetje z FIS Podiums")
+    ap.add_argument("--only-validate", action="store_true", help="samo preveri, brez zbiranja")
     ap.add_argument("--force", action="store_true", help="ponovno obdela tudi sezone, oznacene kot popolne")
     args = ap.parse_args()
 
@@ -359,6 +434,19 @@ def main():
     meta.setdefault("coverage", {})
     extra_names = load_json(DATA / "names.json", {})
     deadline = time.time() + args.max_minutes * 60
+
+    if args.reset_sport:
+        cfg = SPORTS[args.reset_sport]
+        n0 = len(races)
+        races = {k: r for k, r in races.items() if r["sport"] != cfg["label"]}
+        state["seen"] = {k: v for k, v in state["seen"].items() if not k.startswith(cfg["code"] + ":")}
+        for lab in meta["coverage"].values():
+            lab.pop(args.reset_sport, None)
+        log(f"Ponastavitev {args.reset_sport}: odstranjenih {n0 - len(races)} tekem")
+
+    if args.only_validate:
+        validate(races, today, deadline)
+        return 0
 
     jobs = []  # (code, sport, cat, label, finished)
     winter_codes = [cur] if args.mode == "weekly" else list(range(cur, args.from_season - 1, -1))
@@ -387,6 +475,8 @@ def main():
         cov[sk] = result
         save_all(races, state, meta, today)
     save_all(races, state, meta, today)
+    if args.validate:
+        validate(races, today, deadline)
     log(f"Konec. Tekem s slovenskimi uvrstitvami: {len(races)}")
     return 0
 
