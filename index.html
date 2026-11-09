@@ -362,6 +362,22 @@ async function boot(){
     RACES=await r.json();META=await m.json();
   }catch(e){console.error(e)}
   init();
+  try{
+    const v=await (await fetch("data/validation.json?"+Date.now())).json();
+    const box=document.createElement("section");box.className="card";box.style.margin="16px auto";box.style.maxWidth="1100px";box.style.padding="16px";
+    const h=document.createElement("h3");h.textContent="Preverjanje s podatki FIS";box.appendChild(h);
+    const p=document.createElement("p");
+    p.textContent="Za vsakega športnika primerjamo število 1., 2. in 3. mest po sezonah z uradno stranjo FIS (Podiums, svetovni pokal, posamično). Preverjeno "+v.updated+": ujema se "+v.ujema+", z razlikami "+v.razlike+", ni preverjeno "+v.nepreverjeno+".";
+    box.appendChild(p);
+    const diffs=(v.athletes||[]).filter(a=>a.status==="razlika");
+    if(diffs.length){
+      const ul=document.createElement("ul");
+      diffs.slice(0,40).forEach(a=>{const li=document.createElement("li");
+        li.textContent=a.n+" ("+a.sport+"): "+a.razlike.map(d=>d.s+" naše "+d.nase.join("/")+" · FIS "+d.fis.join("/")).join("; ");ul.appendChild(li)});
+      box.appendChild(ul);
+    }
+    document.querySelector("footer").before(box);
+  }catch(e){/* validation.json se ni na voljo */}
 }
 boot();
 </script>
