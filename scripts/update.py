@@ -81,6 +81,7 @@ STOP_RE = re.compile(r"^(Did not|Did Not|Disqualified|Not qualified|DNF|DSQ|DNS|
 SKIP_WORDS = ("Team", "Mixed", "Relay", "Standings")
 TYPE_RE = re.compile(r"\d{1,2}\.\d{1,2}\.\d{4}\s*-\s*[^|]{3,90}\|\s*([A-Za-z]{2,6})\b")
 # oznake vrste tekme na FIS: WC = tekma, TRA = trening, COM = etapa kombinacije, kvalifikacije in poskusne serije
+CODES_SEEN = {}
 BAD_TYPES = {"TRA", "COM", "QUA", "QUAL", "QUF", "Q", "TRI", "TRL", "PRO", "PCR", "TRN"}
 QUAL_RE = re.compile(r"\b(Qualification|Qualifying|Training|Trial|Prologue)\b", re.I)
 
@@ -238,9 +239,14 @@ def parse_race(html, sport_key, raceid, extra_names, cat="WC"):
         return "skip", None
     # vrsta tekme: iz naslova "16.12.2016 - Women's Downhill | WC" preberemo oznako
     mt = TYPE_RE.search(" ".join(head))
-    if mt and (mt.group(1).upper() in BAD_TYPES or mt.group(1).upper().startswith(("QU", "TR"))
-               or QUAL_RE.search(mt.group(0))):
-        return "skip", None
+    if mt:
+        code = mt.group(1).upper()
+        CODES_SEEN[(cat, code)] = CODES_SEEN.get((cat, code), 0) + 1
+        if code in BAD_TYPES or code.startswith(("QU", "TR")) or QUAL_RE.search(mt.group(0)):
+            return "skip", None
+        # svetovni pokal: stejejo samo tekme z oznako WC (druge, npr. FIS, niso tekme za svetovni pokal)
+        if cat == "WC" and code != "WC":
+            return "skip", None
     # kvalifikacije, treningi in poskusne serije niso tekme za uvrstitve
     ti = head.index(title)
     if any(QUAL_RE.search(l) for l in head[ti:ti + 3] if len(l) < 90):
@@ -294,6 +300,34 @@ def parse_race(html, sport_key, raceid, extra_names, cat="WC"):
 
 
 
+
+
+def refilter(races, state, extra_names, deadline):
+    """Ponovno preveri ze shranjene tekme (brez novega zbiranja) in odstrani tiste, ki jih filter zdaj zavrne."""
+    by_label = {cfg["label"]: (k, cfg) for k, cfg in SPORTS.items()}
+    done = set(state.setdefault("refiltered", []))
+    removed = 0
+    todo = [r for r in races.values() if r["id"] not in done]
+    log(f"Ponovni pregled: {len(todo)} tekem")
+    for i, r in enumerate(sorted(todo, key=lambda r: r["d"])):
+        if time.time() > deadline:
+            log("Casovna omejitev: ponovni pregled se nadaljuje ob naslednjem zagonu.")
+            return False, removed
+        sk, cfg = by_label[r["sport"]]
+        cat = "GP" if r.get("summer") else "WC"
+        url = f"{BASE}/DB/general/results.html?sectorcode={cfg['code']}&raceid={r['fis']}"
+        html = get(url)
+        if not html:
+            continue
+        status, _ = parse_race(html, sk, r["fis"], extra_names, cat)
+        if status == "skip":
+            races.pop(r["id"], None)
+            state["seen"][f"{cfg['code']}:{r['fis']}"] = "skip"
+            removed += 1
+            log(f"  odstranjena: {r['d']} {r['place']} {r['disc']} {r['g']} (fis {r['fis']})")
+        done.add(r["id"])
+        state["refiltered"] = sorted(done)
+    return True, removed
 
 # ------------------------------------------------------------- preverjanje s FIS
 def season_of(date):
@@ -432,6 +466,7 @@ def main():
     ap.add_argument("--no-summer", action="store_true", help="preskoci poletno sezono (Grand Prix)")
     ap.add_argument("--max-minutes", type=int, default=330)
     ap.add_argument("--reset-sport", choices=["alpine", "jumping", "nordic"], help="zavrze zbrane podatke tega sporta (zimske in poletne) in jih zbere znova")
+    ap.add_argument("--refilter", action="store_true", help="ponovno preveri ze shranjene tekme z novim filtrom in odstrani neprave")
     ap.add_argument("--validate", action="store_true", help="po zbiranju primerja stetje z FIS Podiums")
     ap.add_argument("--only-validate", action="store_true", help="samo preveri, brez zbiranja")
     ap.add_argument("--force", action="store_true", help="ponovno obdela tudi sezone, oznacene kot popolne")
@@ -455,6 +490,16 @@ def main():
         for lab in meta["coverage"].values():
             lab.pop(args.reset_sport, None)
         log(f"Ponastavitev {args.reset_sport}: odstranjenih {n0 - len(races)} tekem")
+
+    if args.refilter:
+        finished_all, n = refilter(races, state, extra_names, deadline)
+        log(f"Ponovni pregled: odstranjenih {n} tekem; oznake vrst: {CODES_SEEN}")
+        if finished_all:
+            state.pop("refiltered", None)
+        save_all(races, state, meta, today)
+        if finished_all and args.validate:
+            validate(races, today, deadline)
+        return 0
 
     if args.only_validate:
         validate(races, today, deadline)
@@ -489,7 +534,7 @@ def main():
     save_all(races, state, meta, today)
     if args.validate:
         validate(races, today, deadline)
-    log(f"Konec. Tekem s slovenskimi uvrstitvami: {len(races)}")
+    log(f"Konec. Tekem s slovenskimi uvrstitvami: {len(races)}; oznake vrst tekem: {CODES_SEEN}")
     return 0
 
 
