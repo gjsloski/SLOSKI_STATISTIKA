@@ -79,6 +79,9 @@ DATE_RE = re.compile(r"^" + MONTH_RE + r" \d{1,2}, \d{4}$")
 TITLE_RE = re.compile(r"^(Men|Women|Ladies|Mixed|Team)\b")
 STOP_RE = re.compile(r"^(Did not|Did Not|Disqualified|Not qualified|DNF|DSQ|DNS|DNQ)", re.I)
 SKIP_WORDS = ("Team", "Mixed", "Relay", "Standings")
+TYPE_RE = re.compile(r"\d{1,2}\.\d{1,2}\.\d{4}\s*-\s*[^|]{3,90}\|\s*([A-Za-z]{2,6})\b")
+# oznake vrste tekme na FIS: WC = tekma, TRA = trening, COM = etapa kombinacije, kvalifikacije in poskusne serije
+BAD_TYPES = {"TRA", "COM", "QUA", "QUAL", "QUF", "Q", "TRI", "TRL", "PRO", "PCR", "TRN"}
 QUAL_RE = re.compile(r"\b(Qualification|Qualifying|Training|Trial|Prologue)\b", re.I)
 
 
@@ -233,6 +236,11 @@ def parse_race(html, sport_key, raceid, extra_names, cat="WC"):
         return "fail", None
     if any(w in title for w in SKIP_WORDS):
         return "skip", None
+    # vrsta tekme: iz naslova "16.12.2016 - Women's Downhill | WC" preberemo oznako
+    mt = TYPE_RE.search(" ".join(head))
+    if mt and (mt.group(1).upper() in BAD_TYPES or mt.group(1).upper().startswith(("QU", "TR"))
+               or QUAL_RE.search(mt.group(0))):
+        return "skip", None
     # kvalifikacije, treningi in poskusne serije niso tekme za uvrstitve
     ti = head.index(title)
     if any(QUAL_RE.search(l) for l in head[ti:ti + 3] if len(l) < 90):
@@ -287,18 +295,6 @@ def parse_race(html, sport_key, raceid, extra_names, cat="WC"):
 
 
 
-def drop_combined_legs(races):
-    """Etape alpske kombinacije (smuk/superveleslalom/slalom isti dan, v istem kraju, istega spola) niso samostojne tekme."""
-    combo = {(r["d"], r["place"], r["g"]) for r in races.values()
-             if r["sport"] == SPORTS["alpine"]["label"] and r["disc"] == "Kombinacija" and not r.get("summer")}
-    drop = [k for k, r in races.items()
-            if r["sport"] == SPORTS["alpine"]["label"] and not r.get("summer")
-            and r["disc"] in ("Smuk", "Superveleslalom", "Slalom")
-            and (r["d"], r["place"], r["g"]) in combo]
-    for k in drop:
-        del races[k]
-    return len(drop)
-
 # ------------------------------------------------------------- preverjanje s FIS
 def season_of(date):
     y, m = int(date[:4]), int(date[5:7])
@@ -322,7 +318,6 @@ def parse_podiums(html):
 
 def validate(races, today, deadline):
     """Primerja nase stetje 1./2./3. mesta po sezonah s podatki FIS (Podiums) za vsakega sportnika."""
-    drop_combined_legs(races)
     ours = {}  # (sport_key, athlete_id) -> {sezona: [1,2,3]}, ime
     names = {}
     by_label = {cfg["label"]: k for k, cfg in SPORTS.items()}
@@ -371,9 +366,6 @@ def validate(races, today, deadline):
 # ----------------------------------------------------------------- glavni tok
 def save_all(races, state, meta, today):
     DATA.mkdir(exist_ok=True)
-    n_legs = drop_combined_legs(races)
-    if n_legs:
-        log(f"Odstranjenih etap kombinacije: {n_legs}")
     rs = sorted(races.values(), key=lambda r: (r["d"], r["id"]))
     body = "[\n" + ",\n".join(json.dumps(r, ensure_ascii=False) for r in rs) + "\n]\n"
     (DATA / "races.json").write_text(body, encoding="utf-8")
