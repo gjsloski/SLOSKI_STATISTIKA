@@ -33,6 +33,7 @@ SPORTS = {
 }
 WINTER_SPORTS = ["alpine", "jumping"]
 SUMMER_SPORTS = ["jumping", "nordic"]
+FIRST_SEASON = 1992  # prva sezona, ki jo zbiramo (1991/92)
 SUMMER_FROM = 2027  # koda sezone FIS (2027 = julij 2026 - junij 2027), torej poletje 2026
 
 DISC = [
@@ -285,6 +286,19 @@ def parse_race(html, sport_key, raceid, extra_names, cat="WC"):
 
 
 
+
+def drop_combined_legs(races):
+    """Etape alpske kombinacije (smuk/superveleslalom/slalom isti dan, v istem kraju, istega spola) niso samostojne tekme."""
+    combo = {(r["d"], r["place"], r["g"]) for r in races.values()
+             if r["sport"] == SPORTS["alpine"]["label"] and r["disc"] == "Kombinacija" and not r.get("summer")}
+    drop = [k for k, r in races.items()
+            if r["sport"] == SPORTS["alpine"]["label"] and not r.get("summer")
+            and r["disc"] in ("Smuk", "Superveleslalom", "Slalom")
+            and (r["d"], r["place"], r["g"]) in combo]
+    for k in drop:
+        del races[k]
+    return len(drop)
+
 # ------------------------------------------------------------- preverjanje s FIS
 def season_of(date):
     y, m = int(date[:4]), int(date[5:7])
@@ -308,6 +322,7 @@ def parse_podiums(html):
 
 def validate(races, today, deadline):
     """Primerja nase stetje 1./2./3. mesta po sezonah s podatki FIS (Podiums) za vsakega sportnika."""
+    drop_combined_legs(races)
     ours = {}  # (sport_key, athlete_id) -> {sezona: [1,2,3]}, ime
     names = {}
     by_label = {cfg["label"]: k for k, cfg in SPORTS.items()}
@@ -337,6 +352,8 @@ def validate(races, today, deadline):
             continue
         diffs = []
         for season in sorted(set(seas) | set(fis)):
+            if season < FIRST_SEASON:
+                continue
             a, b = seas.get(season, [0, 0, 0]), fis.get(season, [0, 0, 0])
             if a != b:
                 diffs.append({"s": f"{season-1}/{str(season)[2:]}", "nase": a, "fis": b})
@@ -354,6 +371,9 @@ def validate(races, today, deadline):
 # ----------------------------------------------------------------- glavni tok
 def save_all(races, state, meta, today):
     DATA.mkdir(exist_ok=True)
+    n_legs = drop_combined_legs(races)
+    if n_legs:
+        log(f"Odstranjenih etap kombinacije: {n_legs}")
     rs = sorted(races.values(), key=lambda r: (r["d"], r["id"]))
     body = "[\n" + ",\n".join(json.dumps(r, ensure_ascii=False) for r in rs) + "\n]\n"
     (DATA / "races.json").write_text(body, encoding="utf-8")
