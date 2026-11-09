@@ -9,7 +9,7 @@ on:
         description: "weekly = samo tekoča sezona, backfill = vsa zgodovina od 1991/92"
         default: "weekly"
         type: choice
-        options: [weekly, backfill, reset-jumping, validate]
+        options: [weekly, backfill, reset-jumping, reset-alpine, validate]
   push:
     branches: [main]
     paths: [index.html, scripts/**, .github/workflows/update.yml]
@@ -40,6 +40,8 @@ jobs:
           MODE="${{ github.event.inputs.mode || 'weekly' }}"
           if [ "$MODE" = "validate" ]; then
             python scripts/update.py --only-validate --max-minutes 120
+          elif [ "$MODE" = "reset-alpine" ]; then
+            python scripts/update.py --mode backfill --reset-sport alpine --validate --max-minutes 330
           elif [ "$MODE" = "reset-jumping" ]; then
             python scripts/update.py --mode backfill --reset-sport jumping --validate --max-minutes 330
           else
