@@ -43,7 +43,13 @@ jobs:
           git config user.name "statistika-bot"
           git config user.email "statistika-bot@users.noreply.github.com"
           git add data
-          git diff --staged --quiet || (git commit -m "Posodobitev podatkov $(date +%F)" && git push)
+          if ! git diff --staged --quiet; then
+            git commit -m "Posodobitev podatkov $(date +%F)"
+            for i in 1 2 3 4 5; do
+              git pull --rebase origin main && git push origin HEAD:main && break
+              echo "push ni uspel, poskus $i"; sleep 5
+            done
+          fi
       - name: Pripravi spletno stran
         if: always()
         run: |
@@ -51,7 +57,9 @@ jobs:
           cp index.html site/
           cp -r data site/data
       - uses: actions/configure-pages@v5
+        if: always()
       - uses: actions/upload-pages-artifact@v3
+        if: always()
         with:
           path: site
 
