@@ -9,7 +9,7 @@ on:
         description: "weekly = samo tekoča sezona, backfill = vsa zgodovina od 1991/92"
         default: "weekly"
         type: choice
-        options: [weekly, backfill, reset-jumping, reset-alpine, refilter, validate, probe]
+        options: [weekly, backfill, reset-jumping, reset-alpine, reset-all, refilter, validate, probe]
   push:
     branches: [main]
     paths: [index.html, scripts/**, .github/workflows/update.yml]
@@ -42,6 +42,8 @@ jobs:
             python scripts/update.py --probe "JP:6696,JP:7566,JP:2534,JP:2571,JP:2541,JP:6573,JP:7169,JP:5183,JP:6572,JP:6570,AL:86925,AL:86927,AL:86926"
           elif [ "$MODE" = "validate" ]; then
             python scripts/update.py --only-validate --max-minutes 120
+          elif [ "$MODE" = "reset-all" ]; then
+            python scripts/update.py --mode backfill --reset-sport alpine,jumping,nordic --validate --max-minutes 330
           elif [ "$MODE" = "refilter" ]; then
             python scripts/update.py --refilter --validate --max-minutes 330
           elif [ "$MODE" = "reset-alpine" ]; then
