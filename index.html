@@ -198,7 +198,7 @@ function head(cols){const tr=el("tr");cols.forEach(c=>tr.appendChild(el("th",nul
 function render(){
   const rs=filtered();
   const people={};
-  rs.forEach(r=>r.res.forEach(x=>{const k=x.id||x.n;(people[k]=people[k]||{n:x.n,g:r.g,items:[]}).items.push({r:x.r,x:x.x,race:r})}));
+  rs.forEach(r=>r.res.forEach(x=>{const k=r.sport+"|"+(x.id||x.n);(people[k]=people[k]||{n:x.n,g:r.g,items:[]}).items.push({r:x.r,x:x.x,race:r})}));
   const nr=rs.filter(r=>r.res.length).length,na=Object.keys(people).length,nu=Object.values(people).reduce((a,p)=>a+p.items.length,0);
   $("k1").textContent=nr;$("k1l").textContent=pl(nr,L_RACE);
   $("k2").textContent=na;$("k2l").textContent=pl(na,L_ATH);
@@ -260,7 +260,7 @@ function render(){
 }
 /* ---------- izvoz (Excel, PDF) ---------- */
 const XH=["1.","2.","3.","Top 5","Top 10","Top 15","Top 30"];
-function groupPeople(rs){const p={};rs.forEach(r=>r.res.forEach(x=>{const k=x.id||x.n;(p[k]=p[k]||{n:x.n,g:r.g,items:[]}).items.push({r:x.r,x:x.x,race:r})}));return p}
+function groupPeople(rs){const p={};rs.forEach(r=>r.res.forEach(x=>{const k=r.sport+"|"+(x.id||x.n);(p[k]=p[k]||{n:x.n,g:r.g,items:[]}).items.push({r:x.r,x:x.x,race:r})}));return p}
 function fillAthletes(p){
   const sel=$("xa"),cur=sel.value;sel.textContent="";
   Object.entries(p).sort((a,b)=>a[1].n.localeCompare(b[1].n,"sl")).forEach(([k,v])=>sel.appendChild(new Option(v.n,String(k))));
