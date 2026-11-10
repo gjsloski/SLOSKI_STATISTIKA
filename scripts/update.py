@@ -329,6 +329,23 @@ def refilter(races, state, extra_names, deadline):
         state["refiltered"] = sorted(done)
     return True, removed
 
+
+def probe(spec):
+    """Samo bere: za izbrane tekme izpise vse vrstice 'datum - naslov | oznaka' (brez sprememb podatkov)."""
+    by_code = {cfg["code"]: cfg for cfg in SPORTS.values()}
+    for item in spec.split(","):
+        sec, rid = item.strip().split(":")
+        html = get(f"{BASE}/DB/general/results.html?sectorcode={sec}&raceid={rid}")
+        if not html:
+            log(f"PREIZKUS {item}: stran ni dosegljiva")
+            continue
+        soup = BeautifulSoup(html, "lxml") if _has_lxml() else BeautifulSoup(html, "html.parser")
+        head = [l for l in soup.get_text("\n", strip=True).split("\n") if l][:90]
+        found = [m.group(0) for m in TYPE_RE.finditer(" ".join(head))]
+        h1 = soup.find("h1")
+        wc = any("world cup" in l.lower() for l in head)
+        log(f"PREIZKUS {item}: kraj={h1.get_text(' ', strip=True) if h1 else '?'} | World Cup v glavi={wc} | vrstice={found}")
+
 # ------------------------------------------------------------- preverjanje s FIS
 def season_of(date):
     y, m = int(date[:4]), int(date[5:7])
@@ -467,10 +484,14 @@ def main():
     ap.add_argument("--max-minutes", type=int, default=330)
     ap.add_argument("--reset-sport", choices=["alpine", "jumping", "nordic"], help="zavrze zbrane podatke tega sporta (zimske in poletne) in jih zbere znova")
     ap.add_argument("--refilter", action="store_true", help="ponovno preveri ze shranjene tekme z novim filtrom in odstrani neprave")
+    ap.add_argument("--probe", help="samo bere oznake vrst za tekme, npr. JP:6696,JP:7566")
     ap.add_argument("--validate", action="store_true", help="po zbiranju primerja stetje z FIS Podiums")
     ap.add_argument("--only-validate", action="store_true", help="samo preveri, brez zbiranja")
     ap.add_argument("--force", action="store_true", help="ponovno obdela tudi sezone, oznacene kot popolne")
     args = ap.parse_args()
+    if args.probe:
+        probe(args.probe)
+        return 0
 
     today = datetime.date.today()
     cur = current_season_code(today)
