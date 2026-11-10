@@ -82,7 +82,7 @@ SKIP_WORDS = ("Team", "Mixed", "Relay", "Standings")
 TYPE_RE = re.compile(r"\d{1,2}\.\d{1,2}\.\d{4}\s*-\s*[^|]{3,90}\|\s*([A-Za-z]{2,6})\b")
 # oznake vrste tekme na FIS: WC = tekma, TRA = trening, COM = etapa kombinacije, kvalifikacije in poskusne serije
 CODES_SEEN = {}
-BAD_TYPES = {"TRA", "COM", "QUA", "QUAL", "QUF", "Q", "TRI", "TRL", "PRO", "PCR", "TRN"}
+BAD_TYPES = {"TRA", "COM", "QUA", "QUAL", "QUF", "Q", "TRI", "TRL", "PRO", "PCR", "TRN", "FIS"}
 QUAL_RE = re.compile(r"\b(Qualification|Qualifying|Training|Trial|Prologue)\b", re.I)
 
 
@@ -237,15 +237,19 @@ def parse_race(html, sport_key, raceid, extra_names, cat="WC"):
         return "fail", None
     if any(w in title for w in SKIP_WORDS):
         return "skip", None
-    # vrsta tekme: iz naslova "16.12.2016 - Women's Downhill | WC" preberemo oznako
-    mt = TYPE_RE.search(" ".join(head))
-    if mt:
-        code = mt.group(1).upper()
-        CODES_SEEN[(cat, code)] = CODES_SEEN.get((cat, code), 0) + 1
-        if code in BAD_TYPES or code.startswith(("QU", "TR")) or QUAL_RE.search(mt.group(0)):
-            return "skip", None
-        # svetovni pokal: stejejo samo tekme z oznako WC (druge, npr. FIS, niso tekme za svetovni pokal)
-        if cat == "WC" and code != "WC":
+    # Stran vsebuje seznam VSEH sej prireditve ("dd.mm.yyyy - Naslov | oznaka"). Nasa vrstica je tista, ki ima
+    # enak datum in tocno enak naslov kot stran sama (kvalifikacije imajo v naslovu se "Qualification").
+    own_code = None
+    ddmm = datetime.datetime.strptime(date, "%Y-%m-%d").strftime("%d.%m.%Y")
+    norm = lambda t: re.sub(r"[^a-z0-9]+", "", t.lower())
+    for m in TYPE_RE.finditer(" ".join(head)):
+        mm = re.match(r"(\d{1,2}\.\d{1,2}\.\d{4})\s*-\s*(.+?)\s*\|", m.group(0))
+        if mm and mm.group(1) == ddmm and norm(mm.group(2)) == norm(title):
+            own_code = m.group(1).upper()
+            break
+    if own_code:
+        CODES_SEEN[(cat, own_code)] = CODES_SEEN.get((cat, own_code), 0) + 1
+        if own_code in BAD_TYPES or own_code.startswith(("QU", "TR")):
             return "skip", None
     # kvalifikacije, treningi in poskusne serije niso tekme za uvrstitve
     ti = head.index(title)
