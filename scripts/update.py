@@ -222,6 +222,11 @@ def parse_race(html, sport_key, raceid, extra_names, cat="WC"):
     soup = BeautifulSoup(html, "lxml") if _has_lxml() else BeautifulSoup(html, "html.parser")
     lines = [l for l in soup.get_text("\n", strip=True).split("\n") if l]
     head = lines[:90]
+    # Nekatere strani (raceid) so STARTNE LISTE: prva stolpca sta startna stevilka in vrstni red starta, ne uvrstitev
+    # (npr. 'FIS | Alpine Skiing Start List - Bormio (ITA) 2007/2008'). Taksnih strani ne stejemo.
+    if any("start list" in l.lower() for l in lines[:3]):
+        CODES_SEEN[(cat, "STARTLIST")] = CODES_SEEN.get((cat, "STARTLIST"), 0) + 1
+        return "skip", None
     needle = "World Cup" if cat == "WC" else "Grand Prix"
     if not any(needle.lower() in l.lower() for l in head):
         return "skip", None
@@ -331,6 +336,8 @@ def refilter(races, state, extra_names, deadline):
             log(f"  odstranjena: {r['d']} {r['place']} {r['disc']} {r['g']} (fis {r['fis']})")
         done.add(r["id"])
         state["refiltered"] = sorted(done)
+        if len(done) >= 100 and removed / len(done) > 0.30:
+            raise SystemExit(f"PREKINJENO: filter je odstranil {removed} od {len(done)} tekem (>30 %). Podatki NISO spremenjeni.")
     return True, removed
 
 
