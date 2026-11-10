@@ -1,7 +1,7 @@
 {
  "updated": "2026-11-10",
- "ujema": 40,
- "razlike": 17,
+ "ujema": 51,
+ "razlike": 8,
  "nepreverjeno": 0,
  "athletes": [
   {
@@ -60,27 +60,6 @@
    ]
   },
   {
-   "n": "Andreja Slokar",
-   "id": 188441,
-   "sport": "Alpsko smučanje",
-   "status": "razlika",
-   "razlike": [
-    {
-     "s": "2024/25",
-     "nase": [
-      0,
-      0,
-      0
-     ],
-     "fis": [
-      0,
-      0,
-      1
-     ]
-    }
-   ]
-  },
-  {
    "n": "Boštjan Kline",
    "id": 126771,
    "sport": "Alpsko smučanje",
@@ -96,40 +75,6 @@
      "fis": [
       0,
       0,
-      0
-     ]
-    }
-   ]
-  },
-  {
-   "n": "Domen Prevc",
-   "id": 186516,
-   "sport": "Smučarski skoki",
-   "status": "razlika",
-   "razlike": [
-    {
-     "s": "2016/17",
-     "nase": [
-      3,
-      1,
-      1
-     ],
-     "fis": [
-      4,
-      1,
-      1
-     ]
-    },
-    {
-     "s": "2018/19",
-     "nase": [
-      0,
-      1,
-      0
-     ],
-     "fis": [
-      1,
-      1,
       0
      ]
     }
@@ -187,47 +132,18 @@
       0,
       0
      ]
-    }
-   ]
-  },
-  {
-   "n": "Jure Košir",
-   "id": 32005,
-   "sport": "Alpsko smučanje",
-   "status": "razlika",
-   "razlike": [
+    },
     {
-     "s": "1998/99",
+     "s": "2024/25",
      "nase": [
-      2,
       0,
-      0
-     ],
-     "fis": [
-      2,
       0,
       1
-     ]
-    }
-   ]
-  },
-  {
-   "n": "Jurij Tepeš",
-   "id": 75837,
-   "sport": "Smučarski skoki",
-   "status": "razlika",
-   "razlike": [
-    {
-     "s": "2014/15",
-     "nase": [
-      1,
-      1,
-      0
      ],
      "fis": [
-      1,
-      1,
-      1
+      0,
+      0,
+      0
      ]
     }
    ]
@@ -267,98 +183,35 @@
    ]
   },
   {
-   "n": "Nika Prevc",
-   "id": 222153,
+   "n": "Nejc Dezman",
+   "id": 131935,
    "sport": "Smučarski skoki",
    "status": "razlika",
    "razlike": [
     {
-     "s": "2025/26",
+     "s": "2011/12",
      "nase": [
-      16,
-      5,
-      4
-     ],
-     "fis": [
-      18,
-      6,
-      4
-     ]
-    }
-   ]
-  },
-  {
-   "n": "Peter Prevc",
-   "id": 131309,
-   "sport": "Smučarski skoki",
-   "status": "razlika",
-   "razlike": [
-    {
-     "s": "2015/16",
-     "nase": [
-      13,
-      4,
-      2
-     ],
-     "fis": [
-      15,
-      5,
-      2
-     ]
-    }
-   ]
-  },
-  {
-   "n": "Primoz Peterka",
-   "id": 47271,
-   "sport": "Smučarski skoki",
-   "status": "razlika",
-   "razlike": [
-    {
-     "s": "1997/98",
-     "nase": [
-      3,
-      4,
-      1
-     ],
-     "fis": [
-      4,
-      5,
-      1
-     ]
-    }
-   ]
-  },
-  {
-   "n": "Robert Kranjec",
-   "id": 32297,
-   "sport": "Smučarski skoki",
-   "status": "razlika",
-   "razlike": [
-    {
-     "s": "2012/13",
-     "nase": [
-      1,
-      2,
-      2
+      0,
+      0,
+      0
      ],
      "fis": [
       1,
-      2,
-      3
+      0,
+      0
      ]
     },
     {
-     "s": "2015/16",
+     "s": "2014/15",
      "nase": [
-      2,
+      1,
       0,
-      3
+      0
      ],
      "fis": [
-      2,
-      1,
-      3
+      0,
+      0,
+      0
      ]
     }
    ]
@@ -380,48 +233,6 @@
       2,
       3,
       3
-     ]
-    }
-   ]
-  },
-  {
-   "n": "Špela Rogelj",
-   "id": 138215,
-   "sport": "Smučarski skoki",
-   "status": "razlika",
-   "razlike": [
-    {
-     "s": "2014/15",
-     "nase": [
-      1,
-      0,
-      2
-     ],
-     "fis": [
-      1,
-      0,
-      3
-     ]
-    }
-   ]
-  },
-  {
-   "n": "Žan Kranjec",
-   "id": 137306,
-   "sport": "Alpsko smučanje",
-   "status": "razlika",
-   "razlike": [
-    {
-     "s": "2024/25",
-     "nase": [
-      0,
-      0,
-      0
-     ],
-     "fis": [
-      0,
-      0,
-      1
      ]
     }
    ]
