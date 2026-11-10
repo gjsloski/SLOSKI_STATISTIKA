@@ -288,7 +288,7 @@ def parse_race(html, sport_key, raceid, extra_names, cat="WC"):
                 item["id"] = int(r["cid"])
             res.append(item)
     race = {
-        "id": f"fis-{raceid}",
+        "id": f"{cfg['code'].lower()}-{raceid}",
         "fis": int(raceid),
         "d": date,
         "place": re.sub(r"\s+", " ", place),
@@ -486,7 +486,7 @@ def main():
     ap.add_argument("--from-season", type=int, default=1992, help="zimska sezona: koda = koncno leto (1992 = 1991/92)")
     ap.add_argument("--no-summer", action="store_true", help="preskoci poletno sezono (Grand Prix)")
     ap.add_argument("--max-minutes", type=int, default=330)
-    ap.add_argument("--reset-sport", choices=["alpine", "jumping", "nordic"], help="zavrze zbrane podatke tega sporta (zimske in poletne) in jih zbere znova")
+    ap.add_argument("--reset-sport", help="(alpine, jumping, nordic ali vec z vejicami) zavrze zbrane podatke tega sporta (zimske in poletne) in jih zbere znova")
     ap.add_argument("--refilter", action="store_true", help="ponovno preveri ze shranjene tekme z novim filtrom in odstrani neprave")
     ap.add_argument("--probe", help="samo bere oznake vrst za tekme, npr. JP:6696,JP:7566")
     ap.add_argument("--validate", action="store_true", help="po zbiranju primerja stetje z FIS Podiums")
@@ -499,7 +499,11 @@ def main():
 
     today = datetime.date.today()
     cur = current_season_code(today)
-    races = {r["id"]: r for r in load_json(DATA / "races.json", [])}
+    code_of = {cfg["label"]: cfg["code"].lower() for cfg in SPORTS.values()}
+    loaded = load_json(DATA / "races.json", [])
+    for r in loaded:  # stara oblika id "fis-123" je bila skupna za vse sporte; zdaj "al-123", "jp-123"
+        r["id"] = f"{code_of[r['sport']]}-{r['fis']}"
+    races = {r["id"]: r for r in loaded}
     state = load_json(DATA / "state.json", {"seen": {}})
     state.setdefault("seen", {})
     meta = load_json(DATA / "meta.json", {"coverage": {}})
@@ -508,12 +512,14 @@ def main():
     deadline = time.time() + args.max_minutes * 60
 
     if args.reset_sport:
-        cfg = SPORTS[args.reset_sport]
+        keys = [k.strip() for k in args.reset_sport.split(",") if k.strip()]
         n0 = len(races)
-        races = {k: r for k, r in races.items() if r["sport"] != cfg["label"]}
-        state["seen"] = {k: v for k, v in state["seen"].items() if not k.startswith(cfg["code"] + ":")}
-        for lab in meta["coverage"].values():
-            lab.pop(args.reset_sport, None)
+        for key in keys:
+            cfg = SPORTS[key]
+            races = {k: r for k, r in races.items() if r["sport"] != cfg["label"]}
+            state["seen"] = {k: v for k, v in state["seen"].items() if not k.startswith(cfg["code"] + ":")}
+            for lab in meta["coverage"].values():
+                lab.pop(key, None)
         log(f"Ponastavitev {args.reset_sport}: odstranjenih {n0 - len(races)} tekem")
 
     if args.refilter:
