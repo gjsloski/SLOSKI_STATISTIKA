@@ -347,6 +347,17 @@ def probe(spec):
     """Samo bere: za izbrane tekme izpise vse vrstice 'datum - naslov | oznaka' (brez sprememb podatkov)."""
     by_code = {cfg["code"]: cfg for cfg in SPORTS.values()}
     for item in spec.split(","):
+        if item.strip().startswith("ATH:"):
+            _, sec, cid, season = item.strip().split(":")
+            for extra in ("&categorycode=WC", ""):
+                ahtml = get(f"{BASE}/DB/general/athlete-biography.html?sectorcode={sec}&competitorid={cid}&type=result&seasoncode={season}{extra}")
+                if not ahtml:
+                    log(f"PREIZKUS {item}: stran ni dosegljiva ({extra or 'brez kategorije'})")
+                    continue
+                al = [l for l in BeautifulSoup(ahtml, "html.parser").get_text("\n", strip=True).split("\n") if l]
+                i1 = next((i for i, l in enumerate(al) if l.lower() in ("date", "place", "pos", "rank")), 0)
+                log(f"PREIZKUS {item} ({extra or 'brez kategorije'}) VRSTICE: {al[max(0,i1-8):i1+90]}")
+            continue
         sec, rid = item.strip().split(":")
         html = get(f"{BASE}/DB/general/results.html?sectorcode={sec}&raceid={rid}")
         if not html:
