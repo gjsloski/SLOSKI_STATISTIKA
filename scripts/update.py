@@ -695,8 +695,11 @@ def process_season(code, sport_key, races, state, cat, label, finished, extra_na
                         f"{', '.join(str(x['r']) + '. ' + x['n'] for x in filled['res'])}")
                 else:
                     log(f"  (s strani sportnikov) {filled['d']} {filled['place']} {filled['disc']} {filled['g']}: brez uvrstitve v top 30")
-                if complete:
+                age_days = (datetime.date.today() - datetime.date.fromisoformat(filled["d"])).days
+                if complete and (filled["res"] or age_days > 21):
                     state["seen"][key] = "ok"
+                elif complete:
+                    log("  (rezultati se niso objavljeni, poskusimo znova ob naslednjem zagonu)")
                 else:
                     failures += 1
                     log(f"  NAPAKA: stran sportnika ni dosegljiva za {rurl}")
