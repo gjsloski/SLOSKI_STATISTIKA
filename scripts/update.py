@@ -226,9 +226,9 @@ def parse_race(html, sport_key, raceid, extra_names, cat="WC"):
     # (npr. 'FIS | Alpine Skiing Start List - Bormio (ITA) 2007/2008'). Prave rezultate prepozna glava tabele 'Rank'.
     # Taksnih strani ne stejemo.
     has_rank_header = any(l.strip().lower() == "rank" for l in lines)
-    if not has_rank_header and any("start list" in l.lower() for l in lines[:3]):
+    is_startlist = (not has_rank_header) and any("start list" in l.lower() for l in lines[:3])
+    if is_startlist:
         CODES_SEEN[(cat, "STARTLIST")] = CODES_SEEN.get((cat, "STARTLIST"), 0) + 1
-        return "skip", None
     needle = "World Cup" if cat == "WC" else "Grand Prix"
     if not any(needle.lower() in l.lower() for l in head):
         return "skip", None
@@ -287,6 +287,21 @@ def parse_race(html, sport_key, raceid, extra_names, cat="WC"):
                 ranked.append(row)
     if len(ranked) < 5:
         return "empty", None
+    if is_startlist:
+        # Na strani je samo startna lista: prave uvrstitve pridejo s strani posameznega sportnika (fill_from_athletes)
+        slo, seen_c = [], set()
+        for r in ranked:
+            if r["nat"] == "SLO" and r["cid"] and r["cid"] not in seen_c:
+                seen_c.add(r["cid"])
+                slo.append({"cid": r["cid"], "name": fix_name(r["name"], r["cid"], extra_names)})
+        stub = {
+            "id": f"{cfg['code'].lower()}-{raceid}", "fis": int(raceid), "d": date,
+            "place": re.sub(r"\s+", " ", place), "sport": cfg["label"], "disc": disc, "g": gender,
+            "t": "posamicno", "res": [], "_slo": slo, "_sec": cfg["code"], "_cat": cat,
+        }
+        if cat == "GP":
+            stub["summer"] = True
+        return "startlist", stub
     res = []
     for r in ranked:
         if r["nat"] == "SLO" and r["rank"] <= 30:
@@ -313,6 +328,71 @@ def parse_race(html, sport_key, raceid, extra_names, cat="WC"):
 
 
 
+ATH_CACHE = {}
+
+
+def season_code_of(date):
+    y, m = int(date[:4]), int(date[5:7])
+    return y + 1 if m >= 7 else y
+
+
+def parse_athlete_results(html):
+    """Stran sportnika (type=result): vrne {raceid: {"pos", "disc", "date", "cat"}} za vrstice z datumom dd-mm-llll."""
+    soup = BeautifulSoup(html, "lxml") if _has_lxml() else BeautifulSoup(html, "html.parser")
+    rows, order = {}, []
+    for a in soup.find_all("a", href=True):
+        rid = parse_qs(urlparse(a["href"]).query).get("raceid", [None])[0]
+        if not rid:
+            continue
+        if rid not in rows:
+            rows[rid] = []
+            order.append(rid)
+        rows[rid].append(a.get_text(" ", strip=True))
+    out = {}
+    for rid in order:
+        t = rows[rid]
+        if len(t) >= 6 and re.fullmatch(r"\d{2}-\d{2}-\d{4}", t[0]):
+            out[rid] = {"date": t[0], "cat": t[3], "disc": t[4], "pos": t[5]}
+    return out
+
+
+def athlete_results(sec, cid, season, cat):
+    """Uvrstitve sportnika v sezoni (kategorija WC/GP) -> {raceid: polozaj} ali None, ce strani ni bilo mogoce prebrati."""
+    key = (sec, cid, season, cat)
+    if key in ATH_CACHE:
+        return ATH_CACHE[key]
+    result = None
+    for extra in (f"&categorycode={cat}", ""):
+        html = get(f"{BASE}/DB/general/athlete-biography.html?sectorcode={sec}&competitorid={cid}"
+                   f"&type=result&seasoncode={season}{extra}")
+        if html:
+            result = parse_athlete_results(html)
+            want = "World Cup" if cat == "WC" else "Grand Prix"
+            result = {k: v for k, v in result.items() if want.lower() in v["cat"].lower()}
+            if result:
+                break
+    ATH_CACHE[key] = result
+    return result
+
+
+def fill_from_athletes(stub):
+    """Iz strani slovenskih tekmovalcev s startne liste prebere prave uvrstitve. Vrne (tekma, popolno)."""
+    season = season_code_of(stub["d"])
+    res, complete = [], True
+    for a in stub["_slo"]:
+        ar = athlete_results(stub["_sec"], a["cid"], season, stub["_cat"])
+        if ar is None:
+            complete = False
+            continue
+        row = ar.get(str(stub["fis"]))
+        pos = row["pos"] if row else None
+        if pos and pos.isdigit() and int(pos) <= 30:
+            res.append({"n": a["name"], "r": int(pos), "id": int(a["cid"])})
+    race = {k: v for k, v in stub.items() if not k.startswith("_")}
+    race["res"] = sorted(res, key=lambda x: x["r"])
+    return race, complete
+
+
 def refilter(races, state, extra_names, deadline):
     """Ponovno preveri ze shranjene tekme (brez novega zbiranja) in odstrani tiste, ki jih filter zdaj zavrne."""
     by_label = {cfg["label"]: (k, cfg) for k, cfg in SPORTS.items()}
@@ -331,7 +411,12 @@ def refilter(races, state, extra_names, deadline):
         if not html:
             continue
         status, _ = parse_race(html, sk, r["fis"], extra_names, cat)
-        if status == "skip":
+        if status == "startlist":
+            races.pop(r["id"], None)
+            state["seen"].pop(f"{cfg['code']}:{r['fis']}", None)
+            removed += 1
+            log(f"  startna lista (bo dopolnjena): {r['d']} {r['place']} {r['disc']} {r['g']} (fis {r['fis']})")
+        elif status == "skip":
             races.pop(r["id"], None)
             state["seen"][f"{cfg['code']}:{r['fis']}"] = "skip"
             removed += 1
@@ -393,6 +478,49 @@ def probe(spec):
         for i, l in enumerate(allv):
             if l == "SLO":
                 log(f"PREIZKUS {item} SLO: {allv[max(0,i-5):i+6]}")
+
+
+def check_races(races, today, deadline):
+    """Vsako nasu uvrstitev slovenskega tekmovalca primerja z njegovo stranjo na FIS (po raceid). Zapise data/check.json."""
+    by_label = {cfg["label"]: cfg["code"] for cfg in SPORTS.values()}
+    ours = {}
+    for r in races.values():
+        if r.get("t") != "posamicno":
+            continue
+        sec = by_label.get(r["sport"])
+        cat = "GP" if r.get("summer") else "WC"
+        for x in r["res"]:
+            if "id" in x:
+                ours.setdefault((sec, str(x["id"]), season_code_of(r["d"]), cat), {})[str(r["fis"])] = (x["r"], r, x["n"])
+    issues, n_ok, n_na = [], 0, 0
+    for key, mine in sorted(ours.items(), key=lambda kv: (kv[0][2], kv[0][0], kv[0][1])):
+        if time.time() > deadline:
+            log("Preverjanje tekem: casovna omejitev.")
+            break
+        sec, cid, season, cat = key
+        theirs = athlete_results(sec, cid, season, cat)
+        if theirs is None:
+            n_na += 1
+            continue
+        for rid, (rank, race, name) in mine.items():
+            t = theirs.get(rid)
+            tp = t["pos"] if t else None
+            if not (tp and tp.isdigit() and int(tp) == rank):
+                issues.append({"n": name, "sezona": season_code_label(season), "raceid": rid, "d": race["d"],
+                               "place": race["place"], "disc": race["disc"], "nase": rank, "fis": tp})
+                log(f"  NESKLAD {name} {season_code_label(season)} {race['d']} {race['place']} {race['disc']}: nase {rank}, FIS {tp} (raceid {rid})")
+        for rid, t in theirs.items():
+            if rid in mine or not t["pos"].isdigit() or int(t["pos"]) > 30:
+                continue
+            if any(w.lower() in t["disc"].lower() for w in SKIP_WORDS):
+                continue
+            issues.append({"n": next((v[2] for v in mine.values()), cid), "sezona": season_code_label(season), "raceid": rid,
+                           "d": t["date"], "place": "", "disc": t["disc"], "nase": None, "fis": t["pos"]})
+            log(f"  MANJKA {cid} {season_code_label(season)} {t['date']} {t['disc']}: FIS {t['pos']} (raceid {rid}), pri nas ni")
+    n_ok = len(ours) - n_na - len({(i["n"], i["sezona"]) for i in issues})
+    out = {"updated": today.isoformat(), "preverjenih_sezon": len(ours) - n_na, "nepreverjenih": n_na, "nesklad": issues}
+    (DATA / "check.json").write_text(json.dumps(out, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+    log(f"Preverjanje tekem: preverjenih sezon {len(ours) - n_na}, nepreverjenih {n_na}, neskladij {len(issues)}")
 
 # ------------------------------------------------------------- preverjanje s FIS
 def season_of(date):
@@ -511,6 +639,21 @@ def process_season(code, sport_key, races, state, cat, label, finished, extra_na
                 state["seen"][key] = "ok"
                 log(f"  {race['d']} {race['place']} {race['disc']} {race['g']}: "
                     f"{', '.join(str(x['r']) + '. ' + x['n'] for x in race['res']) or '-'}")
+            elif status == "startlist":
+                if race["d"] >= datetime.date.today().isoformat():
+                    continue  # tekma se ni bila: poskusimo naslednjic
+                filled, complete = fill_from_athletes(race)
+                if filled["res"]:
+                    races[filled["id"]] = filled
+                    log(f"  (s strani sportnikov) {filled['d']} {filled['place']} {filled['disc']} {filled['g']}: "
+                        f"{', '.join(str(x['r']) + '. ' + x['n'] for x in filled['res'])}")
+                else:
+                    log(f"  (s strani sportnikov) {filled['d']} {filled['place']} {filled['disc']} {filled['g']}: brez uvrstitve v top 30")
+                if complete:
+                    state["seen"][key] = "ok"
+                else:
+                    failures += 1
+                    log(f"  NAPAKA: stran sportnika ni dosegljiva za {rurl}")
             elif status == "skip":
                 state["seen"][key] = "skip"
             elif status == "empty":
@@ -532,8 +675,10 @@ def main():
     ap.add_argument("--max-minutes", type=int, default=330)
     ap.add_argument("--reset-sport", help="(alpine, jumping, nordic ali vec z vejicami) zavrze zbrane podatke tega sporta (zimske in poletne) in jih zbere znova")
     ap.add_argument("--refilter", action="store_true", help="ponovno preveri ze shranjene tekme z novim filtrom in odstrani neprave")
+    ap.add_argument("--recheck", help="odstrani te tekme iz seznama ze obdelanih (npr. AL:49869,JP:4401), da se obdelajo znova")
     ap.add_argument("--probe", help="samo bere oznake vrst za tekme, npr. JP:6696,JP:7566")
     ap.add_argument("--validate", action="store_true", help="po zbiranju primerja stetje z FIS Podiums")
+    ap.add_argument("--check-races", action="store_true", help="vsako uvrstitev primerja s stranjo sportnika na FIS (po raceid)")
     ap.add_argument("--only-validate", action="store_true", help="samo preveri, brez zbiranja")
     ap.add_argument("--force", action="store_true", help="ponovno obdela tudi sezone, oznacene kot popolne")
     args = ap.parse_args()
@@ -554,6 +699,16 @@ def main():
     meta.setdefault("coverage", {})
     extra_names = load_json(DATA / "names.json", {})
     deadline = time.time() + args.max_minutes * 60
+
+    if args.recheck:
+        n_rc = 0
+        for item in args.recheck.split(","):
+            item = item.strip()
+            if item and state["seen"].pop(item, None) is not None:
+                n_rc += 1
+            sec_, _, rid_ = item.partition(":")
+            races.pop(f"{sec_.lower()}-{rid_}", None)
+        log(f"Ponovna obdelava: {n_rc} tekem odstranjenih iz seznama obdelanih")
 
     if args.reset_sport:
         keys = [k.strip() for k in args.reset_sport.split(",") if k.strip()]
@@ -578,6 +733,10 @@ def main():
 
     if args.only_validate:
         validate(races, today, deadline)
+        return 0
+
+    if args.check_races:
+        check_races(races, today, deadline)
         return 0
 
     jobs = []  # (code, sport, cat, label, finished)
