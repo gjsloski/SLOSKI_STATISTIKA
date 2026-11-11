@@ -39,3 +39,56 @@ jobs:
           MODE="${{ github.event.inputs.mode || 'weekly' }}"
           if [ "$MODE" = "probe" ]; then
             python scripts/update.py --probe "ATH:JP:68518:1992,ATH:JP:21111:1992,ATH:JP:18035:1995,ATH:NK:176006:2027,ATH:NK:217159:2027,JP:812,JP:1823"
+          elif [ "$MODE" = "fill-startlists" ]; then
+            python scripts/update.py --mode backfill --force --recheck "AL:49869,AL:54032,AL:59270,AL:62265,AL:62360,AL:62361,AL:62364,AL:66735,AL:70705,AL:70706,AL:70707,AL:86824,AL:91057,AL:95573,AL:100157,AL:100081,AL:100164,AL:104382,AL:104315,AL:104415,AL:118510,AL:118338,AL:118339,AL:118521,AL:118487,AL:118505,AL:123166,AL:123167,JP:4165,JP:4401,JP:4454,JP:4457,JP:4736,JP:4936,JP:5553,JP:5586,JP:5595,JP:5600,JP:6235,JP:6856,JP:6928,JP:7176,JP:7254,JP:7478,JP:7687,JP:7688,JP:7576" --validate --max-minutes 330
+          elif [ "$MODE" = "check" ]; then
+            python scripts/update.py --check-races --max-minutes 330
+          elif [ "$MODE" = "validate" ]; then
+            python scripts/update.py --only-validate --max-minutes 120
+          elif [ "$MODE" = "reset-all" ]; then
+            python scripts/update.py --mode backfill --reset-sport alpine,jumping,nordic --validate --max-minutes 330
+          elif [ "$MODE" = "refilter" ]; then
+            python scripts/update.py --refilter --validate --max-minutes 330
+          elif [ "$MODE" = "reset-alpine" ]; then
+            python scripts/update.py --mode backfill --reset-sport alpine --validate --max-minutes 330
+          elif [ "$MODE" = "reset-jumping" ]; then
+            python scripts/update.py --mode backfill --reset-sport jumping --validate --max-minutes 330
+          else
+            python scripts/update.py --mode "$MODE" --validate --max-minutes 330
+          fi
+      - name: Shrani podatke
+        if: always()
+        run: |
+          git config user.name "statistika-bot"
+          git config user.email "statistika-bot@users.noreply.github.com"
+          git add data
+          if ! git diff --staged --quiet; then
+            git commit -m "Posodobitev podatkov $(date +%F)"
+            for i in 1 2 3 4 5; do
+              git pull --rebase origin main && git push origin HEAD:main && break
+              echo "push ni uspel, poskus $i"; sleep 5
+            done
+          fi
+      - name: Pripravi spletno stran
+        if: always()
+        run: |
+          mkdir site
+          cp index.html site/
+          cp -r data site/data
+      - uses: actions/configure-pages@v5
+        if: always()
+      - uses: actions/upload-pages-artifact@v3
+        if: always()
+        with:
+          path: site
+
+  deploy:
+    needs: update
+    if: always() && needs.update.result != 'cancelled'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
