@@ -39,7 +39,7 @@ jobs:
         run: |
           MODE="${{ github.event.inputs.mode || 'weekly' }}"
           if [ "$MODE" = "probe" ]; then
-            python scripts/update.py --probe "AL:70706,JP:4401,JP:7176,AL:123166"
+            python scripts/update.py --probe "ATH:JP:131935:2016,ATH:AL:117509:2013"
           elif [ "$MODE" = "validate" ]; then
             python scripts/update.py --only-validate --max-minutes 120
           elif [ "$MODE" = "reset-all" ]; then
