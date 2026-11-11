@@ -223,8 +223,10 @@ def parse_race(html, sport_key, raceid, extra_names, cat="WC"):
     lines = [l for l in soup.get_text("\n", strip=True).split("\n") if l]
     head = lines[:90]
     # Nekatere strani (raceid) so STARTNE LISTE: prva stolpca sta startna stevilka in vrstni red starta, ne uvrstitev
-    # (npr. 'FIS | Alpine Skiing Start List - Bormio (ITA) 2007/2008'). Taksnih strani ne stejemo.
-    if any("start list" in l.lower() for l in lines[:3]):
+    # (npr. 'FIS | Alpine Skiing Start List - Bormio (ITA) 2007/2008'). Prave rezultate prepozna glava tabele 'Rank'.
+    # Taksnih strani ne stejemo.
+    has_rank_header = any(l.strip().lower() == "rank" for l in lines)
+    if not has_rank_header and any("start list" in l.lower() for l in lines[:3]):
         CODES_SEEN[(cat, "STARTLIST")] = CODES_SEEN.get((cat, "STARTLIST"), 0) + 1
         return "skip", None
     needle = "World Cup" if cat == "WC" else "Grand Prix"
