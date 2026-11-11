@@ -1,29 +1,7 @@
 {
  "updated": "2026-11-11",
- "ujema": 55,
- "razlike": 1,
+ "ujema": 56,
+ "razlike": 0,
  "nepreverjeno": 0,
- "athletes": [
-  {
-   "n": "Tina Maze",
-   "id": 38837,
-   "sport": "Alpsko smučanje",
-   "status": "razlika",
-   "razlike": [
-    {
-     "s": "2010/11",
-     "nase": [
-      2,
-      4,
-      3
-     ],
-     "fis": [
-      2,
-      3,
-      3
-     ]
-    }
-   ]
-  }
- ]
+ "athletes": []
 }
