@@ -347,9 +347,12 @@ ATH_ROW_RE = re.compile(
     r"(?P<disc>.+?)\s+(?P<pos>\d{1,3}|(?:DNF|DNS|DSQ|DNQ|NPS|DQ|PEN|LAP)\d?)(?:\s+[\d.\-]+)*\s*$")
 
 
-def parse_athlete_results(html):
-    """Stran sportnika (type=result): vrne {raceid: {"pos", "disc", "date", "cat"}}.
-    FIS zavije celo vrstico v eno povezavo (...&raceid=N); celice locimo po vrsticah, sicer z regularnim izrazom."""
+POS_RE = re.compile(r"^(\d{1,3}|(?:DNF|DNS|DSQ|DNQ|NPS|DQ|PEN|LAP)\d?)$")
+CAT_CODES = {"WC": "World Cup", "GP": "Grand Prix"}
+
+
+def athlete_row_cells(html):
+    """Stran sportnika (type=result): {raceid: [celice vrstice]}. FIS zavije vrstico v eno povezavo (...&raceid=N)."""
     soup = BeautifulSoup(html, "lxml") if _has_lxml() else BeautifulSoup(html, "html.parser")
     groups, order = {}, []
     for a in soup.find_all("a", href=True):
@@ -359,16 +362,27 @@ def parse_athlete_results(html):
         if rid not in groups:
             groups[rid] = []
             order.append(rid)
-        groups[rid].extend(c for c in a.get_text("\n", strip=True).split("\n") if c.strip())
+        groups[rid].extend(c.strip() for c in a.get_text("\n", strip=True).split("\n") if c.strip())
+    return {rid: groups[rid] for rid in order}
+
+
+def parse_athlete_results(html):
+    """Vrne {raceid: {"pos", "disc", "date", "cat", "code"}} samo za vrstice WC/GP.
+    Celice FIS v HTML: [datum, kraj, ..., disciplina, drzava, KODA KATEGORIJE (WC/COC/QUA/...), uvrstitev, tocke ...]
+    zato polja poiscemo po vsebini: datum = prva celica dd-mm-llll, koda kategorije WC/GP, uvrstitev = celica takoj za kodo."""
     out = {}
-    for rid in order:
-        cells = groups[rid]
-        if len(cells) >= 6 and re.fullmatch(r"\d{2}-\d{2}-\d{4}", cells[0]):
-            out[rid] = {"date": cells[0], "cat": cells[3], "disc": cells[4], "pos": cells[5]}
+    for rid, cells in athlete_row_cells(html).items():
+        if not cells or not re.fullmatch(r"\d{2}-\d{2}-\d{4}", cells[0]):
             continue
+        k = next((i for i, c in enumerate(cells) if c in CAT_CODES), None)
+        if k is not None and k >= 2 and k + 1 < len(cells) and POS_RE.match(cells[k + 1]):
+            out[rid] = {"date": cells[0], "cat": CAT_CODES[cells[k]], "code": cells[k], "disc": cells[k - 2], "pos": cells[k + 1]}
+            continue
+        # drugi zapis (vrstica kot eno besedilo: 'datum kraj DRZ World Cup disciplina uvrstitev ...')
         m = ATH_ROW_RE.match(re.sub(r"\s+", " ", " ".join(cells)).strip())
         if m:
-            out[rid] = {"date": m.group("date"), "cat": m.group("cat"), "disc": m.group("disc"), "pos": m.group("pos")}
+            out[rid] = {"date": m.group("date"), "cat": m.group("cat"), "code": "WC" if m.group("cat") == "World Cup" else "GP",
+                        "disc": m.group("disc"), "pos": m.group("pos")}
     return out
 
 
@@ -469,6 +483,8 @@ def probe(spec):
                 asoup = BeautifulSoup(ahtml, "html.parser")
                 n_anch = sum(1 for x in asoup.find_all("a", href=True) if "raceid=" in x["href"])
                 rows = parse_athlete_results(ahtml)
+                raw = list(athlete_row_cells(ahtml).items())[:2]
+                log(f"PREIZKUS {item} [{v}] CELICE: {raw}")
                 al = [l for l in asoup.get_text("\n", strip=True).split("\n") if l]
                 log(f"PREIZKUS {item} [{v}]: dolzina={len(ahtml)} povezav_raceid={n_anch} vrstic_rezultatov={len(rows)} "
                     f"primer={list(rows.items())[:3]} besedilo={al[40:70]}")
