@@ -342,23 +342,33 @@ def season_code_of(date):
     return y + 1 if m >= 7 else y
 
 
+ATH_ROW_RE = re.compile(
+    r"^(?P<date>\d{2}-\d{2}-\d{4})\s+(?P<place>.+?)\s+(?P<nat>[A-Z]{3})\s+(?P<cat>World Cup|Grand Prix)\s+"
+    r"(?P<disc>.+?)\s+(?P<pos>\d{1,3}|(?:DNF|DNS|DSQ|DNQ|NPS|DQ|PEN|LAP)\d?)(?:\s+[\d.\-]+)*\s*$")
+
+
 def parse_athlete_results(html):
-    """Stran sportnika (type=result): vrne {raceid: {"pos", "disc", "date", "cat"}} za vrstice z datumom dd-mm-llll."""
+    """Stran sportnika (type=result): vrne {raceid: {"pos", "disc", "date", "cat"}}.
+    FIS zavije celo vrstico v eno povezavo (...&raceid=N); celice locimo po vrsticah, sicer z regularnim izrazom."""
     soup = BeautifulSoup(html, "lxml") if _has_lxml() else BeautifulSoup(html, "html.parser")
-    rows, order = {}, []
+    groups, order = {}, []
     for a in soup.find_all("a", href=True):
         rid = parse_qs(urlparse(a["href"]).query).get("raceid", [None])[0]
         if not rid:
             continue
-        if rid not in rows:
-            rows[rid] = []
+        if rid not in groups:
+            groups[rid] = []
             order.append(rid)
-        rows[rid].append(a.get_text(" ", strip=True))
+        groups[rid].extend(c for c in a.get_text("\n", strip=True).split("\n") if c.strip())
     out = {}
     for rid in order:
-        t = rows[rid]
-        if len(t) >= 6 and re.fullmatch(r"\d{2}-\d{2}-\d{4}", t[0]):
-            out[rid] = {"date": t[0], "cat": t[3], "disc": t[4], "pos": t[5]}
+        cells = groups[rid]
+        if len(cells) >= 6 and re.fullmatch(r"\d{2}-\d{2}-\d{4}", cells[0]):
+            out[rid] = {"date": cells[0], "cat": cells[3], "disc": cells[4], "pos": cells[5]}
+            continue
+        m = ATH_ROW_RE.match(re.sub(r"\s+", " ", " ".join(cells)).strip())
+        if m:
+            out[rid] = {"date": m.group("date"), "cat": m.group("cat"), "disc": m.group("disc"), "pos": m.group("pos")}
     return out
 
 
