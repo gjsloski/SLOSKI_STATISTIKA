@@ -348,7 +348,7 @@ ATH_ROW_RE = re.compile(
 
 
 POS_RE = re.compile(r"^(\d{1,3}|(?:DNF|DNS|DSQ|DNQ|NPS|DQ|PEN|LAP)\d?)$")
-CAT_CODES = {"WC": "World Cup", "GP": "Grand Prix"}
+CAT_NAMES = {"World Cup": "WC", "Grand Prix": "GP"}
 
 
 def athlete_row_cells(html):
@@ -367,16 +367,16 @@ def athlete_row_cells(html):
 
 
 def parse_athlete_results(html):
-    """Vrne {raceid: {"pos", "disc", "date", "cat", "code"}} samo za vrstice WC/GP.
-    Celice FIS v HTML: [datum, kraj, ..., disciplina, drzava, KODA KATEGORIJE (WC/COC/QUA/...), uvrstitev, tocke ...]
-    zato polja poiscemo po vsebini: datum = prva celica dd-mm-llll, koda kategorije WC/GP, uvrstitev = celica takoj za kodo."""
+    """Vrne {raceid: {"pos", "disc", "date", "cat", "code"}} samo za vrstice World Cup / Grand Prix.
+    FIS izpise vrstico z dvojnimi celicami: [datum, kraj, kraj, disciplina, drzava, KODA, KODA, IME KATEGORIJE,
+    disciplina, UVRSTITEV, FIS tocke, tocke pokala]; uvrstitev je torej dve celici za imenom kategorije."""
     out = {}
     for rid, cells in athlete_row_cells(html).items():
         if not cells or not re.fullmatch(r"\d{2}-\d{2}-\d{4}", cells[0]):
             continue
-        k = next((i for i, c in enumerate(cells) if c in CAT_CODES), None)
-        if k is not None and k >= 2 and k + 1 < len(cells) and POS_RE.match(cells[k + 1]):
-            out[rid] = {"date": cells[0], "cat": CAT_CODES[cells[k]], "code": cells[k], "disc": cells[k - 2], "pos": cells[k + 1]}
+        i = next((j for j, c in enumerate(cells) if c in CAT_NAMES), None)
+        if i is not None and i >= 1 and i + 2 < len(cells) and POS_RE.match(cells[i + 2]):
+            out[rid] = {"date": cells[0], "cat": cells[i], "code": cells[i - 1], "disc": cells[i + 1], "pos": cells[i + 2]}
             continue
         # drugi zapis (vrstica kot eno besedilo: 'datum kraj DRZ World Cup disciplina uvrstitev ...')
         m = ATH_ROW_RE.match(re.sub(r"\s+", " ", " ".join(cells)).strip())
