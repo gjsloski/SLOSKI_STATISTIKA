@@ -229,6 +229,12 @@ def parse_race(html, sport_key, raceid, extra_names, cat="WC"):
     is_startlist = (not has_rank_header) and any("start list" in l.lower() for l in lines[:3])
     if is_startlist:
         CODES_SEEN[(cat, "STARTLIST")] = CODES_SEEN.get((cat, "STARTLIST"), 0) + 1
+    # Prekinjena tekma (npr. Maribor 15.1.2011): naslov strani je '... Competition ...', v tabeli ni tock ('Cup Points'),
+    # FIS je pri sportnikih ne steje. Stran z rezultati ima '... Results ...' in stolpec 'Cup Points'.
+    has_cup_points = any("cup points" in l.lower() for l in lines)
+    if not is_startlist and not has_cup_points and any("competition" in l.lower() for l in lines[:3]):
+        CODES_SEEN[(cat, "NEPOPOLNA")] = CODES_SEEN.get((cat, "NEPOPOLNA"), 0) + 1
+        return "skip", None
     needle = "World Cup" if cat == "WC" else "Grand Prix"
     if not any(needle.lower() in l.lower() for l in head):
         return "skip", None
