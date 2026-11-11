@@ -365,6 +365,20 @@ def probe(spec):
         except StopIteration:
             i0 = 0
         log(f"PREIZKUS {item} TABELA: {allv[i0:i0+45]}")
+        # povezave na strani, ki bi lahko vsebovale rezultate (pdf, results, raceid, type=)
+        hrefs = []
+        for a in soup.find_all("a", href=True):
+            h = a["href"]
+            if any(k in h.lower() for k in ("pdf", "result", "raceid", "type=", "download")):
+                t = a.get_text(" ", strip=True)[:40]
+                if (t, h) not in hrefs:
+                    hrefs.append((t, h))
+        log(f"PREIZKUS {item} POVEZAVE: {hrefs[:40]}")
+        for variant in (f"&type=result", f"&type=results"):
+            vh = get(f"{BASE}/DB/general/results.html?sectorcode={sec}&raceid={rid}{variant}")
+            if vh:
+                vl = [l for l in BeautifulSoup(vh, "html.parser").get_text("\n", strip=True).split("\n") if l]
+                log(f"PREIZKUS {item} INACICA {variant}: rank_glava={any(l.lower()=='rank' for l in vl)} prva_vrstica={vl[:1]}")
         for i, l in enumerate(allv):
             if l == "SLO":
                 log(f"PREIZKUS {item} SLO: {allv[max(0,i-5):i+6]}")
