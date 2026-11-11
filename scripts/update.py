@@ -362,15 +362,17 @@ def athlete_results(sec, cid, season, cat):
     if key in ATH_CACHE:
         return ATH_CACHE[key]
     result = None
-    for extra in (f"&categorycode={cat}", ""):
-        html = get(f"{BASE}/DB/general/athlete-biography.html?sectorcode={sec}&competitorid={cid}"
-                   f"&type=result&seasoncode={season}{extra}")
+    for extra in (f"&categorycode={cat}&sort=&place=&disciplinecode=&position=&limit=100", ""):
+        html = get(f"{BASE}/DB/general/athlete-biography.html?sectorcode={sec}&seasoncode={season}"
+                   f"&competitorid={cid}&type=result{extra}")
         if html:
             result = parse_athlete_results(html)
             want = "World Cup" if cat == "WC" else "Grand Prix"
             result = {k: v for k, v in result.items() if want.lower() in v["cat"].lower()}
             if result:
                 break
+    if not result:
+        log(f"  OPOZORILO: stran sportnika {sec}:{cid} sezona {season} ({cat}) nima prebranih vrstic")
     ATH_CACHE[key] = result
     return result
 
@@ -434,14 +436,26 @@ def probe(spec):
     for item in spec.split(","):
         if item.strip().startswith("ATH:"):
             _, sec, cid, season = item.strip().split(":")
-            for extra in ("&categorycode=WC", ""):
-                ahtml = get(f"{BASE}/DB/general/athlete-biography.html?sectorcode={sec}&competitorid={cid}&type=result&seasoncode={season}{extra}")
+            base = f"{BASE}/DB/general/athlete-biography.html?sectorcode={sec}&competitorid={cid}"
+            variants = [
+                f"&type=result&seasoncode={season}&categorycode=WC&sort=&place=&disciplinecode=&position=&limit=100",
+                f"&type=result&seasoncode={season}&categorycode=WC",
+                f"&type=result&seasoncode={season}",
+                f"&seasoncode={season}&categorycode=WC&type=result",
+                "&type=result",
+                f"&type=result&seasoncode={season}&categorycode=WC&sort=",
+            ]
+            for v in variants:
+                ahtml = get(base + v)
                 if not ahtml:
-                    log(f"PREIZKUS {item}: stran ni dosegljiva ({extra or 'brez kategorije'})")
+                    log(f"PREIZKUS {item} [{v}]: stran ni dosegljiva")
                     continue
-                al = [l for l in BeautifulSoup(ahtml, "html.parser").get_text("\n", strip=True).split("\n") if l]
-                i1 = next((i for i, l in enumerate(al) if l.lower() in ("date", "place", "pos", "rank")), 0)
-                log(f"PREIZKUS {item} ({extra or 'brez kategorije'}) VRSTICE: {al[max(0,i1-8):i1+90]}")
+                asoup = BeautifulSoup(ahtml, "html.parser")
+                n_anch = sum(1 for x in asoup.find_all("a", href=True) if "raceid=" in x["href"])
+                rows = parse_athlete_results(ahtml)
+                al = [l for l in asoup.get_text("\n", strip=True).split("\n") if l]
+                log(f"PREIZKUS {item} [{v}]: dolzina={len(ahtml)} povezav_raceid={n_anch} vrstic_rezultatov={len(rows)} "
+                    f"primer={list(rows.items())[:3]} besedilo={al[40:70]}")
             continue
         sec, rid = item.strip().split(":")
         html = get(f"{BASE}/DB/general/results.html?sectorcode={sec}&raceid={rid}")
@@ -499,7 +513,7 @@ def check_races(races, today, deadline):
             break
         sec, cid, season, cat = key
         theirs = athlete_results(sec, cid, season, cat)
-        if theirs is None:
+        if not theirs:
             n_na += 1
             continue
         for rid, (rank, race, name) in mine.items():
