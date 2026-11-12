@@ -85,6 +85,9 @@ CODES_SEEN = {}
 BAD_TYPES = {"TRA", "COM", "QUA", "QUAL", "QUF", "Q", "TRI", "TRL", "PRO", "PCR", "TRN", "FIS", "COC", "PR"}
 # Slovenski tekmovalci, ki jih FIS pri nekaterih tekmah vodi pod drugo drzavo (JUG v sezoni 1991/92, GER pri Urbanu Francu 1995).
 # Vrednost: competitorid. Dodaj samo, ce je to dokazano s stranjo sportnika na FIS.
+# Tekme svetovnega pokala, ki jih koledar FIS (kategorija WC) ne navaja, ker so voden kot svetovno prvenstvo v poletih (SFWC + WC):
+# Harrachov 1992, Planica 1994, Tauplitz/Bad Mitterndorf 1996 in 1998. Strani so preverjene s probe (naslov in oznaka 'WC').
+EXTRA_RACES = ["JP:1823", "JP:1822", "JP:1321", "JP:329", "JP:330", "JP:331"]
 EXTRA_SLO = {"68518", "27683", "58901", "18035", "53613", "61013"}  # Zupan, Janus, Stirn, Franc Urban, Sarec Veronika, Tepes Miran
 QUAL_RE = re.compile(r"\b(Qualification|Qualifying|Training|Trial|Prologue)\b", re.I)
 
@@ -766,6 +769,30 @@ def process_season(code, sport_key, races, state, cat, label, finished, extra_na
     return "popolno" if failures == 0 else "delno"
 
 
+def add_extra_races(races, state, extra_names):
+    """Doda tekme iz EXTRA_RACES neposredno (brez koledarja)."""
+    n = 0
+    for item in EXTRA_RACES:
+        sec, rid = item.split(":")
+        sk = next((k for k, c in SPORTS.items() if c["code"] == sec), None)
+        if not sk or f"{sec.lower()}-{rid}" in races:
+            continue
+        html = get(f"{BASE}/DB/general/results.html?sectorcode={sec}&raceid={rid}")
+        if not html:
+            log(f"  NAPAKA: {item} ni dosegljiva")
+            continue
+        status, race = parse_race(html, sk, rid, extra_names, "WC")
+        if status == "ok" and race["res"]:
+            races[race["id"]] = race
+            state["seen"][item] = "ok"
+            n += 1
+            log(f"  (dodatna tekma) {race['d']} {race['place']} {race['disc']} {race['g']}: "
+                f"{', '.join(str(x['r']) + '. ' + x['n'] for x in race['res'])}")
+        else:
+            log(f"  OPOZORILO: dodatna tekma {item} ni bila dodana (status {status})")
+    return n
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--mode", choices=["weekly", "backfill"], default="weekly")
@@ -779,6 +806,7 @@ def main():
     ap.add_argument("--validate", action="store_true", help="po zbiranju primerja stetje z FIS Podiums")
     ap.add_argument("--check-races", action="store_true", help="vsako uvrstitev primerja s stranjo sportnika na FIS (po raceid)")
     ap.add_argument("--only-validate", action="store_true", help="samo preveri, brez zbiranja")
+    ap.add_argument("--add-extra", action="store_true", help="doda tekme iz EXTRA_RACES (letalnice SFWC+WC), ki jih koledar ne navaja")
     ap.add_argument("--force", action="store_true", help="ponovno obdela tudi sezone, oznacene kot popolne")
     args = ap.parse_args()
     if args.probe:
@@ -830,6 +858,14 @@ def main():
             validate(races, today, deadline)
         return 0
 
+    if args.add_extra:
+        n = add_extra_races(races, state, extra_names)
+        log(f"Dodatne tekme: dodanih {n}")
+        save_all(races, state, meta, today)
+        if args.validate:
+            validate(races, today, deadline)
+        return 0
+
     if args.only_validate:
         validate(races, today, deadline)
         return 0
@@ -864,6 +900,7 @@ def main():
             return 0
         cov[sk] = result
         save_all(races, state, meta, today)
+    add_extra_races(races, state, extra_names)
     save_all(races, state, meta, today)
     if args.validate:
         validate(races, today, deadline)
