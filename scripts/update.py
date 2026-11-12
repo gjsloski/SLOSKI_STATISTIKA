@@ -85,7 +85,7 @@ CODES_SEEN = {}
 BAD_TYPES = {"TRA", "COM", "QUA", "QUAL", "QUF", "Q", "TRI", "TRL", "PRO", "PCR", "TRN", "FIS", "COC", "PR"}
 # Slovenski tekmovalci, ki jih FIS pri nekaterih tekmah vodi pod drugo drzavo (JUG v sezoni 1991/92, GER pri Urbanu Francu 1995).
 # Vrednost: competitorid. Dodaj samo, ce je to dokazano s stranjo sportnika na FIS.
-EXTRA_SLO = {"68518", "27683", "58901", "18035"}  # Zupan Matjaz, Janus Goran, Stirn Janez, Franc Urban
+EXTRA_SLO = {"68518", "27683", "58901", "18035", "53613", "61013"}  # Zupan, Janus, Stirn, Franc Urban, Sarec Veronika, Tepes Miran
 QUAL_RE = re.compile(r"\b(Qualification|Qualifying|Training|Trial|Prologue)\b", re.I)
 
 
