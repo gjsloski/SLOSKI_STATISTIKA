@@ -232,7 +232,7 @@ def parse_row(text, href):
     return {"cid": cid, "name": name, "rank": int(tokens[0]), "nat": tokens[y + nat_off]}
 
 
-def parse_race(html, sport_key, raceid, extra_names, cat="WC"):
+def parse_race(html, sport_key, raceid, extra_names, cat="WC", trusted=False):
     """Vrne (status, race). status: ok | skip | empty | fail"""
     cfg = SPORTS[sport_key]
     soup = BeautifulSoup(html, "lxml") if _has_lxml() else BeautifulSoup(html, "html.parser")
@@ -252,7 +252,7 @@ def parse_race(html, sport_key, raceid, extra_names, cat="WC"):
         CODES_SEEN[(cat, "NEPOPOLNA")] = CODES_SEEN.get((cat, "NEPOPOLNA"), 0) + 1
         return "skip", None
     needle = "World Cup" if cat == "WC" else "Grand Prix"
-    if not any(needle.lower() in l.lower() for l in head):
+    if not trusted and not any(needle.lower() in l.lower() for l in head):
         return "skip", None
     title = next((l for l in head if TITLE_RE.match(l) and len(l) < 90), None)
     date = None
@@ -781,7 +781,7 @@ def add_extra_races(races, state, extra_names):
         if not html:
             log(f"  NAPAKA: {item} ni dosegljiva")
             continue
-        status, race = parse_race(html, sk, rid, extra_names, "WC")
+        status, race = parse_race(html, sk, rid, extra_names, "WC", trusted=True)
         if status == "ok" and race["res"]:
             races[race["id"]] = race
             state["seen"][item] = "ok"
