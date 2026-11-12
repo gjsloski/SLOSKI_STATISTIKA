@@ -493,9 +493,11 @@ def probe(spec):
                 log(f"PREIZKUS {item} [{v}] CELICE: {raw}")
                 al = [l for l in asoup.get_text("\n", strip=True).split("\n") if l]
                 log(f"PREIZKUS {item} [{v}]: dolzina={len(ahtml)} povezav_raceid={n_anch} vrstic_rezultatov={len(rows)} "
-                    f"primer={list(rows.items())[:3]} besedilo={al[40:70]}")
+                    f"VSE={[(k, x['date'], x['code'], x['disc'], x['pos']) for k, x in rows.items()]} besedilo={al[40:70]}")
             continue
-        sec, rid = item.strip().split(":")
+        parts = item.strip().split(":")
+        sec, rid = parts[0], parts[1]
+        find = parts[2].lower() if len(parts) > 2 else None   # npr. JP:643:zupan -> izpise vrstice z tem imenom
         html = get(f"{BASE}/DB/general/results.html?sectorcode={sec}&raceid={rid}")
         if not html:
             log(f"PREIZKUS {item}: stran ni dosegljiva")
@@ -530,6 +532,14 @@ def probe(spec):
         for i, l in enumerate(allv):
             if l == "SLO":
                 log(f"PREIZKUS {item} SLO: {allv[max(0,i-5):i+6]}")
+            if find and find in l.lower():
+                log(f"PREIZKUS {item} NAJDI {find}: {allv[max(0,i-4):i+8]}")
+        if find:
+            nats = {}
+            for l in allv:
+                if re.fullmatch(r"[A-Z]{3}", l):
+                    nats[l] = nats.get(l, 0) + 1
+            log(f"PREIZKUS {item} DRZAVE: {nats}")
 
 
 _SKIP_PAGE = {}
