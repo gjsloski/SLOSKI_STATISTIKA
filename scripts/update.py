@@ -82,7 +82,10 @@ SKIP_WORDS = ("Team", "Mixed", "Relay", "Standings")
 TYPE_RE = re.compile(r"\d{1,2}\.\d{1,2}\.\d{4}\s*-\s*[^|]{3,90}\|\s*([A-Za-z]{2,6})\b")
 # oznake vrste tekme na FIS: WC = tekma, TRA = trening, COM = etapa kombinacije, kvalifikacije in poskusne serije
 CODES_SEEN = {}
-BAD_TYPES = {"TRA", "COM", "QUA", "QUAL", "QUF", "Q", "TRI", "TRL", "PRO", "PCR", "TRN", "FIS", "COC"}
+BAD_TYPES = {"TRA", "COM", "QUA", "QUAL", "QUF", "Q", "TRI", "TRL", "PRO", "PCR", "TRN", "FIS", "COC", "PR"}
+# Slovenski tekmovalci, ki jih FIS pri nekaterih tekmah vodi pod drugo drzavo (JUG v sezoni 1991/92, GER pri Urbanu Francu 1995).
+# Vrednost: competitorid. Dodaj samo, ce je to dokazano s stranjo sportnika na FIS.
+EXTRA_SLO = {"68518", "27683", "58901", "18035"}  # Zupan Matjaz, Janus Goran, Stirn Janez, Franc Urban
 QUAL_RE = re.compile(r"\b(Qualification|Qualifying|Training|Trial|Prologue)\b", re.I)
 
 
@@ -193,10 +196,20 @@ def parse_row(text, href):
     if k == 1:
         return None  # vrstica brez startne stevilke
     y = None
+    nat_off = 1
     for i in range(k, len(tokens) - 1):
         if re.fullmatch(r"(19|20)\d\d", tokens[i]) and re.fullmatch(r"[A-Z]{3}", tokens[i + 1]):
             y = i
             break
+    if y is None:
+        # starejse vrstice brez leta rojstva ('5 2864 JEKOVEC Dajan SLO 227.5 -28'): drzava je prva 3-crkovna oznaka,
+        # ki sledi imenu (pred njo je ime z malimi crkami), nato pridejo tocke
+        for i in range(k + 1, len(tokens)):
+            if re.fullmatch(r"[A-Z]{3}", tokens[i]) and (tokens[i - 1] != tokens[i - 1].upper() or tokens[i - 1].endswith(".")) \
+                    and (i + 1 >= len(tokens) or re.fullmatch(r"[-+]?[\d'.:]+|DNF\d?|DSQ\d?|DNS\d?", tokens[i + 1])):
+                y = i
+                nat_off = 0
+                break
     if y is None:
         return None
     name_tokens = tokens[k:y]
@@ -213,7 +226,7 @@ def parse_row(text, href):
     surname = " ".join(w.title() for w in sur)
     name = f"{given} {surname}".strip()
     cid = parse_qs(urlparse(href).query).get("competitorid", [None])[0]
-    return {"cid": cid, "name": name, "rank": int(tokens[0]), "nat": tokens[y + 1]}
+    return {"cid": cid, "name": name, "rank": int(tokens[0]), "nat": tokens[y + nat_off]}
 
 
 def parse_race(html, sport_key, raceid, extra_names, cat="WC"):
@@ -314,7 +327,9 @@ def parse_race(html, sport_key, raceid, extra_names, cat="WC"):
         return "startlist", stub
     res = []
     for r in ranked:
-        if r["nat"] == "SLO" and r["rank"] <= 30:
+        if r["rank"] <= 30 and r["nat"] in ("JUG", "YUG") and r["cid"] not in EXTRA_SLO:
+            log(f"  JUG/YUG v top 30: {r['name']} (competitorid {r['cid']}) {r['rank']}. mesto, {date} {place} - ni steto")
+        if (r["nat"] == "SLO" or r["cid"] in EXTRA_SLO) and r["rank"] <= 30:
             item = {"n": fix_name(r["name"], r["cid"], extra_names), "r": r["rank"]}
             if r["cid"]:
                 item["id"] = int(r["cid"])
