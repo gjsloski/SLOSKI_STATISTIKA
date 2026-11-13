@@ -995,8 +995,8 @@ def add_extra_races(races, state, extra_names):
     for item in EXTRA_RACES:
         sec, rid = item.split(":")
         sk = next((k for k, c in SPORTS.items() if c["code"] == sec), None)
-        if not sk or f"{sec.lower()}-{rid}" in races:
-            continue
+        if not sk:
+            continue  # tekma se vedno znova prebere in prepise (popravek ze shranjenih)
         html = get(f"{BASE}/DB/general/results.html?sectorcode={sec}&raceid={rid}")
         if not html:
             log(f"  NAPAKA: {item} ni dosegljiva")
