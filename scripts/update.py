@@ -88,7 +88,7 @@ BAD_TYPES = {"TRA", "COM", "QUA", "QUAL", "QUF", "Q", "TRI", "TRL", "PRO", "PCR"
 # Vrednost: competitorid. Dodaj samo, ce je to dokazano s stranjo sportnika na FIS.
 # Tekme svetovnega pokala, ki jih koledar FIS (kategorija WC) ne navaja, ker so voden kot svetovno prvenstvo v poletih (SFWC + WC):
 # Harrachov 1992, Planica 1994, Tauplitz/Bad Mitterndorf 1996 in 1998. Strani so preverjene s probe (naslov in oznaka 'WC').
-EXTRA_RACES = ["JP:1823", "JP:1822", "JP:1321", "JP:329", "JP:330", "JP:331"]
+EXTRA_RACES = ["JP:1823", "JP:1822", "JP:1321", "JP:329", "JP:330", "JP:331", "JP:652", "JP:809"]  # zadnji dve: ekipni tekmi 1992 in 1995 (clani brez leta rojstva)
 EXTRA_SLO = {"68518", "27683", "58901", "18035", "53613", "61013"}  # Zupan, Janus, Stirn, Franc Urban, Sarec Veronika, Tepes Miran
 QUAL_RE = re.compile(r"\b(Qualification|Qualifying|Training|Trial|Prologue)\b", re.I)
 
