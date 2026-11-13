@@ -78,7 +78,8 @@ MONTH_RE = r"(January|February|March|April|May|June|July|August|September|Octobe
 DATE_RE = re.compile(r"^" + MONTH_RE + r" \d{1,2}, \d{4}$")
 TITLE_RE = re.compile(r"^(Men|Women|Ladies|Mixed|Team)\b")
 STOP_RE = re.compile(r"^(Did not|Did Not|Disqualified|Not qualified|DNF|DSQ|DNS|DNQ)", re.I)
-SKIP_WORDS = ("Team", "Mixed", "Relay", "Standings")
+SKIP_WORDS = ("Relay", "Standings")
+TEAM_RE = re.compile(r"\bTeam\b")
 TYPE_RE = re.compile(r"\d{1,2}\.\d{1,2}\.\d{4}\s*-\s*[^|]{3,90}\|\s*([A-Za-z]{2,6})\b")
 # oznake vrste tekme na FIS: WC = tekma, TRA = trening, COM = etapa kombinacije, kvalifikacije in poskusne serije
 CODES_SEEN = {}
@@ -232,6 +233,86 @@ def parse_row(text, href):
     return {"cid": cid, "name": name, "rank": int(tokens[0]), "nat": tokens[y + nat_off]}
 
 
+def parse_member(text, href):
+    """Clan ekipe: '11-1 6681 MARUYAMA Nozomi 1998 1 128.0 ...' (skoki) ali '1 31 STJERNESUND Thea Louise 1996 NOR 22.12' (alpsko)."""
+    tk = text.split()
+    if not tk or not (tk[0].isdigit() or re.fullmatch(r"\d+-\d+", tk[0])):
+        return None
+    k = 0
+    while k < len(tk) and (tk[k].isdigit() or re.fullmatch(r"\d+-\d+", tk[k])):
+        k += 1
+    y = next((i for i in range(k + 1, len(tk)) if re.fullmatch(r"(19|20)\d\d", tk[i])), None)
+    if y is None:
+        return None
+    name_tokens = tk[k:y]
+    if not name_tokens:
+        return None
+    sur = []
+    for t in name_tokens:
+        if t == t.upper() and any(c.isalpha() for c in t):
+            sur.append(t)
+        else:
+            break
+    rest = name_tokens[len(sur):]
+    if sur:
+        name = f"{rest[0] if rest else ''} {' '.join(w.title() for w in sur)}".strip()
+    else:  # stari zapis 'Priimek Ime'
+        name = " ".join(name_tokens[1:] + name_tokens[:1])
+    nat = tk[y + 1] if y + 1 < len(tk) and re.fullmatch(r"[A-Z]{3}", tk[y + 1]) else None
+    cid = parse_qs(urlparse(href).query).get("competitorid", [None])[0]
+    return {"cid": cid, "name": name, "nat": nat}
+
+
+def parse_team_page(soup):
+    """Vrne seznam ekip [{'rank','nat','tid','members'}] in seznam vseh clanov [{'cid','name','nat','team'}]."""
+    teams, persons, cur = [], [], None
+    for a in soup.find_all("a"):
+        href = a.get("href", "")
+        if "athlete-biography" not in href:
+            continue
+        text = a.get_text(" ", strip=True)
+        tk = text.split()
+        cid = parse_qs(urlparse(href).query).get("competitorid", [None])[0]
+        if (len(tk) >= 4 and tk[0].isdigit() and re.fullmatch(r"[A-Z]{3}", tk[-2])
+                and re.fullmatch(r"\d+(\.\d+)?", tk[-1]) and not re.fullmatch(r"(19|20)\d\d", tk[-3])):
+            cur = next((t for t in teams if t["tid"] == cid and t["nat"] == tk[-2]), None)
+            if cur is None:
+                cur = {"rank": int(tk[0]), "nat": tk[-2], "tid": cid, "members": []}
+                teams.append(cur)
+            continue
+        m = parse_member(text, href)
+        if m:
+            m["team"] = cur
+            persons.append(m)
+            if cur is not None:
+                cur["members"].append(m)
+    return teams, persons
+
+
+def team_result(soup, extra_names):
+    """Slovenski clani ekip z mestom ekipe. Vrne seznam {'n','r','id'} ali None, ce strani ni (odpovedana tekma)."""
+    teams, persons = parse_team_page(soup)
+    if not teams:
+        return None
+    slo_rank = next((t["rank"] for t in teams if t["nat"] == "SLO"), None)
+    res, seen = [], set()
+    for m in persons:
+        cur = m["team"]
+        if m["nat"] is None and cur is not None:
+            if cur["nat"] != "SLO" and m["cid"] not in EXTRA_SLO:
+                continue
+            rank = cur["rank"]
+        else:
+            if m["nat"] != "SLO" and m["cid"] not in EXTRA_SLO:
+                continue
+            rank = slo_rank
+        if rank is None or rank > 30 or not m["cid"] or m["cid"] in seen:
+            continue
+        seen.add(m["cid"])
+        res.append({"n": fix_name(m["name"], m["cid"], extra_names), "r": rank, "id": int(m["cid"])})
+    return res
+
+
 def parse_race(html, sport_key, raceid, extra_names, cat="WC", trusted=False):
     """Vrne (status, race). status: ok | skip | empty | fail"""
     cfg = SPORTS[sport_key]
@@ -288,7 +369,8 @@ def parse_race(html, sport_key, raceid, extra_names, cat="WC", trusted=False):
     ti = head.index(title)
     if any(QUAL_RE.search(l) for l in head[ti:ti + 3] if len(l) < 90):
         return "skip", None
-    gender = "M" if title.startswith("Men") else "Ž"
+    is_team = bool(TEAM_RE.search(title)) or title.startswith("Mixed")
+    gender = "M" if title.startswith("Men") else ("X" if title.startswith(("Mixed", "Team")) else "Ž")
     disc = None
     for key, sl in DISC:
         if key.lower() in title.lower():
@@ -296,6 +378,22 @@ def parse_race(html, sport_key, raceid, extra_names, cat="WC", trusted=False):
             break
     if disc is None:
         disc = re.sub(r"^(Men|Women|Ladies)['’]?s?\s*", "", title).strip() or title
+
+    if is_team:
+        # ekipna tekma: vsak slovenski clan dobi mesto svoje ekipe (kot na strani sportnika na FIS)
+        if not has_rank_header:
+            return "empty", None
+        tres = team_result(soup, extra_names)
+        if tres is None:
+            return "empty", None  # brez tabele: odpovedana tekma
+        race = {
+            "id": f"{cfg['code'].lower()}-{raceid}", "fis": int(raceid), "d": date,
+            "place": re.sub(r"\s+", " ", place), "sport": cfg["label"], "disc": disc, "g": gender,
+            "t": "ekipno", "res": sorted(tres, key=lambda x: x["r"]),
+        }
+        if cat == "GP":
+            race["summer"] = True
+        return "ok", race
 
     ranked, stopped = [], False
     for node in soup.descendants:
@@ -357,6 +455,7 @@ def parse_race(html, sport_key, raceid, extra_names, cat="WC", trusted=False):
 
 
 ATH_CACHE = {}
+TEAMS_DONE = None  # mnozica kljucev, ki so ze bili ponovno obdelani v nacinu --teams
 
 
 def season_code_of(date):
@@ -683,8 +782,6 @@ def check_races(races, today, deadline):
     by_label = {cfg["label"]: cfg["code"] for cfg in SPORTS.values()}
     ours = {}
     for r in races.values():
-        if r.get("t") != "posamicno":
-            continue
         sec = by_label.get(r["sport"])
         cat = "GP" if r.get("summer") else "WC"
         for x in r["res"]:
@@ -793,6 +890,17 @@ def validate(races, today, deadline):
 # ----------------------------------------------------------------- glavni tok
 def save_all(races, state, meta, today):
     DATA.mkdir(exist_ok=True)
+    ind = {}
+    for r in races.values():
+        if r.get("t") == "posamicno":
+            for x in r["res"]:
+                if "id" in x:
+                    ind[x["id"]] = x["n"]
+    for r in races.values():  # ekipne tekme: ime po posamicnih tekmah (stare strani zapisujejo 'Priimek Ime')
+        if r.get("t") == "ekipno":
+            for x in r["res"]:
+                if x.get("id") in ind:
+                    x["n"] = ind[x["id"]]
     rs = sorted(races.values(), key=lambda r: (r["d"], r["id"]))
     body = "[\n" + ",\n".join(json.dumps(r, ensure_ascii=False) for r in rs) + "\n]\n"
     (DATA / "races.json").write_text(body, encoding="utf-8")
@@ -827,7 +935,11 @@ def process_season(code, sport_key, races, state, cat, label, finished, extra_na
         for rid, rurl in parse_event(ehtml, cfg["code"]):
             key = f"{cfg['code']}:{rid}"
             if key in state["seen"]:
-                continue
+                if TEAMS_DONE is None or key in TEAMS_DONE or state["seen"][key] not in ("skip", "empty"):
+                    continue
+            if TEAMS_DONE is not None:
+                TEAMS_DONE.add(key)
+                state["teams_done"] = sorted(TEAMS_DONE)
             rhtml = get(rurl)
             if not rhtml:
                 failures += 1
@@ -910,6 +1022,7 @@ def main():
     ap.add_argument("--check-races", action="store_true", help="vsako uvrstitev primerja s stranjo sportnika na FIS (po raceid)")
     ap.add_argument("--only-validate", action="store_true", help="samo preveri, brez zbiranja")
     ap.add_argument("--add-extra", action="store_true", help="doda tekme iz EXTRA_RACES (letalnice SFWC+WC), ki jih koledar ne navaja")
+    ap.add_argument("--teams", action="store_true", help="ponovno obdela strani, ki so bile prej preskocene (ekipne tekme), brez brisanja posamicnih")
     ap.add_argument("--force", action="store_true", help="ponovno obdela tudi sezone, oznacene kot popolne")
     args = ap.parse_args()
     if args.probe_team2:
@@ -956,6 +1069,12 @@ def main():
             for lab in meta["coverage"].values():
                 lab.pop(key, None)
         log(f"Ponastavitev {args.reset_sport}: odstranjenih {n0 - len(races)} tekem")
+
+    global TEAMS_DONE
+    if args.teams:
+        TEAMS_DONE = set(state.get("teams_done", []))
+        args.mode, args.force = "backfill", True
+        log(f"Ekipne tekme: ze ponovno obdelanih {len(TEAMS_DONE)} prej preskocenih strani")
 
     if args.refilter:
         finished_all, n = refilter(races, state, extra_names, deadline)
@@ -1010,6 +1129,9 @@ def main():
         cov[sk] = result
         save_all(races, state, meta, today)
     add_extra_races(races, state, extra_names)
+    if TEAMS_DONE is not None:
+        state.pop("teams_done", None)
+        log("Ekipne tekme: vse strani ponovno obdelane.")
     save_all(races, state, meta, today)
     if args.validate:
         validate(races, today, deadline)
