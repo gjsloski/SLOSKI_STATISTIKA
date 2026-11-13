@@ -100,10 +100,13 @@ footer{font-size:12px;color:var(--muted);padding:0 4px}
       <div><label for="fd">Disciplina</label><select id="fd"></select></div>
       <div><label for="fg">Spol</label><select id="fg"><option value="">Vsi</option><option value="M">Moški</option><option value="Ž">Ženske</option><option value="X">Mešano (ekipe)</option></select></div>
       <div><label for="ft">Vrsta tekme</label><select id="ft"><option value="posamicno">Posamično</option><option value="ekipno">Ekipno</option><option value="">Posamično + ekipno</option></select></div>
+      <div><label for="fo">Razvrsti po</label><select id="fo"><option value="">Privzeto (največ zmag)</option><option value="0">1. mesto (zmage)</option><option value="1">2. mesto</option><option value="2">3. mesto</option><option value="3">Top 5</option><option value="4">Top 10</option><option value="5">Top 15</option><option value="6">Top 30</option><option value="n">Ime (A–Ž)</option></select></div>
+      <div><label for="fr">Vrstni red</label><select id="fr"><option value="desc">Od največ do najmanj</option><option value="asc">Od najmanj do največ</option></select></div>
     </div>
   </div>
   <div class="tabs" role="tablist">
     <button class="tab" role="tab" data-t="name" aria-selected="true">Po športnikih</button>
+    <button class="tab" role="tab" data-t="sport" aria-selected="false">Po panogah</button>
     <button class="tab" role="tab" data-t="disc" aria-selected="false">Po disciplinah</button>
     <button class="tab" role="tab" data-t="season" aria-selected="false">Po sezonah</button>
     <button class="tab" role="tab" data-t="log" aria-selected="false">Rezultati tekem</button>
@@ -160,7 +163,7 @@ const L_RES=["uvrstitev v top 30","uvrstitvi v top 30","uvrstitve v top 30","uvr
 function fmtDate(s){const [y,m,d]=s.split("-");return d.replace(/^0/,"")+". "+m.replace(/^0/,"")+". "+y}
 function init(){
   fillSports();fillSeason();fillDisc();
-  ["fse","fs","fd","fg","ft"].forEach(i=>$(i).addEventListener("change",()=>{if(i==="fs")fillDisc();render()}));
+  ["fse","fs","fd","fg","ft","fo","fr"].forEach(i=>$(i).addEventListener("change",()=>{if(i==="fs")fillDisc();render()}));
   document.querySelectorAll(".tab[data-t]").forEach(b=>b.addEventListener("click",()=>{
     tab=b.dataset.t;document.querySelectorAll(".tab[data-t]").forEach(x=>x.setAttribute("aria-selected",x===b));render()}));
   document.querySelectorAll(".mode").forEach(b=>b.addEventListener("click",()=>{
@@ -192,6 +195,17 @@ function filtered(){
   const se=$("fse").value,s=$("fs").value,d=$("fd").value,g=$("fg").value,t=$("ft").value;
   return RACES.filter(r=>inMode(r)&&(!se||seasonOfRace(r)===se)&&(!s||r.sport===s)&&(!d||r.disc===d)&&(!g||r.g===g)&&(!t||r.t===t));
 }
+function sortRows(rows,nameOf,cOf){
+  const k=$("fo").value,dir=$("fr").value==="asc"?-1:1;
+  const byName=(a,b)=>nameOf(a).localeCompare(nameOf(b),"sl");
+  return rows.slice().sort((a,b)=>{
+    if(k==="n")return dir===1?byName(a,b):-byName(a,b);
+    const ca=cOf(a),cb=cOf(b),first=k===""?0:+k;
+    if(cb[first]!==ca[first])return (cb[first]-ca[first])*dir;
+    for(let i=0;i<7;i++){if(cb[i]!==ca[i])return (cb[i]-ca[i])*dir}
+    return byName(a,b);
+  });
+}
 function counts(ranks){return [1,2,3].map(n=>ranks.filter(r=>r===n).length).concat(TOPS.map(n=>ranks.filter(r=>r<=n).length))}
 function cell(v,first){const td=el("td","num",String(v));if(v===0)td.classList.add("zero");else if(first)td.classList.add("hi");return td}
 function head(cols){const tr=el("tr");cols.forEach(c=>tr.appendChild(el("th",null,c)));const th=el("thead");th.appendChild(tr);return th}
@@ -209,8 +223,7 @@ function render(){
   if(tab==="name"){
     table.appendChild(head(["Športnik","1.","2.","3.","Top 5","Top 10","Top 15","Top 30"]));
     const tb=el("tbody");
-    Object.values(people).map(p=>({p,c:counts(p.items.map(i=>i.r))}))
-      .sort((a,b)=>{for(let i=0;i<7;i++){if(b.c[i]!==a.c[i])return b.c[i]-a.c[i]}return a.p.n.localeCompare(b.p.n,"sl")})
+    sortRows(Object.values(people).map(p=>({p,c:counts(p.items.map(i=>i.r))})),o=>o.p.n,o=>o.c)
       .forEach(({p,c})=>{
         const tr=el("tr","row");const td=el("td","name",p.n);
         const real=p.items.filter(i=>!i.x);const best=real.length?String(Math.min(...real.map(i=>i.r))):"16.–30";
@@ -225,13 +238,22 @@ function render(){
     table.appendChild(tb);
     out.appendChild(table);
     out.appendChild(el("p","note","Tapni na športnika za podrobnosti uvrstitev."));
+  }else if(tab==="sport"){
+    table.appendChild(head(["Panoga","1.","2.","3.","Top 5","Top 10","Top 15","Top 30"]));
+    const sg={};
+    rs.forEach(r=>{(sg[r.sport]=sg[r.sport]||[]).push(...r.res.map(x=>x.r))});
+    const tb=el("tbody");
+    sortRows(Object.keys(sg).map(k=>({k,c:counts(sg[k])})),o=>o.k,o=>o.c).forEach(({k,c})=>{
+      const tr=el("tr");tr.appendChild(el("td","name",k));c.forEach((v,i)=>tr.appendChild(cell(v,i===0)));tb.appendChild(tr)});
+    table.appendChild(tb);out.appendChild(table);
   }else if(tab==="disc"){
     table.appendChild(head(["Disciplina","1.","2.","3.","Top 5","Top 10","Top 15","Top 30"]));
     const groups={};
     rs.forEach(r=>{const k=r.sport+" – "+r.disc+(r.g==="M"?" (M)":r.g==="X"?" (mešano)":" (Ž)");(groups[k]=groups[k]||[]).push(...r.res.map(x=>x.r))});
     const tb=el("tbody");
-    Object.keys(groups).sort((a,b)=>a.localeCompare(b,"sl")).forEach(k=>{
-      const tr=el("tr");tr.appendChild(el("td","name",k));counts(groups[k]).forEach((v,i)=>tr.appendChild(cell(v,i===0)));tb.appendChild(tr)});
+    const dk=Object.keys(groups).map(k=>({k,c:counts(groups[k])}));
+    (($("fo").value===""&&$("fr").value==="desc")?dk.sort((a,b)=>a.k.localeCompare(b.k,"sl")):sortRows(dk,o=>o.k,o=>o.c)).forEach(({k,c})=>{
+      const tr=el("tr");tr.appendChild(el("td","name",k));c.forEach((v,i)=>tr.appendChild(cell(v,i===0)));tb.appendChild(tr)});
     table.appendChild(tb);out.appendChild(table);
   }else if(tab==="season"){
     table.appendChild(head(["Sezona","1.","2.","3.","Top 5","Top 10","Top 15","Top 30","Stanje"]));
@@ -272,6 +294,7 @@ function filterText(){
   if($("fse").value)parts.push("sezona "+$("fse").value);
   if($("fs").value)parts.push($("fs").value);
   if($("fd").value)parts.push($("fd").value);
+  if($("fo").value)parts.push("razvrščeno po: "+selText("fo")+", "+selText("fr").toLowerCase());
   if($("fg").value)parts.push($("fg").value==="M"?"moški":$("fg").value==="X"?"mešano":"ženske");
   return "Filtri: "+parts.join(", ");
 }
@@ -280,8 +303,7 @@ function exportData(kind){
   const rs=filtered(),p=groupPeople(rs);
   const base={kind,filters:filterText()};
   if(kind==="ath"){
-    const rows=Object.values(p).map(a=>({a,c:counts(a.items.map(i=>i.r))}))
-      .sort((x,y)=>{for(let i=0;i<7;i++){if(y.c[i]!==x.c[i])return y.c[i]-x.c[i]}return x.a.n.localeCompare(y.a.n,"sl")})
+    const rows=sortRows(Object.values(p).map(a=>({a,c:counts(a.items.map(i=>i.r))})),o=>o.a.n,o=>o.c)
       .map(({a,c})=>[a.n,a.g==="M"?"Moški":a.g==="X"?"Mešano":"Ženske",...c]);
     return {...base,title:"Statistika po tekmovalcih",file:"statistika-po-tekmovalcih",head:["Tekmovalec","Spol",...XH],rows};
   }
