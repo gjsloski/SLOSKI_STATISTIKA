@@ -87,6 +87,7 @@ footer{font-size:12px;color:var(--muted);padding:0 4px}
   <div class="tabs" role="tablist" aria-label="Sezona">
     <button class="tab mode" type="button" data-m="winter" aria-selected="true">Zimska sezona</button>
     <button class="tab mode" type="button" data-m="summer" aria-selected="false">Poletna sezona</button>
+    <button class="tab mode" type="button" data-m="champ" aria-selected="false">Svetovna prvenstva in olimpijske igre</button>
   </div>
   <div class="kpis">
     <div class="kpi"><b id="k1">0</b><span id="k1l">tekem z uvrstitvami</span></div>
@@ -100,8 +101,8 @@ footer{font-size:12px;color:var(--muted);padding:0 4px}
       <div><label for="fd">Disciplina</label><select id="fd"></select></div>
       <div><label for="fg">Spol</label><select id="fg"><option value="">Vsi</option><option value="M">Moški</option><option value="Ž">Ženske</option><option value="X">Mešano (ekipe)</option></select></div>
       <div><label for="ft">Vrsta tekme</label><select id="ft"><option value="posamicno">Posamično</option><option value="ekipno">Ekipno</option><option value="">Posamično + ekipno</option></select></div>
-      <div><label for="fo">Razvrsti po</label><select id="fo"><option value="">Privzeto (največ zmag)</option><option value="0">1. mesto (zmage)</option><option value="1">2. mesto</option><option value="2">3. mesto</option><option value="3">Top 5</option><option value="4">Top 10</option><option value="5">Top 15</option><option value="6">Top 30</option><option value="n">Ime (A–Ž)</option></select></div>
-      <div><label for="fr">Vrstni red</label><select id="fr"><option value="desc">Od največ do najmanj</option><option value="asc">Od najmanj do največ</option></select></div>
+      <div><label for="fo">Razvrsti po</label><select id="fo"><option value="">Zmage (privzeto)</option><option value="0">1. mesto (zmage)</option><option value="1">2. mesto</option><option value="2">3. mesto</option><option value="3">Top 5</option><option value="4">Top 10</option><option value="5">Top 15</option><option value="6">Top 30</option><option value="n">Ime (A–Ž)</option></select></div>
+      <div><label for="fr">Vrstni red</label><select id="fr"><option value="desc">Največ najprej</option><option value="asc">Najmanj najprej</option></select></div>
     </div>
   </div>
   <div class="tabs" role="tablist">
@@ -139,14 +140,16 @@ let META={updated:"",next:"",coverage:{}};
 let RACES=[];
 let MODE="winter";
 const SUMMER_SPORTS=["Smučarski skoki","Nordijska kombinacija"];
-function inMode(r){return MODE==="summer"?!!r.summer:!r.summer}
-function seasonOfRace(r){return r.summer?"Poletje "+r.d.slice(0,4):seasonOf(r.d)}
-function setHeader(){$("ttl").textContent=MODE==="summer"?"Slovenci v poletni sezoni (FIS Grand Prix)":"Slovenci v svetovnem pokalu 2026/27"}
+const CHAMP_SPORTS=["Alpsko smučanje","Smučarski skoki","Nordijska kombinacija"];
+function inMode(r){return MODE==="champ"?!!r.c:MODE==="summer"?!!r.summer&&!r.c:!r.summer&&!r.c}
+function seasonOfRace(r){return r.c?(r.c==="OWG"?"Olimpijske igre ":"Svetovno prvenstvo ")+r.d.slice(0,4):r.summer?"Poletje "+r.d.slice(0,4):seasonOf(r.d)}
+function setHeader(){$("ttl").textContent=MODE==="champ"?"Slovenci na svetovnih prvenstvih in olimpijskih igrah":MODE==="summer"?"Slovenci v poletni sezoni (FIS Grand Prix)":"Slovenci v svetovnem pokalu 2026/27"}
 function fillSports(){
   const fs=$("fs");fs.textContent="";fs.appendChild(new Option("Vsi športi",""));
-  (MODE==="summer"?SUMMER_SPORTS:SPORTS).forEach(x=>fs.appendChild(new Option(x,x)));
+  (MODE==="champ"?CHAMP_SPORTS:MODE==="summer"?SUMMER_SPORTS:SPORTS).forEach(x=>fs.appendChild(new Option(x,x)));
 }
 function seasonLabels(){
+  if(MODE==="champ")return [...new Set(RACES.filter(r=>r.c).map(seasonOfRace))].sort((a,b)=>a.slice(-4)<b.slice(-4)?1:a.slice(-4)>b.slice(-4)?-1:a.localeCompare(b,"sl"));
   if(MODE==="summer")return [...new Set(RACES.filter(r=>r.summer).map(seasonOfRace))].sort().reverse();
   return Array.from({length:LAST-FIRST+1},(_,i)=>{const s=LAST-i;return s+"/"+String(s+1).slice(2)});
 }
@@ -183,7 +186,7 @@ function covText(lab){
 function seasonOf(d){const y=+d.slice(0,4),m=+d.slice(5,7),s=m>=8?y:y-1;return s+"/"+String(s+1).slice(2)}
 function fillSeason(){
   const f=$("fse");f.textContent="";
-  f.appendChild(new Option(MODE==="summer"?"Vsa poletja":"Vse sezone",""));
+  f.appendChild(new Option(MODE==="champ"?"Vsa tekmovanja":MODE==="summer"?"Vsa poletja":"Vse sezone",""));
   seasonLabels().forEach(l=>f.appendChild(new Option(l,l)));
 }
 function fillDisc(){
@@ -252,17 +255,18 @@ function render(){
     rs.forEach(r=>{const k=r.sport+" – "+r.disc+(r.g==="M"?" (M)":r.g==="X"?" (mešano)":" (Ž)");(groups[k]=groups[k]||[]).push(...r.res.map(x=>x.r))});
     const tb=el("tbody");
     const dk=Object.keys(groups).map(k=>({k,c:counts(groups[k])}));
-    (($("fo").value===""&&$("fr").value==="desc")?dk.sort((a,b)=>a.k.localeCompare(b.k,"sl")):sortRows(dk,o=>o.k,o=>o.c)).forEach(({k,c})=>{
+    sortRows(dk,o=>o.k,o=>o.c).forEach(({k,c})=>{
       const tr=el("tr");tr.appendChild(el("td","name",k));c.forEach((v,i)=>tr.appendChild(cell(v,i===0)));tb.appendChild(tr)});
     table.appendChild(tb);out.appendChild(table);
   }else if(tab==="season"){
     table.appendChild(head(["Sezona","1.","2.","3.","Top 5","Top 10","Top 15","Top 30","Stanje"]));
     const tb=el("tbody");
-    seasonLabels().forEach(lab=>{
-      const sr=rs.filter(r=>seasonOfRace(r)===lab);
+    const srows=seasonLabels().map(lab=>{const sr=rs.filter(r=>seasonOfRace(r)===lab);return {lab,sr,c:counts(sr.flatMap(r=>r.res.map(x=>x.r)))}});
+    const custom=$("fo").value!==""||$("fr").value!=="desc";
+    (custom?sortRows(srows,o=>o.lab,o=>o.c):srows).forEach(({lab,sr,c})=>{
       const tr=el("tr");
       const a=el("td","name",lab);a.appendChild(el("small",null,sr.length+" "+pl(sr.length,L_RACE)));tr.appendChild(a);
-      counts(sr.flatMap(r=>r.res.map(x=>x.r))).forEach((v,i)=>tr.appendChild(cell(v,i===0)));
+      c.forEach((v,i)=>tr.appendChild(cell(v,i===0)));
       tr.appendChild(el("td","note",covText(lab)));
       tb.appendChild(tr);
     });
@@ -290,7 +294,7 @@ function fillAthletes(p){
 }
 function selText(id){const e=$(id);return e.options&&e.selectedIndex>=0?e.options[e.selectedIndex].text:""}
 function filterText(){
-  const parts=[MODE==="summer"?"poletna sezona":"zimska sezona"];
+  const parts=[MODE==="champ"?"svetovna prvenstva in olimpijske igre":MODE==="summer"?"poletna sezona":"zimska sezona"];
   if($("fse").value)parts.push("sezona "+$("fse").value);
   if($("fs").value)parts.push($("fs").value);
   if($("fd").value)parts.push($("fd").value);
