@@ -482,8 +482,43 @@ def refilter(races, state, extra_names, deadline):
     return True, removed
 
 
+def _probe_team_race(sec, item, rid):
+    html = get(f"{BASE}/DB/general/results.html?sectorcode={sec}&raceid={rid}")
+    if not html:
+        return
+    soup = BeautifulSoup(html, "html.parser")
+    anchors = [(a.get_text(" ", strip=True)[:90], a["href"][-60:]) for a in soup.find_all("a", href=True)
+               if "athlete-biography" in a["href"]]
+    log(f"EKIPE2 {item}: sidrov z athlete-biography: {len(anchors)}; prvih 6: {anchors[:6]}")
+    lines = [l for l in soup.get_text("\n", strip=True).split("\n") if l]
+    log(f"EKIPE2 {item}: 'Rank' v strani: {any(l.strip().lower() == 'rank' for l in lines)}, vrstic {len(lines)}")
+    i0 = next((i for i, l in enumerate(lines) if l.strip().lower() == "rank"), 0)
+    log(f"EKIPE2 {item} TABELA: {lines[i0:i0 + 40]}")
+    node = soup.find(string=re.compile(r"SLOVENIA", re.I))
+    if node:
+        par = node.parent
+        for _ in range(3):
+            if par.parent is not None and par.parent.name not in ("body", "html"):
+                par = par.parent
+        log(f"EKIPE2 {item} HTML ekipe SLO: {str(par)[:1600]}")
+    mem = next((a for a in soup.find_all("a", href=True) if "athlete-biography" in a["href"]), None)
+    if mem:
+        log(f"EKIPE2 {item} prvi sidro HTML: {str(mem.parent)[:900]}")
+        cid = parse_qs(urlparse(mem['href']).query).get("competitorid", [None])[0]
+        dm = re.search(r"([A-Z][a-z]+ \d{1,2}, \d{4})", " ".join(lines[:90]))
+        if cid and dm:
+            d = datetime.datetime.strptime(dm.group(1), "%B %d, %Y").date()
+            season = season_code_of(d.isoformat())
+            ah = get(f"{BASE}/DB/general/athlete-biography.html?sectorcode={sec}&seasoncode={season}&competitorid={cid}"
+                     f"&type=result&categorycode=WC&sort=&place=&disciplinecode=&position=&limit=100")
+            if ah:
+                cells = athlete_row_cells(ah)
+                log(f"EKIPE2 {item} athlete {cid} season {season}: vrstica raceid {rid}: {cells.get(str(rid)) or cells.get(rid)}")
+                log(f"EKIPE2 {item} athlete {cid}: raceid-ji: {list(cells)[:12]}")
+
+
 def probe_team2(spec):
-    """RACE JP:7460 -> zgradba HTML ekipne tekme + stran prvega slovenskega clana; ALTEAM AL:2024 -> ekipni naslovi alpskih tekem."""
+    """JP:7460 -> zgradba HTML ekipne tekme (raceid); AL:S2023 -> ekipni naslovi sezone in zgradba prve ekipne tekme."""
     for item in spec.split(","):
         item = item.strip()
         sec, _, rest = item.partition(":")
@@ -491,54 +526,24 @@ def probe_team2(spec):
         if not sk:
             continue
         cfg = SPORTS[sk]
-        if len(rest) == 4:  # sezona: izpisi ekipne naslove iz glav strani tekem
-            html = get(f"{BASE}/DB/{cfg['path']}/calendar-results.html?sectorcode={sec}&seasoncode={rest}&categorycode=WC")
-            titles = {}
-            for eid, eurl in (parse_calendar(html, "WC") if html else []):
-                ehtml = get(eurl)
-                rids = parse_event(ehtml, sec) if ehtml else []
-                if not rids:
-                    continue
-                rhtml = get(rids[0][1])
+        if not rest.startswith("S"):
+            _probe_team_race(sec, item, rest)
+            continue
+        season = rest[1:]
+        html = get(f"{BASE}/DB/{cfg['path']}/calendar-results.html?sectorcode={sec}&seasoncode={season}&categorycode=WC")
+        done = False
+        for eid, eurl in (parse_calendar(html, "WC") if html else []):
+            ehtml = get(eurl)
+            for rid, rurl in (parse_event(ehtml, sec) if ehtml else []):
+                rhtml = get(rurl)
                 if not rhtml:
                     continue
-                for l in BeautifulSoup(rhtml, "html.parser").get_text("\n", strip=True).split("\n")[:120]:
-                    if re.match(r"\d{1,2}\.\d{1,2}\.\d{4}\s*-", l) and re.search(r"Team|Parallel|Mixed", l):
-                        titles[l] = titles.get(l, 0) + 1
-            log(f"ALTEAM {item}: {titles}")
-            continue
-        rid = rest
-        html = get(f"{BASE}/DB/general/results.html?sectorcode={sec}&raceid={rid}")
-        if not html:
-            continue
-        soup = BeautifulSoup(html, "html.parser")
-        anchors = [(a.get_text(" ", strip=True)[:90], a["href"][-60:]) for a in soup.find_all("a", href=True)
-                   if "athlete-biography" in a["href"]]
-        log(f"EKIPE2 {item}: sidrov z athlete-biography: {len(anchors)}; prvih 6: {anchors[:6]}")
-        lines = [l for l in soup.get_text("\n", strip=True).split("\n") if l]
-        log(f"EKIPE2 {item}: 'Rank' v strani: {any(l.strip().lower() == 'rank' for l in lines)}, vrstic {len(lines)}")
-        node = soup.find(string=re.compile(r"SLOVENIA", re.I))
-        if node:
-            par = node.parent
-            for _ in range(3):
-                if par.parent is not None and par.parent.name not in ("body", "html"):
-                    par = par.parent
-            log(f"EKIPE2 {item} HTML ekipe SLO: {str(par)[:1600]}")
-        mem = next((a for a in soup.find_all("a", href=True) if "athlete-biography" in a["href"]
-                    and re.search(r"\d+-\d", a.get_text(' ', strip=True)[:6])), None)
-        if mem:
-            log(f"EKIPE2 {item} clan HTML: {str(mem.parent)[:900]}")
-            cid = parse_qs(urlparse(mem['href']).query).get("competitorid", [None])[0]
-            dm = re.search(r"([A-Z][a-z]+ \d{1,2}, (\d{4}))", " ".join(lines[:90]))
-            if cid and dm:
-                d = datetime.datetime.strptime(dm.group(1), "%B %d, %Y").date()
-                season = season_code_of(d.isoformat())
-                ah = get(f"{BASE}/DB/general/athlete-biography.html?sectorcode={sec}&seasoncode={season}&competitorid={cid}"
-                         f"&type=result&categorycode=WC&sort=&place=&disciplinecode=&position=&limit=100")
-                if ah:
-                    cells = athlete_row_cells(ah)
-                    log(f"EKIPE2 {item} athlete {cid} season {season}: vrstice z raceid {rid}: {cells.get(rid) or cells.get(str(rid))}")
-                    log(f"EKIPE2 {item} athlete {cid}: vsi raceid: {list(cells)[:12]}")
+                lines = [l for l in BeautifulSoup(rhtml, "html.parser").get_text("\n", strip=True).split("\n") if l][:90]
+                title = next((l for l in lines if TITLE_RE.match(l) and len(l) < 90), "")
+                if re.search(r"Team", title) and not done:
+                    log(f"ALTEAM {item} raceid={rid} {title}")
+                    _probe_team_race(sec, f"{sec}:{rid}", rid)
+                    done = True
 
 
 def probe_team(spec):
