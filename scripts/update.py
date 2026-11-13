@@ -506,6 +506,10 @@ def parse_athlete_results(html):
         if not cells or not re.fullmatch(r"\d{2}-\d{2}-\d{4}", cells[0]):
             continue
         i = next((j for j, c in enumerate(cells) if c in CAT_NAMES), None)
+        if i is None:
+            # druge kategorije (OWG, WSC ...): ime kategorije stoji za dvema enakima kodama tekme ('OWG', 'OWG', 'Olympic Winter Games')
+            i = next((j + 2 for j in range(4, len(cells) - 4)
+                      if cells[j] == cells[j + 1] and re.fullmatch(r"[A-Z]{2,5}", cells[j]) and not POS_RE.match(cells[j])), None)
         if i is not None and i >= 1 and i + 2 < len(cells) and POS_RE.match(cells[i + 2]):
             out[rid] = {"date": cells[0], "cat": cells[i], "code": cells[i - 1], "disc": cells[i + 1], "pos": cells[i + 2]}
             continue
@@ -528,8 +532,11 @@ def athlete_results(sec, cid, season, cat):
                    f"&competitorid={cid}&type=result{extra}")
         if html:
             result = parse_athlete_results(html)
-            want = "World Cup" if cat == "WC" else "Grand Prix"
-            result = {k: v for k, v in result.items() if want.lower() in v["cat"].lower()}
+            if cat in ("WC", "GP"):
+                want = "World Cup" if cat == "WC" else "Grand Prix"
+                result = {k: v for k, v in result.items() if want.lower() in v["cat"].lower()}
+            else:
+                result = {k: v for k, v in result.items() if v["code"] == cat}
             if result:
                 break
     if not result:
@@ -762,6 +769,8 @@ def probe(spec):
                 f"&type=result&seasoncode={season}&categorycode=WC&sort=",
                 f"&type=result&seasoncode={season}&categorycode=GP&sort=&place=&disciplinecode=&position=&limit=100",
                 f"&type=result&seasoncode={int(season)-1}&categorycode=GP&sort=&place=&disciplinecode=&position=&limit=100",
+                f"&type=result&seasoncode={season}&categorycode=OWG&sort=&place=&disciplinecode=&position=&limit=100",
+                f"&type=result&seasoncode={season}&categorycode=WSC&sort=&place=&disciplinecode=&position=&limit=100",
             ]
             for v in variants:
                 ahtml = get(base + v)
