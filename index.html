@@ -31,7 +31,7 @@ main{max-width:980px;margin:0 auto;padding:14px 12px 40px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:12px}
 .filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}
 label{font-size:12px;color:var(--muted);display:block;margin-bottom:3px}
-select{width:100%;padding:9px 8px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--text);font:inherit;font-size:14px}
+select,input[type=search]{box-sizing:border-box;width:100%;padding:9px 8px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--text);font:inherit;font-size:14px}
 .tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
 .tab{border:1px solid var(--accent);background:transparent;color:var(--accent);padding:8px 14px;border-radius:999px;font:inherit;font-size:14px;font-weight:600;cursor:pointer}
 .tab[aria-selected="true"]{background:var(--accent);color:#fff}
@@ -96,6 +96,8 @@ footer{font-size:12px;color:var(--muted);padding:0 4px}
   </div>
   <div class="card">
     <div class="filters">
+      <div><label for="fq">Iskanje športnika</label><input id="fq" type="search" placeholder="ime ali priimek" autocomplete="off"></div>
+      <div id="fcw" hidden><label for="fc">Tekmovanje</label><select id="fc"><option value="">Vsa (OI + SP)</option><option value="OWG">Olimpijske igre</option><option value="WSC">Svetovna prvenstva</option></select></div>
       <div><label for="fse">Sezona</label><select id="fse"></select></div>
       <div><label for="fs">Šport</label><select id="fs"></select></div>
       <div><label for="fd">Disciplina</label><select id="fd"></select></div>
@@ -166,12 +168,13 @@ const L_RES=["uvrstitev v top 30","uvrstitvi v top 30","uvrstitve v top 30","uvr
 function fmtDate(s){const [y,m,d]=s.split("-");return d.replace(/^0/,"")+". "+m.replace(/^0/,"")+". "+y}
 function init(){
   fillSports();fillSeason();fillDisc();
-  ["fse","fs","fd","fg","ft","fo","fr"].forEach(i=>$(i).addEventListener("change",()=>{if(i==="fs")fillDisc();render()}));
+  ["fse","fs","fd","fg","ft","fo","fr","fc"].forEach(i=>$(i).addEventListener("change",()=>{if(i==="fs")fillDisc();render()}));
+  $("fq").addEventListener("input",render);
   document.querySelectorAll(".tab[data-t]").forEach(b=>b.addEventListener("click",()=>{
     tab=b.dataset.t;document.querySelectorAll(".tab[data-t]").forEach(x=>x.setAttribute("aria-selected",x===b));render()}));
   document.querySelectorAll(".mode").forEach(b=>b.addEventListener("click",()=>{
     MODE=b.dataset.m;document.querySelectorAll(".mode").forEach(x=>x.setAttribute("aria-selected",x===b));
-    fillSports();fillSeason();fillDisc();setHeader();render()}));
+    $("fcw").hidden=MODE!=="champ";fillSports();fillSeason();fillDisc();setHeader();render()}));
   $("upd").textContent=META.updated?("Zadnja posodobitev: "+fmtDate(META.updated)+" · naslednja: nedelja, "+fmtDate(META.next)):"Podatki se še nalagajo.";
   render();
 }
@@ -194,9 +197,13 @@ function fillDisc(){
   d.appendChild(new Option("Vse discipline",""));
   [...new Set(RACES.filter(r=>inMode(r)&&(!s||r.sport===s)).map(r=>r.disc))].sort().forEach(x=>d.appendChild(new Option(x,x)));
 }
+function norm(t){return (t||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[đĐ]/g,"d").toLowerCase().trim()}
 function filtered(){
   const se=$("fse").value,s=$("fs").value,d=$("fd").value,g=$("fg").value,t=$("ft").value;
-  return RACES.filter(r=>inMode(r)&&(!se||seasonOfRace(r)===se)&&(!s||r.sport===s)&&(!d||r.disc===d)&&(!g||r.g===g)&&(!t||r.t===t));
+  const c=MODE==="champ"?$("fc").value:"",q=norm($("fq").value).split(/\s+/).filter(Boolean);
+  let rs=RACES.filter(r=>inMode(r)&&(!c||r.c===c)&&(!se||seasonOfRace(r)===se)&&(!s||r.sport===s)&&(!d||r.disc===d)&&(!g||r.g===g)&&(!t||r.t===t));
+  if(q.length)rs=rs.map(r=>({...r,res:r.res.filter(x=>{const n=norm(x.n);return q.every(w=>n.includes(w))})})).filter(r=>r.res.length);
+  return rs;
 }
 function sortRows(rows,nameOf,cOf){
   const k=$("fo").value,dir=$("fr").value==="asc"?-1:1;
@@ -295,6 +302,8 @@ function fillAthletes(p){
 function selText(id){const e=$(id);return e.options&&e.selectedIndex>=0?e.options[e.selectedIndex].text:""}
 function filterText(){
   const parts=[MODE==="champ"?"svetovna prvenstva in olimpijske igre":MODE==="summer"?"poletna sezona":"zimska sezona"];
+  if(MODE==="champ"&&$("fc").value)parts.push(selText("fc"));
+  if($("fq").value.trim())parts.push("iskanje: "+$("fq").value.trim());
   if($("fse").value)parts.push("sezona "+$("fse").value);
   if($("fs").value)parts.push($("fs").value);
   if($("fd").value)parts.push($("fd").value);
