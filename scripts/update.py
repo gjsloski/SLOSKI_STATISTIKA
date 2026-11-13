@@ -652,6 +652,53 @@ def probe_team2(spec):
                     done = True
 
 
+def probe_cat(spec):
+    """Izpise dogodke in tekme drugih kategorij (OWG, WSC, ...): SEKTOR:SEZONA:KATEGORIJA, npr. JP:2022:OWG"""
+    for item in [x.strip() for x in spec.split(",") if x.strip()]:
+        sec, season, cat = item.split(":")
+        path = next(c["path"] for c in SPORTS.values() if c["code"] == sec)
+        url = (f"{BASE}/DB/{path}/calendar-results.html?sectorcode={sec}&seasoncode={season}&categorycode={cat}")
+        html = get(url)
+        if not html:
+            log(f"KAT {item}: koledar ni dosegljiv")
+            continue
+        soup = BeautifulSoup(html, "html.parser")
+        evs = {}
+        for a in soup.find_all("a", href=True):
+            if "event-details" in a["href"] and "eventid=" in a["href"]:
+                eid = parse_qs(urlparse(a["href"]).query).get("eventid", [None])[0]
+                e = evs.setdefault(eid, {"url": urljoin(BASE, a["href"]), "t": []})
+                e["t"].append(a.get_text(" ", strip=True)[:50])
+        log(f"KAT {item}: dogodkov {len(evs)}")
+        for eid, e in evs.items():
+            log(f"KAT {item} dogodek {eid}: {' | '.join(e['t'])[:160]}")
+            ehtml = get(e["url"])
+            if not ehtml:
+                continue
+            for rid, rurl in parse_event(ehtml, sec):
+                rh = get(rurl)
+                if not rh:
+                    continue
+                sp = BeautifulSoup(rh, "html.parser")
+                lines = [l for l in sp.get_text("\n", strip=True).split("\n") if l]
+                head = lines[:90]
+                title = next((l for l in head if TITLE_RE.match(l) and len(l) < 90), "?")
+                dt = next((l for l in head if DATE_RE.match(l)), "?")
+                codes = [m.group(1) for m in TYPE_RE.finditer(" ".join(head))]
+                has_rank = any(l.strip().lower() == "rank" for l in lines)
+                slo = []
+                if TEAM_RE.search(title) or title.startswith("Mixed"):
+                    tr = team_result(sp, {})
+                    slo = [f"{x['r']}. {x['n']}" for x in (tr or [])]
+                else:
+                    for a in sp.find_all("a", href=True):
+                        if "athlete-biography" in a["href"]:
+                            row = parse_row(a.get_text(" ", strip=True), a["href"])
+                            if row and row["nat"] == "SLO" and row["rank"] <= 30:
+                                slo.append(f"{row['rank']}. {row['name']}")
+                log(f"KAT {item} race {rid}: {dt} | {title} | kode {codes[:4]} | rank-glava {has_rank} | SLO: {', '.join(slo) or '-'}")
+
+
 def probe_team(spec):
     """Izpise ekipne tekme sezone (npr. JP:2026,AL:2026,JP:2024): naslov, datum, raceid, oznako, vrstice SLO in prvih nekaj vrstic tabele."""
     for item in spec.split(","):
@@ -1023,6 +1070,7 @@ def main():
     ap.add_argument("--refilter", action="store_true", help="ponovno preveri ze shranjene tekme z novim filtrom in odstrani neprave")
     ap.add_argument("--recheck", help="odstrani te tekme iz seznama ze obdelanih (npr. AL:49869,JP:4401), da se obdelajo znova")
     ap.add_argument("--probe", help="samo bere oznake vrst za tekme, npr. JP:6696,JP:7566")
+    ap.add_argument("--probe-cat", help="dogodki in tekme kategorije, npr. JP:2022:OWG,JP:2023:WSC,AL:2022:OWG")
     ap.add_argument("--probe-team2", help="zgradba ekipne tekme: JP:7460,JP:6853 ali alpski naslovi AL:2024")
     ap.add_argument("--probe-team", help="izpise ekipne tekme sezone, npr. JP:2026,AL:2026")
     ap.add_argument("--validate", action="store_true", help="po zbiranju primerja stetje z FIS Podiums")
@@ -1032,6 +1080,9 @@ def main():
     ap.add_argument("--teams", action="store_true", help="ponovno obdela strani, ki so bile prej preskocene (ekipne tekme), brez brisanja posamicnih")
     ap.add_argument("--force", action="store_true", help="ponovno obdela tudi sezone, oznacene kot popolne")
     args = ap.parse_args()
+    if args.probe_cat:
+        probe_cat(args.probe_cat)
+        return 0
     if args.probe_team2:
         probe_team2(args.probe_team2)
         return 0
