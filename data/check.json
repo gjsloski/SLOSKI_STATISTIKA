@@ -1,6 +1,27 @@
 {
- "updated": "2026-11-12",
- "preverjenih_sezon": 876,
+ "updated": "2026-11-13",
+ "preverjenih_sezon": 889,
  "nepreverjenih": 0,
- "nesklad": []
+ "nesklad": [
+  {
+   "n": "Igor Strgar",
+   "sezona": "1991/92",
+   "raceid": "652",
+   "d": "28-03-1992",
+   "place": "",
+   "disc": "Team Large Hill",
+   "nase": null,
+   "fis": "6"
+  },
+  {
+   "n": "Dajan Jekovec",
+   "sezona": "1994/95",
+   "raceid": "809",
+   "d": "28-01-1995",
+   "place": "",
+   "disc": "Team Large Hill",
+   "nase": null,
+   "fis": "6"
+  }
+ ]
 }
