@@ -482,6 +482,65 @@ def refilter(races, state, extra_names, deadline):
     return True, removed
 
 
+def probe_team2(spec):
+    """RACE JP:7460 -> zgradba HTML ekipne tekme + stran prvega slovenskega clana; ALTEAM AL:2024 -> ekipni naslovi alpskih tekem."""
+    for item in spec.split(","):
+        item = item.strip()
+        sec, _, rest = item.partition(":")
+        sk = next((k for k, c in SPORTS.items() if c["code"] == sec), None)
+        if not sk:
+            continue
+        cfg = SPORTS[sk]
+        if len(rest) == 4:  # sezona: izpisi ekipne naslove iz glav strani tekem
+            html = get(f"{BASE}/DB/{cfg['path']}/calendar-results.html?sectorcode={sec}&seasoncode={rest}&categorycode=WC")
+            titles = {}
+            for eid, eurl in (parse_calendar(html, "WC") if html else []):
+                ehtml = get(eurl)
+                rids = parse_event(ehtml, sec) if ehtml else []
+                if not rids:
+                    continue
+                rhtml = get(rids[0][1])
+                if not rhtml:
+                    continue
+                for l in BeautifulSoup(rhtml, "html.parser").get_text("\n", strip=True).split("\n")[:120]:
+                    if re.match(r"\d{1,2}\.\d{1,2}\.\d{4}\s*-", l) and re.search(r"Team|Parallel|Mixed", l):
+                        titles[l] = titles.get(l, 0) + 1
+            log(f"ALTEAM {item}: {titles}")
+            continue
+        rid = rest
+        html = get(f"{BASE}/DB/general/results.html?sectorcode={sec}&raceid={rid}")
+        if not html:
+            continue
+        soup = BeautifulSoup(html, "html.parser")
+        anchors = [(a.get_text(" ", strip=True)[:90], a["href"][-60:]) for a in soup.find_all("a", href=True)
+                   if "athlete-biography" in a["href"]]
+        log(f"EKIPE2 {item}: sidrov z athlete-biography: {len(anchors)}; prvih 6: {anchors[:6]}")
+        lines = [l for l in soup.get_text("\n", strip=True).split("\n") if l]
+        log(f"EKIPE2 {item}: 'Rank' v strani: {any(l.strip().lower() == 'rank' for l in lines)}, vrstic {len(lines)}")
+        node = soup.find(string=re.compile(r"SLOVENIA", re.I))
+        if node:
+            par = node.parent
+            for _ in range(3):
+                if par.parent is not None and par.parent.name not in ("body", "html"):
+                    par = par.parent
+            log(f"EKIPE2 {item} HTML ekipe SLO: {str(par)[:1600]}")
+        mem = next((a for a in soup.find_all("a", href=True) if "athlete-biography" in a["href"]
+                    and re.search(r"\d+-\d", a.get_text(' ', strip=True)[:6])), None)
+        if mem:
+            log(f"EKIPE2 {item} clan HTML: {str(mem.parent)[:900]}")
+            cid = parse_qs(urlparse(mem['href']).query).get("competitorid", [None])[0]
+            dm = re.search(r"([A-Z][a-z]+ \d{1,2}, (\d{4}))", " ".join(lines[:90]))
+            if cid and dm:
+                d = datetime.datetime.strptime(dm.group(1), "%B %d, %Y").date()
+                season = season_code_of(d.isoformat())
+                ah = get(f"{BASE}/DB/general/athlete-biography.html?sectorcode={sec}&seasoncode={season}&competitorid={cid}"
+                         f"&type=result&categorycode=WC&sort=&place=&disciplinecode=&position=&limit=100")
+                if ah:
+                    cells = athlete_row_cells(ah)
+                    log(f"EKIPE2 {item} athlete {cid} season {season}: vrstice z raceid {rid}: {cells.get(rid) or cells.get(str(rid))}")
+                    log(f"EKIPE2 {item} athlete {cid}: vsi raceid: {list(cells)[:12]}")
+
+
 def probe_team(spec):
     """Izpise ekipne tekme sezone (npr. JP:2026,AL:2026,JP:2024): naslov, datum, raceid, oznako, vrstice SLO in prvih nekaj vrstic tabele."""
     for item in spec.split(","):
@@ -840,6 +899,7 @@ def main():
     ap.add_argument("--refilter", action="store_true", help="ponovno preveri ze shranjene tekme z novim filtrom in odstrani neprave")
     ap.add_argument("--recheck", help="odstrani te tekme iz seznama ze obdelanih (npr. AL:49869,JP:4401), da se obdelajo znova")
     ap.add_argument("--probe", help="samo bere oznake vrst za tekme, npr. JP:6696,JP:7566")
+    ap.add_argument("--probe-team2", help="zgradba ekipne tekme: JP:7460,JP:6853 ali alpski naslovi AL:2024")
     ap.add_argument("--probe-team", help="izpise ekipne tekme sezone, npr. JP:2026,AL:2026")
     ap.add_argument("--validate", action="store_true", help="po zbiranju primerja stetje z FIS Podiums")
     ap.add_argument("--check-races", action="store_true", help="vsako uvrstitev primerja s stranjo sportnika na FIS (po raceid)")
@@ -847,6 +907,9 @@ def main():
     ap.add_argument("--add-extra", action="store_true", help="doda tekme iz EXTRA_RACES (letalnice SFWC+WC), ki jih koledar ne navaja")
     ap.add_argument("--force", action="store_true", help="ponovno obdela tudi sezone, oznacene kot popolne")
     args = ap.parse_args()
+    if args.probe_team2:
+        probe_team2(args.probe_team2)
+        return 0
     if args.probe_team:
         probe_team(args.probe_team)
         return 0
