@@ -91,6 +91,9 @@ BAD_TYPES = {"TRA", "COM", "QUA", "QUAL", "QUF", "Q", "TRI", "TRL", "PRO", "PCR"
 # Harrachov 1992, Planica 1994, Tauplitz/Bad Mitterndorf 1996 in 1998. Strani so preverjene s probe (naslov in oznaka 'WC').
 EXTRA_RACES = ["JP:1823", "JP:1822", "JP:1321", "JP:329", "JP:330", "JP:331", "JP:652", "JP:809"]  # zadnji dve: ekipni tekmi 1992 in 1995 (clani brez leta rojstva)
 EXTRA_SLO = {"68518", "27683", "58901", "18035", "53613", "61013"}  # Zupan, Janus, Stirn, Franc Urban, Sarec Veronika, Tepes Miran
+# Strani, ki jih FIS vodi kot tekmo (OWG), a jih na straneh sportnikov NI med uvrstitvami (del olimpijske kombinacije):
+# Nagano 13.2.1998, smuk kot del kombinacije. Preverjeno: strani sportnikov Brezavsek in Pen tega raceid nimata.
+EXCLUDE_RACES = {"AL:5453"}
 QUAL_RE = re.compile(r"\b(Qualification|Qualifying|Training|Trial|Prologue)\b", re.I)
 
 
@@ -1007,6 +1010,9 @@ def process_season(code, sport_key, races, state, cat, label, finished, extra_na
             continue
         for rid, rurl in parse_event(ehtml, cfg["code"]):
             key = f"{cfg['code']}:{rid}"
+            if key in EXCLUDE_RACES:
+                state["seen"][key] = "skip"
+                continue
             if key in state["seen"]:
                 if TEAMS_DONE is None or key in TEAMS_DONE or state["seen"][key] not in ("skip", "empty"):
                     continue
@@ -1117,6 +1123,7 @@ def main():
     cur = current_season_code(today)
     code_of = {cfg["label"]: cfg["code"].lower() for cfg in SPORTS.values()}
     loaded = load_json(DATA / "races.json", [])
+    loaded = [r for r in loaded if f"{next(c['code'] for c in SPORTS.values() if c['label'] == r['sport'])}:{r['fis']}" not in EXCLUDE_RACES]
     for r in loaded:  # stara oblika id "fis-123" je bila skupna za vse sporte; zdaj "al-123", "jp-123"
         r["id"] = f"{code_of[r['sport']]}-{r['fis']}"
     races = {r["id"]: r for r in loaded}
