@@ -50,6 +50,7 @@ DISC = [
     ("Normal Hill", "Normalna skakalnica"),
     ("Gundersen", "Gundersen"),
 ]
+DISC.sort(key=lambda kv: 0 if kv[0] == "Gundersen" else 1)  # nordijska kombinacija: ime discipline je Gundersen, ne skakalnica
 
 # FIS zapisuje imena brez strešic; tukaj so popravki za pogosta slovenska imena.
 # Lahko jih dopolnis tudi v data/names.json (kljuc = ime kot ga izpise FIS ali FIS competitorid).
@@ -333,7 +334,8 @@ def parse_race(html, sport_key, raceid, extra_names, cat="WC", trusted=False):
         CODES_SEEN[(cat, "NEPOPOLNA")] = CODES_SEEN.get((cat, "NEPOPOLNA"), 0) + 1
         return "skip", None
     needle = "World Cup" if cat == "WC" else "Grand Prix"
-    if not trusted and not any(needle.lower() in l.lower() for l in head):
+    champ = cat not in ("WC", "GP")  # OWG, WSC: koledar kategorije ze zagotavlja vrsto tekmovanja
+    if not trusted and not champ and not any(needle.lower() in l.lower() for l in head):
         return "skip", None
     title = next((l for l in head if TITLE_RE.match(l) and len(l) < 90), None)
     date = None
@@ -361,6 +363,8 @@ def parse_race(html, sport_key, raceid, extra_names, cat="WC", trusted=False):
     # ce je med njimi svetovni pokal / Grand Prix, je to tekma za uvrstitve
     if own_codes:
         own_code = cat if cat in own_codes else own_codes[0]
+    if champ and own_code != cat:
+        return "skip", None  # trening, kvalifikacije, del kombinacije ...
     if own_code:
         CODES_SEEN[(cat, own_code)] = CODES_SEEN.get((cat, own_code), 0) + 1
         if own_code in BAD_TYPES or own_code.startswith(("QU", "TR")):
@@ -393,6 +397,8 @@ def parse_race(html, sport_key, raceid, extra_names, cat="WC", trusted=False):
         }
         if cat == "GP":
             race["summer"] = True
+        elif champ:
+            race["c"] = cat
         return "ok", race
 
     ranked, stopped = [], False
@@ -410,6 +416,8 @@ def parse_race(html, sport_key, raceid, extra_names, cat="WC", trusted=False):
             if row:
                 ranked.append(row)
     if len(ranked) < 5:
+        return "empty", None
+    if is_startlist and champ:
         return "empty", None
     if is_startlist:
         # Na strani je samo startna lista: prave uvrstitve pridejo s strani posameznega sportnika (fill_from_athletes)
@@ -448,6 +456,8 @@ def parse_race(html, sport_key, raceid, extra_names, cat="WC", trusted=False):
     }
     if cat == "GP":
         race["summer"] = True
+    elif champ:
+        race["c"] = cat
     return "ok", race
 
 
@@ -558,7 +568,7 @@ def refilter(races, state, extra_names, deadline):
             log("Casovna omejitev: ponovni pregled se nadaljuje ob naslednjem zagonu.")
             return False, removed
         sk, cfg = by_label[r["sport"]]
-        cat = "GP" if r.get("summer") else "WC"
+        cat = r.get("c") or ("GP" if r.get("summer") else "WC")
         url = f"{BASE}/DB/general/results.html?sectorcode={cfg['code']}&raceid={r['fis']}"
         html = get(url)
         if not html:
@@ -837,7 +847,7 @@ def check_races(races, today, deadline):
     ours = {}
     for r in races.values():
         sec = by_label.get(r["sport"])
-        cat = "GP" if r.get("summer") else "WC"
+        cat = r.get("c") or ("GP" if r.get("summer") else "WC")
         for x in r["res"]:
             if "id" in x:
                 ours.setdefault((sec, str(x["id"]), season_code_of(r["d"]), cat), {})[str(r["fis"])] = (x["r"], r, x["n"])
@@ -900,7 +910,7 @@ def validate(races, today, deadline):
     names = {}
     by_label = {cfg["label"]: k for k, cfg in SPORTS.items()}
     for r in races.values():
-        if r.get("summer") or r.get("t") != "posamicno":
+        if r.get("summer") or r.get("c") or r.get("t") != "posamicno":
             continue
         sk = by_label.get(r["sport"])
         if not sk:
@@ -1070,6 +1080,7 @@ def main():
     ap.add_argument("--refilter", action="store_true", help="ponovno preveri ze shranjene tekme z novim filtrom in odstrani neprave")
     ap.add_argument("--recheck", help="odstrani te tekme iz seznama ze obdelanih (npr. AL:49869,JP:4401), da se obdelajo znova")
     ap.add_argument("--probe", help="samo bere oznake vrst za tekme, npr. JP:6696,JP:7566")
+    ap.add_argument("--champs", action="store_true", help="zbere samo olimpijske igre (OWG) in svetovna prvenstva (WSC) od sezone --from-season")
     ap.add_argument("--probe-cat", help="dogodki in tekme kategorije, npr. JP:2022:OWG,JP:2023:WSC,AL:2022:OWG")
     ap.add_argument("--probe-team2", help="zgradba ekipne tekme: JP:7460,JP:6853 ali alpski naslovi AL:2024")
     ap.add_argument("--probe-team", help="izpise ekipne tekme sezone, npr. JP:2026,AL:2026")
@@ -1175,6 +1186,16 @@ def main():
             for sk in SUMMER_SPORTS:
                 jobs.append((code, sk, "GP", f"Poletje {year}", finished))
 
+    CHAMP_NAMES = {"OWG": "Olimpijske igre", "WSC": "Svetovno prvenstvo"}
+    champ_jobs = []
+    for code in ([cur] if args.mode == "weekly" and not args.champs else list(range(cur, args.from_season - 1, -1))):
+        for cat in ("OWG", "WSC"):
+            for sk in ("alpine", "jumping", "nordic"):
+                champ_jobs.append((code, sk, cat, f"{CHAMP_NAMES[cat]} {code}", code < cur))
+    if args.champs:
+        jobs = champ_jobs
+    else:
+        jobs = jobs + champ_jobs
     for code, sk, cat, label, finished in jobs:
         cov = meta["coverage"].setdefault(label, {})
         if not args.force and finished and cov.get(sk) == "popolno":
