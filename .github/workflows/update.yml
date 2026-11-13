@@ -9,7 +9,7 @@ on:
         description: "weekly = samo tekoča sezona, backfill = vsa zgodovina od 1991/92"
         default: "weekly"
         type: choice
-        options: [weekly, backfill, reset-jumping, reset-alpine, reset-all, refilter, fill-startlists, add-extra, probe-team, probe-team2, check, validate, probe]
+        options: [weekly, backfill, reset-jumping, reset-alpine, reset-all, refilter, fill-startlists, add-extra, teams, probe-team, probe-team2, check, validate, probe]
   push:
     branches: [main]
     paths: [index.html, scripts/**, .github/workflows/update.yml]
@@ -46,6 +46,8 @@ jobs:
             python scripts/update.py --probe-team2 "JP:7460,JP:6853,JP:7491,JP:7580,JP:2799,AL:S2023"
           elif [ "$MODE" = "probe-team" ]; then
             python scripts/update.py --probe-team "JP:2026,JP:2024,JP:2010,AL:2026,AL:2024"
+          elif [ "$MODE" = "teams" ]; then
+            python scripts/update.py --teams --max-minutes 330
           elif [ "$MODE" = "add-extra" ]; then
             python scripts/update.py --add-extra --validate --max-minutes 120
           elif [ "$MODE" = "check" ]; then
