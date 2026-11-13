@@ -600,6 +600,13 @@ def _probe_team_race(sec, item, rid):
             if par.parent is not None and par.parent.name not in ("body", "html"):
                 par = par.parent
         log(f"EKIPE2 {item} HTML ekipe SLO: {str(par)[:1600]}")
+    allA = [a for a in soup.find_all("a", href=True) if "athlete-biography" in a["href"]]
+    si = next((i for i, a in enumerate(allA) if "SLOVENIA" in a.get_text(" ", strip=True).upper()
+               and not a.get_text(" ", strip=True)[:1].isdigit() is False), None)
+    if si is not None:
+        log(f"EKIPE2 {item} SLO SIDRA OD ZAPISA EKIPE: {[(a.get_text(' ', strip=True)[:80], a['href'][-45:]) for a in allA[si:si + 9]]}")
+        log(f"EKIPE2 {item} SLO HTML clana: {str(allA[si + 1])[:1200] if si + 1 < len(allA) else '-'}")
+    log(f"EKIPE2 {item} team_result: {team_result(soup, {})}")
     mem = next((a for a in soup.find_all("a", href=True) if "athlete-biography" in a["href"]), None)
     if mem:
         log(f"EKIPE2 {item} prvi sidro HTML: {str(mem.parent)[:900]}")
