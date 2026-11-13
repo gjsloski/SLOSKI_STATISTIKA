@@ -98,8 +98,8 @@ footer{font-size:12px;color:var(--muted);padding:0 4px}
       <div><label for="fse">Sezona</label><select id="fse"></select></div>
       <div><label for="fs">Šport</label><select id="fs"></select></div>
       <div><label for="fd">Disciplina</label><select id="fd"></select></div>
-      <div><label for="fg">Spol</label><select id="fg"><option value="">Vsi</option><option value="M">Moški</option><option value="Ž">Ženske</option></select></div>
-      <div hidden><label for="ft">Vrsta tekme</label><select id="ft"><option value="">Posamične + ekipne</option><option value="posamicno">Samo posamične</option><option value="ekipno">Samo ekipne</option></select></div>
+      <div><label for="fg">Spol</label><select id="fg"><option value="">Vsi</option><option value="M">Moški</option><option value="Ž">Ženske</option><option value="X">Mešano (ekipe)</option></select></div>
+      <div><label for="ft">Vrsta tekme</label><select id="ft"><option value="posamicno">Posamično</option><option value="ekipno">Ekipno</option><option value="">Posamično + ekipno</option></select></div>
     </div>
   </div>
   <div class="tabs" role="tablist">
@@ -127,7 +127,7 @@ footer{font-size:12px;color:var(--muted);padding:0 4px}
   </div>
   <footer>
     <p id="upd"></p>
-    <p>Vir rezultatov: FIS (fis-ski.com). Zimska sezona šteje posamične tekme svetovnega pokala v alpskem smučanju in smučarskih skokih, poletna sezona pa posamične tekme FIS Grand Prix v smučarskih skokih in nordijski kombinaciji (od leta 2026 naprej, brez preteklih let). Ekipne tekme niso vključene. Stolpci 1., 2. in 3. štejejo točno to mesto, stolpci Top 5, Top 10, Top 15 in Top 30 pa so kumulativni (2. mesto šteje tudi v Top 5). Podatki se posodobijo vsako nedeljo od 1. 9. 2026 do 30. 4. 2027. Zgodovina sega do sezone 1991/92; stolpec »Stanje« v pogledu »Po sezonah« pove, ali je sezona popolna.</p>
+    <p>Vir rezultatov: FIS (fis-ski.com). Zimska sezona šteje posamične tekme svetovnega pokala v alpskem smučanju in smučarskih skokih, poletna sezona pa posamične tekme FIS Grand Prix v smučarskih skokih in nordijski kombinaciji (od leta 2026 naprej, brez preteklih let). Privzeto so prikazane posamične tekme; z izbiro »Vrsta tekme« lahko prikažete ekipne tekme (vsak slovenski član ekipe dobi mesto ekipe) ali oboje. Stolpci 1., 2. in 3. štejejo točno to mesto, stolpci Top 5, Top 10, Top 15 in Top 30 pa so kumulativni (2. mesto šteje tudi v Top 5). Podatki se posodobijo vsako nedeljo od 1. 9. 2026 do 30. 4. 2027. Zgodovina sega do sezone 1991/92; stolpec »Stanje« v pogledu »Po sezonah« pove, ali je sezona popolna.</p>
   </footer>
 </main>
 <div id="printArea"></div>
@@ -198,7 +198,7 @@ function head(cols){const tr=el("tr");cols.forEach(c=>tr.appendChild(el("th",nul
 function render(){
   const rs=filtered();
   const people={};
-  rs.forEach(r=>r.res.forEach(x=>{const k=r.sport+"|"+(x.id||x.n);(people[k]=people[k]||{n:x.n,g:r.g,items:[]}).items.push({r:x.r,x:x.x,race:r})}));
+  rs.forEach(r=>r.res.forEach(x=>{const k=r.sport+"|"+(x.id||x.n);{const q=(people[k]=people[k]||{n:x.n,g:r.g,items:[]});if(r.g!=="X"&&q.g==="X")q.g=r.g;q.items.push({r:x.r,x:x.x,race:r})}}));
   const nr=rs.filter(r=>r.res.length).length,na=Object.keys(people).length,nu=Object.values(people).reduce((a,p)=>a+p.items.length,0);
   $("k1").textContent=nr;$("k1l").textContent=pl(nr,L_RACE);
   $("k2").textContent=na;$("k2l").textContent=pl(na,L_ATH);
@@ -214,7 +214,7 @@ function render(){
       .forEach(({p,c})=>{
         const tr=el("tr","row");const td=el("td","name",p.n);
         const real=p.items.filter(i=>!i.x);const best=real.length?String(Math.min(...real.map(i=>i.r))):"16.–30";
-        td.appendChild(el("small",null,(p.g==="M"?"Moški":"Ženske")+" · najboljša uvrstitev: "+best+"."));
+        td.appendChild(el("small",null,(p.g==="M"?"Moški":p.g==="X"?"Mešano":"Ženske")+" · najboljša uvrstitev: "+best+"."));
         tr.appendChild(td);c.forEach((v,i)=>tr.appendChild(cell(v,i===0)));
         const dt=el("tr","detail");dt.hidden=true;const dd=el("td");dd.colSpan=8;
         p.items.sort((a,b)=>a.race.d.localeCompare(b.race.d)).forEach(i=>dd.appendChild(el("span","pill",(i.x?"16.–30.":i.r+".")+" · "+i.race.disc+" · "+i.race.place+" · "+fmtDate(i.race.d)+(i.race.t==="ekipno"?" (ekipno)":""))));
@@ -228,7 +228,7 @@ function render(){
   }else if(tab==="disc"){
     table.appendChild(head(["Disciplina","1.","2.","3.","Top 5","Top 10","Top 15","Top 30"]));
     const groups={};
-    rs.forEach(r=>{const k=r.sport+" – "+r.disc+(r.g==="M"?" (M)":" (Ž)");(groups[k]=groups[k]||[]).push(...r.res.map(x=>x.r))});
+    rs.forEach(r=>{const k=r.sport+" – "+r.disc+(r.g==="M"?" (M)":r.g==="X"?" (mešano)":" (Ž)");(groups[k]=groups[k]||[]).push(...r.res.map(x=>x.r))});
     const tb=el("tbody");
     Object.keys(groups).sort((a,b)=>a.localeCompare(b,"sl")).forEach(k=>{
       const tr=el("tr");tr.appendChild(el("td","name",k));counts(groups[k]).forEach((v,i)=>tr.appendChild(cell(v,i===0)));tb.appendChild(tr)});
@@ -250,7 +250,7 @@ function render(){
     const tb=el("tbody");
     [...rs].sort((a,b)=>b.d.localeCompare(a.d)).forEach(r=>{
       const tr=el("tr");
-      const a=el("td","name",r.sport+" – "+r.disc+" ("+(r.g==="M"?"M":"Ž")+")");a.appendChild(el("small",null,r.place+(r.t==="ekipno"?" · ekipno":"")));
+      const a=el("td","name",r.sport+" – "+r.disc+" ("+(r.g==="M"?"M":r.g==="X"?"mešano":"Ž")+")");a.appendChild(el("small",null,r.place+(r.t==="ekipno"?" · ekipno":"")));
       tr.appendChild(a);tr.appendChild(el("td",null,fmtDate(r.d)));
       const td=el("td");td.style.textAlign="left";
       r.res.slice().sort((x,y)=>x.r-y.r).forEach(x=>td.appendChild(el("span","pill",(x.x?"16.–30.":x.r+".")+" "+x.n)));
@@ -260,7 +260,7 @@ function render(){
 }
 /* ---------- izvoz (Excel, PDF) ---------- */
 const XH=["1.","2.","3.","Top 5","Top 10","Top 15","Top 30"];
-function groupPeople(rs){const p={};rs.forEach(r=>r.res.forEach(x=>{const k=r.sport+"|"+(x.id||x.n);(p[k]=p[k]||{n:x.n,g:r.g,items:[]}).items.push({r:x.r,x:x.x,race:r})}));return p}
+function groupPeople(rs){const p={};rs.forEach(r=>r.res.forEach(x=>{const k=r.sport+"|"+(x.id||x.n);{const q=(p[k]=p[k]||{n:x.n,g:r.g,items:[]});if(r.g!=="X"&&q.g==="X")q.g=r.g;q.items.push({r:x.r,x:x.x,race:r})}}));return p}
 function fillAthletes(p){
   const sel=$("xa"),cur=sel.value;sel.textContent="";
   Object.entries(p).sort((a,b)=>a[1].n.localeCompare(b[1].n,"sl")).forEach(([k,v])=>sel.appendChild(new Option(v.n,String(k))));
@@ -272,7 +272,7 @@ function filterText(){
   if($("fse").value)parts.push("sezona "+$("fse").value);
   if($("fs").value)parts.push($("fs").value);
   if($("fd").value)parts.push($("fd").value);
-  if($("fg").value)parts.push($("fg").value==="M"?"moški":"ženske");
+  if($("fg").value)parts.push($("fg").value==="M"?"moški":$("fg").value==="X"?"mešano":"ženske");
   return "Filtri: "+parts.join(", ");
 }
 function rankText(x){return x.x?"16.–30.":x.r}
@@ -282,7 +282,7 @@ function exportData(kind){
   if(kind==="ath"){
     const rows=Object.values(p).map(a=>({a,c:counts(a.items.map(i=>i.r))}))
       .sort((x,y)=>{for(let i=0;i<7;i++){if(y.c[i]!==x.c[i])return y.c[i]-x.c[i]}return x.a.n.localeCompare(y.a.n,"sl")})
-      .map(({a,c})=>[a.n,a.g==="M"?"Moški":"Ženske",...c]);
+      .map(({a,c})=>[a.n,a.g==="M"?"Moški":a.g==="X"?"Mešano":"Ženske",...c]);
     return {...base,title:"Statistika po tekmovalcih",file:"statistika-po-tekmovalcih",head:["Tekmovalec","Spol",...XH],rows};
   }
   if(kind==="sea"){
@@ -298,7 +298,7 @@ function exportData(kind){
     return {...base,title:"Tekmovalec: "+a.n+" – po sezonah",file:"tekmovalec-"+a.n.toLowerCase().replace(/[^a-z0-9]+/g,"-"),head:["Sezona",...XH],rows};
   }
   const rows=[];
-  rs.forEach(r=>r.res.forEach(x=>rows.push([r.d,seasonOfRace(r),r.sport,r.disc,r.g==="M"?"Moški":"Ženske",r.place,x.n,rankText(x)])));
+  rs.forEach(r=>r.res.forEach(x=>rows.push([r.d,seasonOfRace(r),r.sport,r.disc,r.g==="M"?"Moški":r.g==="X"?"Mešano":"Ženske",r.place,x.n,rankText(x)])));
   rows.sort((a,b)=>b[0].localeCompare(a[0])||String(a[7]).localeCompare(String(b[7]),undefined,{numeric:true}));
   return {...base,title:"Seznam vseh uvrstitev",file:"seznam-uvrstitev",head:["Datum","Sezona","Šport","Disciplina","Spol","Kraj","Tekmovalec","Uvrstitev"],rows};
 }
