@@ -242,8 +242,8 @@ def parse_member(text, href):
     while k < len(tk) and (tk[k].isdigit() or re.fullmatch(r"\d+-\d+", tk[k])):
         k += 1
     y = next((i for i in range(k + 1, len(tk)) if re.fullmatch(r"(19|20)\d\d", tk[i])), None)
-    if y is None:
-        return None
+    if y is None:  # stari zapis brez leta rojstva ('2809 STRGAR Igor'): ime do prve stevilke
+        y = next((i for i in range(k, len(tk)) if re.search(r"\d", tk[i])), len(tk))
     name_tokens = tk[k:y]
     if not name_tokens:
         return None
