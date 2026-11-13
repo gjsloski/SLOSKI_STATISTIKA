@@ -482,6 +482,43 @@ def refilter(races, state, extra_names, deadline):
     return True, removed
 
 
+def probe_team(spec):
+    """Izpise ekipne tekme sezone (npr. JP:2026,AL:2026,JP:2024): naslov, datum, raceid, oznako, vrstice SLO in prvih nekaj vrstic tabele."""
+    for item in spec.split(","):
+        sec, _, season = item.strip().partition(":")
+        sk = next((k for k, c in SPORTS.items() if c["code"] == sec), None)
+        if not sk:
+            continue
+        cfg = SPORTS[sk]
+        html = get(f"{BASE}/DB/{cfg['path']}/calendar-results.html?sectorcode={sec}&seasoncode={season}&categorycode=WC")
+        events = parse_calendar(html, "WC") if html else []
+        log(f"EKIPE {item}: {len(events)} dogodkov")
+        shown = 0
+        for eid, eurl in events:
+            ehtml = get(eurl)
+            if not ehtml:
+                continue
+            for rid, rurl in parse_event(ehtml, sec):
+                rhtml = get(rurl)
+                if not rhtml:
+                    continue
+                soup = BeautifulSoup(rhtml, "html.parser")
+                lines = [l for l in soup.get_text("\n", strip=True).split("\n") if l]
+                title = next((l for l in lines[:90] if TITLE_RE.match(l) and len(l) < 90), "")
+                if not any(w in title for w in SKIP_WORDS):
+                    continue
+                h1 = soup.find("h1")
+                log(f"EKIPE {item} raceid={rid} {title} | {h1.get_text(' ', strip=True) if h1 else ''}")
+                if shown < 4:
+                    shown += 1
+                    i0 = next((i for i, l in enumerate(lines) if l.strip().lower() == "rank"), 0)
+                    log(f"EKIPE {item} {rid} TABELA: {lines[i0:i0 + 45]}")
+                    for i, l in enumerate(lines):
+                        if l == "SLO":
+                            log(f"EKIPE {item} {rid} SLO: {lines[max(0, i - 6):i + 14]}")
+                            break
+
+
 def probe(spec):
     """Samo bere: za izbrane tekme izpise vse vrstice 'datum - naslov | oznaka' (brez sprememb podatkov)."""
     by_code = {cfg["code"]: cfg for cfg in SPORTS.values()}
@@ -803,12 +840,16 @@ def main():
     ap.add_argument("--refilter", action="store_true", help="ponovno preveri ze shranjene tekme z novim filtrom in odstrani neprave")
     ap.add_argument("--recheck", help="odstrani te tekme iz seznama ze obdelanih (npr. AL:49869,JP:4401), da se obdelajo znova")
     ap.add_argument("--probe", help="samo bere oznake vrst za tekme, npr. JP:6696,JP:7566")
+    ap.add_argument("--probe-team", help="izpise ekipne tekme sezone, npr. JP:2026,AL:2026")
     ap.add_argument("--validate", action="store_true", help="po zbiranju primerja stetje z FIS Podiums")
     ap.add_argument("--check-races", action="store_true", help="vsako uvrstitev primerja s stranjo sportnika na FIS (po raceid)")
     ap.add_argument("--only-validate", action="store_true", help="samo preveri, brez zbiranja")
     ap.add_argument("--add-extra", action="store_true", help="doda tekme iz EXTRA_RACES (letalnice SFWC+WC), ki jih koledar ne navaja")
     ap.add_argument("--force", action="store_true", help="ponovno obdela tudi sezone, oznacene kot popolne")
     args = ap.parse_args()
+    if args.probe_team:
+        probe_team(args.probe_team)
+        return 0
     if args.probe:
         probe(args.probe)
         return 0
