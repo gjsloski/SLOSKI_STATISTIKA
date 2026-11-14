@@ -9,7 +9,7 @@ on:
         description: "weekly = samo tekoča sezona, backfill = vsa zgodovina od 1991/92"
         default: "weekly"
         type: choice
-        options: [weekly, backfill, reset-jumping, reset-alpine, reset-all, refilter, fill-startlists, add-extra, teams, champs, redo, probe-cat, probe-find, probe-team, probe-team2, check, validate, probe]
+        options: [weekly, backfill, reset-jumping, reset-alpine, reset-all, refilter, fill-startlists, add-extra, teams, champs, redo, recheck-levi, probe-cat, probe-find, probe-team, probe-team2, check, validate, probe]
   push:
     branches: [main]
     paths: [index.html, scripts/**, .github/workflows/update.yml]
@@ -50,6 +50,8 @@ jobs:
             python scripts/update.py --probe-cat "JP:2022:OWG,AL:2022:OWG,NK:2022:OWG,JP:2023:WSC,AL:2023:WSC,NK:2023:WSC,JP:2023:SFWC"
           elif [ "$MODE" = "probe-find" ]; then
             python scripts/update.py --probe-find "AL:109199:146979,AL:109199,NK:2949,AL:131579:221143"
+          elif [ "$MODE" = "recheck-levi" ]; then
+            python scripts/update.py --mode weekly --recheck "AL:131579" --max-minutes 60
           elif [ "$MODE" = "redo" ]; then
             python scripts/update.py --redo --max-minutes 60
           elif [ "$MODE" = "champs" ]; then
