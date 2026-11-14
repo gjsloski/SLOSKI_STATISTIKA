@@ -55,6 +55,7 @@ DISC.sort(key=lambda kv: 0 if kv[0] == "Gundersen" else 1)  # nordijska kombinac
 # FIS zapisuje imena brez strešic; tukaj so popravki za pogosta slovenska imena.
 # Lahko jih dopolnis tudi v data/names.json (kljuc = ime kot ga izpise FIS ali FIS competitorid).
 NAME_FIX = {
+    "Kopac P.": "Primoz Kopac",
     "Zan Kranjec": "Žan Kranjec",
     "Stefan Hadalin": "Štefan Hadalin",
     "Ilka Stuhec": "Ilka Štuhec",
