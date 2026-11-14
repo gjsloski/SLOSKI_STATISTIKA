@@ -262,9 +262,27 @@ def parse_member(text, href):
         name = f"{rest[0] if rest else ''} {' '.join(w.title() for w in sur)}".strip()
     else:  # stari zapis 'Priimek Ime'
         name = " ".join(name_tokens[1:] + name_tokens[:1])
-    nat = tk[y + 1] if y + 1 < len(tk) and re.fullmatch(r"[A-Z]{3}", tk[y + 1]) else None
+    nat = tk[y + 1] if y + 1 < len(tk) and re.fullmatch(r"[A-Z]{3}", tk[y + 1]) and tk[y + 1] not in STATUS_CODES else None
     cid = parse_qs(urlparse(href).query).get("competitorid", [None])[0]
     return {"cid": cid, "name": name, "nat": nat}
+
+
+STATUS_CODES = {"DNF", "DSQ", "DNS", "DQ", "DNQ", "LAP", "NPS", "DPO", "DNC", "NQ"}
+NUMLIKE_RE = re.compile(r"[+\-]?[\d:.,]+")
+
+
+def team_nat_index(tk):
+    """Indeks oznake drzave v vrstici ekipe ('6 74576 SLOVENIA SLO', '8 7 101876 SLOVENIA SLO 359.9 44:48.5 +7:10.3',
+    '1 1 54569 AUSTRIA AUT 480.2'): rang na zacetku, nato ime, oznaka drzave in samo stevilke/casi do konca.
+    Vrstice clanov (z letom rojstva pred oznako) niso vrstice ekip."""
+    if len(tk) < 4 or not tk[0].isdigit():
+        return None
+    for i in range(2, len(tk)):
+        if (re.fullmatch(r"[A-Z]{3}", tk[i]) and tk[i] not in STATUS_CODES
+                and not re.fullmatch(r"(19|20)\d\d", tk[i - 1])
+                and all(NUMLIKE_RE.fullmatch(t) for t in tk[i + 1:])):
+            return i
+    return None
 
 
 def parse_team_page(soup):
@@ -277,11 +295,11 @@ def parse_team_page(soup):
         text = a.get_text(" ", strip=True)
         tk = text.split()
         cid = parse_qs(urlparse(href).query).get("competitorid", [None])[0]
-        if (len(tk) >= 4 and tk[0].isdigit() and re.fullmatch(r"[A-Z]{3}", tk[-2])
-                and re.fullmatch(r"\d+(\.\d+)?", tk[-1]) and not re.fullmatch(r"(19|20)\d\d", tk[-3])):
-            cur = next((t for t in teams if t["tid"] == cid and t["nat"] == tk[-2]), None)
+        ti = team_nat_index(tk)
+        if ti is not None:
+            cur = next((t for t in teams if t["tid"] == cid and t["nat"] == tk[ti]), None)
             if cur is None:
-                cur = {"rank": int(tk[0]), "nat": tk[-2], "tid": cid, "members": []}
+                cur = {"rank": int(tk[0]), "nat": tk[ti], "tid": cid, "members": []}
                 teams.append(cur)
             continue
         m = parse_member(text, href)
@@ -1061,6 +1079,40 @@ def process_season(code, sport_key, races, state, cat, label, finished, extra_na
     return "popolno" if failures == 0 else "delno"
 
 
+REDO_CHAMP_RACES = [  # ekipne tekme OWG/WSC, ki jih je prejsnji razclenjevalnik zgresil
+    "JP:338:OWG", "JP:842:WSC", "JP:1294:WSC",
+    "NK:1471:WSC", "NK:1469:WSC", "NK:1647:WSC", "NK:1649:WSC", "NK:2305:WSC", "NK:2609:WSC",
+    "NK:2948:WSC", "NK:3401:WSC", "NK:3536:OWG",
+    "AL:86890:WSC", "AL:91475:OWG", "AL:95556:WSC", "AL:104442:WSC", "AL:109199:OWG", "AL:114194:WSC",
+    "AL:122891:WSC", "AL:122892:WSC",
+]
+
+
+def redo_races(races, state, extra_names, items):
+    """Ponovno prebere navedene tekme (SEC:raceid:KATEGORIJA) in prepise shranjene."""
+    n = 0
+    for item in items:
+        sec, rid, cat = item.split(":")
+        sk = next((k for k, c in SPORTS.items() if c["code"] == sec), None)
+        if not sk:
+            continue
+        html = get(f"{BASE}/DB/general/results.html?sectorcode={sec}&raceid={rid}")
+        if not html:
+            log(f"  NAPAKA: {item} ni dosegljiva")
+            continue
+        status, race = parse_race(html, sk, rid, extra_names, cat)
+        key = f"{sec}:{rid}"
+        if status == "ok" and race["res"]:
+            races[race["id"]] = race
+            state["seen"][key] = "ok"
+            n += 1
+            log(f"  (ponovno) {race['d']} {race['place']} {race['disc']} {race['g']}: "
+                f"{', '.join(str(x['r']) + '. ' + x['n'] for x in race['res'])}")
+        else:
+            log(f"  OPOZORILO: {item} ni bila dodana (status {status})")
+    return n
+
+
 def add_extra_races(races, state, extra_names):
     """Doda tekme iz EXTRA_RACES neposredno (brez koledarja)."""
     n = 0
@@ -1095,6 +1147,7 @@ def main():
     ap.add_argument("--refilter", action="store_true", help="ponovno preveri ze shranjene tekme z novim filtrom in odstrani neprave")
     ap.add_argument("--recheck", help="odstrani te tekme iz seznama ze obdelanih (npr. AL:49869,JP:4401), da se obdelajo znova")
     ap.add_argument("--probe", help="samo bere oznake vrst za tekme, npr. JP:6696,JP:7566")
+    ap.add_argument("--redo", action="store_true", help="ponovno prebere ekipne tekme OWG/WSC iz REDO_CHAMP_RACES")
     ap.add_argument("--champs", action="store_true", help="zbere samo olimpijske igre (OWG) in svetovna prvenstva (WSC) od sezone --from-season")
     ap.add_argument("--probe-cat", help="dogodki in tekme kategorije, npr. JP:2022:OWG,JP:2023:WSC,AL:2022:OWG")
     ap.add_argument("--probe-team2", help="zgradba ekipne tekme: JP:7460,JP:6853 ali alpski naslovi AL:2024")
@@ -1168,6 +1221,14 @@ def main():
             state.pop("refiltered", None)
         save_all(races, state, meta, today)
         if finished_all and args.validate:
+            validate(races, today, deadline)
+        return 0
+
+    if args.redo:
+        n = redo_races(races, state, extra_names, REDO_CHAMP_RACES)
+        log(f"Ponovno prebranih tekem: {n} od {len(REDO_CHAMP_RACES)}")
+        save_all(races, state, meta, today)
+        if args.validate:
             validate(races, today, deadline)
         return 0
 
