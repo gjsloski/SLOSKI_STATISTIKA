@@ -691,6 +691,31 @@ def probe_team2(spec):
                     done = True
 
 
+def probe_find(spec):
+    """SEKTOR:raceid[:competitorid] - izpise vse povezave na sportnika, ekipe in razclenjene slovenske clane."""
+    for item in [x.strip() for x in spec.split(",") if x.strip()]:
+        parts = item.split(":")
+        sec, rid = parts[0], parts[1]
+        cid = parts[2] if len(parts) > 2 else None
+        html = get(f"{BASE}/DB/general/results.html?sectorcode={sec}&raceid={rid}")
+        if not html:
+            log(f"FIND {item}: ni dosegljiva")
+            continue
+        soup = BeautifulSoup(html, "html.parser")
+        lines = [l for l in soup.get_text("\n", strip=True).split("\n") if l][:6]
+        log(f"FIND {item}: glava {lines}")
+        teams, persons = parse_team_page(soup)
+        log(f"FIND {item}: ekip {len(teams)}: " + "; ".join(f"{t['rank']} {t['nat']} clanov {len(t['members'])}" for t in teams if t['nat'] == 'SLO'))
+        log(f"FIND {item}: team_result {team_result(soup, {})}")
+        for a in soup.find_all("a", href=True):
+            if "athlete-biography" not in a["href"]:
+                continue
+            q = parse_qs(urlparse(a["href"]).query).get("competitorid", [None])[0]
+            t = a.get_text(" ", strip=True)
+            if (cid and q == cid) or (not cid and (" SLO" in t or "SLOVENIA" in t.upper())):
+                log(f"FIND {item}: [{q}] {t}")
+
+
 def probe_cat(spec):
     """Izpise dogodke in tekme drugih kategorij (OWG, WSC, ...): SEKTOR:SEZONA:KATEGORIJA, npr. JP:2022:OWG"""
     for item in [x.strip() for x in spec.split(",") if x.strip()]:
@@ -1083,7 +1108,7 @@ def process_season(code, sport_key, races, state, cat, label, finished, extra_na
 REDO_CHAMP_RACES = [  # ekipne tekme OWG/WSC, ki jih je prejsnji razclenjevalnik zgresil
     "JP:338:OWG", "JP:842:WSC", "JP:1294:WSC",
     "NK:1471:WSC", "NK:1469:WSC", "NK:1647:WSC", "NK:1649:WSC", "NK:2305:WSC", "NK:2609:WSC",
-    "NK:2948:WSC", "NK:3401:WSC", "NK:3536:OWG",
+    "NK:2948:WSC", "NK:2949:WSC", "NK:3401:WSC", "NK:3536:OWG",
     "AL:86890:WSC", "AL:91475:OWG", "AL:95556:WSC", "AL:104442:WSC", "AL:109199:OWG", "AL:114194:WSC",
     "AL:122891:WSC", "AL:122892:WSC",
 ]
@@ -1150,6 +1175,7 @@ def main():
     ap.add_argument("--probe", help="samo bere oznake vrst za tekme, npr. JP:6696,JP:7566")
     ap.add_argument("--redo", action="store_true", help="ponovno prebere ekipne tekme OWG/WSC iz REDO_CHAMP_RACES")
     ap.add_argument("--champs", action="store_true", help="zbere samo olimpijske igre (OWG) in svetovna prvenstva (WSC) od sezone --from-season")
+    ap.add_argument("--probe-find", help="SEKTOR:raceid[:competitorid], npr. AL:109199:146979,NK:2949,AL:131579")
     ap.add_argument("--probe-cat", help="dogodki in tekme kategorije, npr. JP:2022:OWG,JP:2023:WSC,AL:2022:OWG")
     ap.add_argument("--probe-team2", help="zgradba ekipne tekme: JP:7460,JP:6853 ali alpski naslovi AL:2024")
     ap.add_argument("--probe-team", help="izpise ekipne tekme sezone, npr. JP:2026,AL:2026")
@@ -1160,6 +1186,9 @@ def main():
     ap.add_argument("--teams", action="store_true", help="ponovno obdela strani, ki so bile prej preskocene (ekipne tekme), brez brisanja posamicnih")
     ap.add_argument("--force", action="store_true", help="ponovno obdela tudi sezone, oznacene kot popolne")
     args = ap.parse_args()
+    if args.probe_find:
+        probe_find(args.probe_find)
+        return 0
     if args.probe_cat:
         probe_cat(args.probe_cat)
         return 0
