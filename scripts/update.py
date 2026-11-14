@@ -410,6 +410,9 @@ def parse_race(html, sport_key, raceid, extra_names, cat="WC", trusted=False):
         if not has_rank_header:
             return "empty", None
         tres = team_result(soup, extra_names)
+        for x in TEAM_EXTRA.get(f"{cfg['code']}:{raceid}", []):  # clan ekipe, ki ga FIS vodi pri sportniku, a ni na strani tekme
+            if tres is not None and all(y["id"] != x["id"] for y in tres):
+                tres.append(dict(x, r=next((y["r"] for y in tres), x["r"])))
         if tres is None:
             return "empty", None  # brez tabele: odpovedana tekma
         race = {
@@ -1104,6 +1107,10 @@ def process_season(code, sport_key, races, state, cat, label, finished, extra_na
         return "v teku"
     return "popolno" if failures == 0 else "delno"
 
+
+TEAM_EXTRA = {  # FIS pri sportniku steje ekipni rezultat, na strani tekme pa ga ni med clani
+    "AL:109199": [{"n": "Ana Bucik", "r": 7, "id": 146979}],  # OI Beijing 2022, ekipni paralelni slalom, 7. mesto (potrdil narocnik)
+}
 
 REDO_CHAMP_RACES = [  # ekipne tekme OWG/WSC, ki jih je prejsnji razclenjevalnik zgresil
     "JP:338:OWG", "JP:842:WSC", "JP:1294:WSC",
