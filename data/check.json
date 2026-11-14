@@ -1,38 +1,8 @@
 {
  "updated": "2026-11-14",
- "preverjenih_sezon": 1356,
+ "preverjenih_sezon": 1358,
  "nepreverjenih": 0,
  "nesklad": [
-  {
-   "n": "Ana Bucik",
-   "sezona": "2021/22",
-   "raceid": "109199",
-   "d": "20-02-2022",
-   "place": "",
-   "disc": "Team Parallel",
-   "nase": null,
-   "fis": "7"
-  },
-  {
-   "n": "Gasper Brecl",
-   "sezona": "2022/23",
-   "raceid": "2949",
-   "d": "01-03-2023",
-   "place": "",
-   "disc": "Team",
-   "nase": null,
-   "fis": "11"
-  },
-  {
-   "n": "Matic Garbajs",
-   "sezona": "2022/23",
-   "raceid": "2949",
-   "d": "01-03-2023",
-   "place": "",
-   "disc": "Team",
-   "nase": null,
-   "fis": "11"
-  },
   {
    "n": "Neja Dvornik",
    "sezona": "2026/27",
