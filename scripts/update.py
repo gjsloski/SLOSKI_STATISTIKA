@@ -725,38 +725,44 @@ IBU_API = "https://biathlonresults.com/modules/sportapi/api"
 
 
 IBU_KEY = None
-KEY_RE = re.compile(r"""api[-_]?key["']?\s*[:=]\s*["']([A-Za-z0-9_\-]{12,})["']""", re.I)
+KEY_RE = re.compile(r"""ApiKey\s*=\s*["']([0-9a-fA-F-]{36})["']""")
+SCRIPT_SRC_RE = re.compile(r"""<script[^>]*\ssrc=["']?([^"'\s>]+\.js)""", re.I)
 
 
 def ibu_find_key(verbose=False):
-    """Javni kljuc, ki ga biathlonresults.com vgradi v svoj program (glava 'apikey'). Ce ga ne najde, vrne None."""
-    env = os.environ.get("IBU_API_KEY")
+    """Javni kljuc, ki ga biathlonresults.com vgradi v zacetno stran (window.ApiKey = '<uuid>'): glava 'apikey'."""
+    env = os.environ.get("IBU_API_KEY") or os.environ.get("BIATHLONRESULTS_API_KEY")
     if env:
         return env
     base = "https://biathlonresults.com/"
     html = get(base)
     if not html:
         return None
-    srcs = re.findall(r'<script[^>]+src=["\']([^"\']+)["\']', html)
-    pages = [("html", html)]
-    for src in srcs[:25]:
+    m = KEY_RE.search(html)
+    if m:
+        if verbose:
+            log("IBU kljuc najden v HTML strani")
+        return m.group(1)
+    srcs = SCRIPT_SRC_RE.findall(html)
+    # najprej programi aplikacije, potem tuji (vendor)
+    srcs.sort(key=lambda u: ("vendor" in u.lower() or "polyfill" in u.lower(), srcs.index(u)))
+    seen = []
+    for src in srcs[:40]:
         url = urljoin(base, src)
-        if "biathlonresults" not in url and not url.startswith("/"):
-            continue
         txt = get(url)
-        if txt:
-            pages.append((url, txt))
-    for name, txt in pages:
-        for m in KEY_RE.finditer(txt):
+        seen.append(url)
+        if not txt:
+            continue
+        m = KEY_RE.search(txt)
+        if m:
             if verbose:
-                log(f"IBU kljuc najden v {name}: {m.group(0)[:120]}")
+                log(f"IBU kljuc najden v {url}")
             return m.group(1)
     if verbose:
-        log(f"IBU kljuca nisem nasel; pregledanih datotek: {[n for n, _ in pages]}")
-        for name, txt in pages:
-            for m in re.finditer(r"api[-_ ]?key", txt, re.I):
-                log(f"IBU namig v {name}: ...{txt[max(0, m.start() - 80):m.end() + 120]!r}")
-                break
+        log(f"IBU kljuca nisem nasel; skript na strani: {len(srcs)}; pregledanih: {seen}")
+        for hit in re.finditer(r"api[-_ ]?key", html, re.I):
+            log(f"IBU namig v HTML: ...{html[max(0, hit.start() - 80):hit.end() + 120]!r}")
+            break
     return None
 
 
