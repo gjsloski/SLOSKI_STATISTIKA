@@ -11,6 +11,7 @@ Izhod: data/races.json, data/meta.json, data/state.json
 import argparse
 import datetime
 import json
+import os
 import pathlib
 import re
 import sys
@@ -723,20 +724,72 @@ def probe_find(spec):
 IBU_API = "https://biathlonresults.com/modules/sportapi/api"
 
 
-def ibu_json(path):
-    txt = get(f"{IBU_API}/{path}")
-    if not txt:
+IBU_KEY = None
+KEY_RE = re.compile(r"""api[-_]?key["']?\s*[:=]\s*["']([A-Za-z0-9_\-]{12,})["']""", re.I)
+
+
+def ibu_find_key(verbose=False):
+    """Javni kljuc, ki ga biathlonresults.com vgradi v svoj program (glava 'apikey'). Ce ga ne najde, vrne None."""
+    env = os.environ.get("IBU_API_KEY")
+    if env:
+        return env
+    base = "https://biathlonresults.com/"
+    html = get(base)
+    if not html:
+        return None
+    srcs = re.findall(r'<script[^>]+src=["\']([^"\']+)["\']', html)
+    pages = [("html", html)]
+    for src in srcs[:25]:
+        url = urljoin(base, src)
+        if "biathlonresults" not in url and not url.startswith("/"):
+            continue
+        txt = get(url)
+        if txt:
+            pages.append((url, txt))
+    for name, txt in pages:
+        for m in KEY_RE.finditer(txt):
+            if verbose:
+                log(f"IBU kljuc najden v {name}: {m.group(0)[:120]}")
+            return m.group(1)
+    if verbose:
+        log(f"IBU kljuca nisem nasel; pregledanih datotek: {[n for n, _ in pages]}")
+        for name, txt in pages:
+            for m in re.finditer(r"api[-_ ]?key", txt, re.I):
+                log(f"IBU namig v {name}: ...{txt[max(0, m.start() - 80):m.end() + 120]!r}")
+                break
+    return None
+
+
+def ibu_json(path, retry=True):
+    global IBU_KEY
+    if IBU_KEY is None:
+        IBU_KEY = ibu_find_key() or ""
+    try:
+        r = _session.get(f"{IBU_API}/{path}", headers={"apikey": IBU_KEY} if IBU_KEY else {}, timeout=40)
+        time.sleep(DELAY)
+    except requests.RequestException as e:
+        log(f"IBU napaka {e} za {path}")
+        return None
+    if r.status_code == 401 and retry:
+        IBU_KEY = ibu_find_key() or ""
+        return ibu_json(path, retry=False)
+    if r.status_code != 200:
+        log(f"  IBU HTTP {r.status_code} za {path}")
         return None
     try:
-        return json.loads(txt)
+        return r.json()
     except ValueError:
-        log(f"IBU: neveljaven JSON za {path}: {txt[:200]!r}")
+        log(f"IBU: neveljaven JSON za {path}: {r.text[:200]!r}")
         return None
 
 
 def probe_ibu(spec):
     """Zgradba IBU API: sezone (npr. 2526,2425,0506,9293). Izpise vse dogodke (Level 1..4), tekme prvega dogodka
     svetovnega pokala in prvenstva (OWG/WCH), rezultate in slovenske vrstice."""
+    global IBU_KEY
+    key = ibu_find_key(verbose=True)
+    log(f"IBU kljuc: {'najden (' + str(len(key)) + ' znakov)' if key else 'NI NAJDEN'}")
+    IBU_KEY = key or ""
     for season in [x.strip() for x in spec.split(",") if x.strip()]:
         picked = []
         for level in (1, 2, 3, 4):
