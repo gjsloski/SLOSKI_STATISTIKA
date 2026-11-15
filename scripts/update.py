@@ -56,6 +56,15 @@ DISC.sort(key=lambda kv: 0 if kv[0] == "Gundersen" else 1)  # nordijska kombinac
 # FIS zapisuje imena brez strešic; tukaj so popravki za pogosta slovenska imena.
 # Lahko jih dopolnis tudi v data/names.json (kljuc = ime kot ga izpise FIS ali FIS competitorid).
 NAME_FIX = {
+    "Anamarija Lampic": "Anamarija Lampič",
+    "Polona Klemencic": "Polona Klemenčič",
+    "Ziva Klemencic": "Živa Klemenčič",
+    "Miha Dovzan": "Miha Dovžan",
+    "Janez Maric": "Janez Marič",
+    "Tadeja Brankovic": "Tadeja Brankovič",
+    "Bostjan Lekan": "Boštjan Lekan",
+    "Uros Velepec": "Uroš Velepec",
+    "Janez Ozbolt": "Janez Ožbolt",
     "Kopac P.": "Primoz Kopac",
     "Zan Kranjec": "Žan Kranjec",
     "Stefan Hadalin": "Štefan Hadalin",
@@ -594,7 +603,7 @@ def refilter(races, state, extra_names, deadline):
     by_label = {cfg["label"]: (k, cfg) for k, cfg in SPORTS.items()}
     done = set(state.setdefault("refiltered", []))
     removed = 0
-    todo = [r for r in races.values() if r["id"] not in done]
+    todo = [r for r in races.values() if r["id"] not in done and r["sport"] in by_label]
     log(f"Ponovni pregled: {len(todo)} tekem")
     for i, r in enumerate(sorted(todo, key=lambda r: r["d"])):
         if time.time() > deadline:
@@ -787,6 +796,152 @@ def ibu_json(path, retry=True):
     except ValueError:
         log(f"IBU: neveljaven JSON za {path}: {r.text[:200]!r}")
         return None
+
+
+# ----------------------------------------------------------------- biatlon (IBU: svetovni pokal, svetovna prvenstva, olimpijske igre)
+BIATHLON = "Biatlon"
+IBU_EVENT_RE = re.compile(r"^BT\d{4}SWRL(CP\d{2}|CH..|OG__)$")
+IBU_DISC = {"SP": "Šprint", "PU": "Zasledovanje", "IN": "Individualna", "SI": "Kratka individualna", "MS": "Skupinski start",
+            "RL": "Štafeta", "SR": "Enojna mešana štafeta", "TM": "Ekipna tekma"}
+IBU_TEAM_DISC = {"RL", "SR", "TM"}
+IBU_GENDER = {"SM": "M", "SW": "Ž", "MX": "X"}
+
+
+def ibu_season_id(code):
+    """Koda sezone FIS (koncno leto) -> IBU SeasonId, npr. 2026 -> '2526', 1993 -> '9293'."""
+    return f"{(code - 1) % 100:02d}{code % 100:02d}"
+
+
+def ibu_cat(event_id):
+    tag = event_id[len("BT0000SWRL"):]
+    return "OWG" if tag.startswith("OG") else ("WSC" if tag.startswith("CH") else "WC")
+
+
+def ibu_local_date(comp):
+    """Datum tekme po krajevnem casu (StartTime je v UTC, LocalUTCOffset v urah)."""
+    st = comp.get("StartTime") or ""
+    try:
+        dt = datetime.datetime.fromisoformat(st.replace("Z", ""))
+        if st.endswith("Z"):
+            dt += datetime.timedelta(hours=float(comp.get("LocalUTCOffset") or 0))
+        return dt.date().isoformat()
+    except ValueError:
+        return st[:10]
+
+
+def ibu_name(row, extra_names):
+    fam = " ".join(w.capitalize() if w.isupper() else w for w in (row.get("FamilyName") or "").split())
+    fam = re.sub(r"(?<=[-'])([a-z])", lambda m: m.group(1).upper(), fam)
+    name = f"{(row.get('GivenName') or '').strip()} {fam}".strip()
+    return fix_name(name, row.get("IBUId"), extra_names)
+
+
+def parse_ibu_race(event, comp, res, extra_names):
+    """Vrne tekmo v nasi obliki (samo slovenski tekmovalci z mestom do 30) ali None."""
+    rows = res.get("Results") or []
+    disc_id, cat_id = comp.get("DisciplineId"), comp.get("catId")
+    if disc_id not in IBU_DISC or cat_id not in IBU_GENDER:
+        return None
+    team = disc_id in IBU_TEAM_DISC
+    out, seen = [], set()
+    if team:
+        for t in (r for r in rows if r.get("IsTeam") and r.get("Nat") == "SLO"):
+            rk = str(t.get("Rank") or "")
+            if not rk.isdigit() or int(rk) > 30:
+                continue
+            for m in rows:
+                if m.get("IsTeam") or m.get("Bib") != t.get("Bib") or not m.get("IBUId") or m["IBUId"] in seen:
+                    continue
+                seen.add(m["IBUId"])
+                out.append({"n": ibu_name(m, extra_names), "r": int(rk), "id": m["IBUId"]})
+    else:
+        for r in rows:
+            if r.get("IsTeam") or r.get("Nat") != "SLO" or not r.get("IBUId") or r["IBUId"] in seen:
+                continue
+            rk = str(r.get("Rank") or "")
+            if not rk.isdigit() or int(rk) > 30:
+                continue
+            seen.add(r["IBUId"])
+            out.append({"n": ibu_name(r, extra_names), "r": int(rk), "id": r["IBUId"]})
+    disc = IBU_DISC[disc_id]
+    if cat_id == "MX" and disc_id == "RL":
+        disc = "Mešana štafeta"
+    nat = (event.get("Nat") or "").strip()
+    place = (event.get("ShortDescription") or event.get("Description") or "").strip()
+    race = {"id": f"bt-{comp['RaceId']}", "ibu": comp["RaceId"], "d": ibu_local_date(comp),
+            "place": f"{place} ({nat})" if nat else place, "sport": BIATHLON, "disc": disc, "g": IBU_GENDER[cat_id],
+            "t": "ekipno" if team else "posamicno", "res": sorted(out, key=lambda x: (x["r"], x["n"]))}
+    c = ibu_cat(event["EventId"])
+    if c != "WC":
+        race["c"] = c
+    return race
+
+
+def process_biathlon(code, races, state, extra_names, deadline, finished, label):
+    """Zbere tekme IBU (svetovni pokal, svetovno prvenstvo, olimpijske igre) ene sezone. Vrne: popolno | delno | v teku | None."""
+    events = ibu_json(f"Events?SeasonId={ibu_season_id(code)}&Level=1")
+    if events is None:
+        log(f"{label} {BIATHLON}: dogodki niso dosegljivi")
+        return "delno"
+    events = [e for e in events if IBU_EVENT_RE.match(e.get("EventId", ""))]
+    log(f"{label} {BIATHLON} (IBU): {len(events)} dogodkov")
+    failures = 0
+    today_iso = datetime.date.today().isoformat()
+    for e in sorted(events, key=lambda e: e.get("StartDate", "")):
+        if (e.get("StartDate") or "")[:10] > today_iso:
+            continue
+        comps = ibu_json(f"Competitions?EventId={e['EventId']}")
+        if comps is None:
+            failures += 1
+            continue
+        for comp in comps:
+            if time.time() > deadline:
+                return None
+            key = f"BT:{comp['RaceId']}"
+            if state["seen"].get(key) in ("ok", "skip"):
+                continue
+            if ibu_local_date(comp) > today_iso:
+                continue
+            res = ibu_json(f"Results?RaceId={comp['RaceId']}")
+            if res is None:
+                failures += 1
+                continue
+            if not res.get("IsResult") or not (res.get("Results") or []):
+                if finished:
+                    state["seen"][key] = "skip"
+                continue
+            race = parse_ibu_race(e, comp, res, extra_names)
+            if race is None:
+                state["seen"][key] = "skip"
+                continue
+            if race["res"]:
+                races[race["id"]] = race
+            state["seen"][key] = "ok"
+            log(f"  {race['d']} {race['place']} {race['disc']} {race['g']}"
+                f"{' (' + race['c'] + ')' if race.get('c') else ''}: "
+                f"{', '.join(str(x['r']) + '. ' + x['n'] for x in race['res']) or '-'}")
+    if not finished:
+        return "v teku"
+    return "popolno" if failures == 0 else "delno"
+
+
+def list_names(races):
+    """Izpise vsa razlicna imena slovenskih tekmovalcev (za popravke sumnikov v data/names.json)."""
+    from collections import defaultdict
+    by = defaultdict(lambda: {"sports": set(), "n": 0, "first": "9999", "last": "0000"})
+    for r in races.values():
+        for x in r["res"]:
+            k = (str(x.get("id", "")), x["n"])
+            e = by[k]
+            e["sports"].add(r["sport"][:4])
+            e["n"] += 1
+            e["first"], e["last"] = min(e["first"], r["d"][:4]), max(e["last"], r["d"][:4])
+    rows = sorted(by.items(), key=lambda kv: kv[0][1].split()[-1] + kv[0][1])
+    lines = [f"{k[0]}|{k[1]}|{'/'.join(sorted(e['sports']))}|{e['first']}-{e['last']}|{e['n']}" for k, e in rows]
+    (DATA / "imena.txt").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    log(f"SEZNAM IMEN: {len(lines)} (id|ime|sport|leta|tekem)")
+    for l in lines:
+        log("IME " + l)
 
 
 def probe_ibu(spec):
@@ -1017,6 +1172,8 @@ def check_races(races, today, deadline):
     ours = {}
     for r in races.values():
         sec = by_label.get(r["sport"])
+        if sec is None:
+            continue  # biatlon (IBU) preverja loceno preverjanje
         cat = r.get("c") or ("GP" if r.get("summer") else "WC")
         for x in r["res"]:
             if "id" in x:
@@ -1390,6 +1547,8 @@ def main():
     ap.add_argument("--redo", action="store_true", help="ponovno prebere ekipne tekme OWG/WSC iz REDO_CHAMP_RACES")
     ap.add_argument("--champs", action="store_true", help="zbere samo olimpijske igre (OWG) in svetovna prvenstva (WSC) od sezone --from-season")
     ap.add_argument("--probe-find", help="SEKTOR:raceid[:competitorid], npr. AL:109199:146979,NK:2949,AL:131579")
+    ap.add_argument("--list-names", action="store_true", help="izpise vsa imena tekmovalcev (za popravke sumnikov)")
+    ap.add_argument("--biathlon", action="store_true", help="zbere samo biatlon (IBU) od sezone --from-season")
     ap.add_argument("--probe-ibu", help="IBU API: sezone, npr. 2526,0506,9293")
     ap.add_argument("--probe-cat", help="dogodki in tekme kategorije, npr. JP:2022:OWG,JP:2023:WSC,AL:2022:OWG")
     ap.add_argument("--probe-team2", help="zgradba ekipne tekme: JP:7460,JP:6853 ali alpski naslovi AL:2024")
@@ -1424,9 +1583,11 @@ def main():
     cur = current_season_code(today)
     code_of = {cfg["label"]: cfg["code"].lower() for cfg in SPORTS.values()}
     loaded = load_json(DATA / "races.json", [])
-    loaded = [r for r in loaded if f"{next(c['code'] for c in SPORTS.values() if c['label'] == r['sport'])}:{r['fis']}" not in EXCLUDE_RACES]
+    loaded = [r for r in loaded if r["sport"] not in code_of
+              or f"{code_of[r['sport']].upper()}:{r['fis']}" not in EXCLUDE_RACES]
     for r in loaded:  # stara oblika id "fis-123" je bila skupna za vse sporte; zdaj "al-123", "jp-123"
-        r["id"] = f"{code_of[r['sport']]}-{r['fis']}"
+        if r["sport"] in code_of:
+            r["id"] = f"{code_of[r['sport']]}-{r['fis']}"
     races = {r["id"]: r for r in loaded}
     state = load_json(DATA / "state.json", {"seen": {}})
     state.setdefault("seen", {})
@@ -1449,6 +1610,12 @@ def main():
         keys = [k.strip() for k in args.reset_sport.split(",") if k.strip()]
         n0 = len(races)
         for key in keys:
+            if key == "biathlon":
+                races = {k: r for k, r in races.items() if r["sport"] != BIATHLON}
+                state["seen"] = {k: v for k, v in state["seen"].items() if not k.startswith("BT:")}
+                for lab in meta["coverage"].values():
+                    lab.pop(key, None)
+                continue
             cfg = SPORTS[key]
             races = {k: r for k, r in races.items() if r["sport"] != cfg["label"]}
             state["seen"] = {k: v for k, v in state["seen"].items() if not k.startswith(cfg["code"] + ":")}
@@ -1470,6 +1637,10 @@ def main():
         save_all(races, state, meta, today)
         if finished_all and args.validate:
             validate(races, today, deadline)
+        return 0
+
+    if args.list_names:
+        list_names(races)
         return 0
 
     if args.redo:
@@ -1521,6 +1692,21 @@ def main():
         jobs = champ_jobs
     else:
         jobs = jobs + champ_jobs
+    if args.biathlon:
+        jobs = []
+    bt_codes = [cur] if args.mode == "weekly" and not args.biathlon else list(range(cur, args.from_season - 1, -1))
+    for code in bt_codes:
+        label = f"Biatlon {season_code_label(code)}"
+        cov = meta["coverage"].setdefault(label, {})
+        if not args.force and code < cur and cov.get("biathlon") == "popolno":
+            continue
+        result = process_biathlon(code, races, state, extra_names, deadline, code < cur, label)
+        if result is None:
+            log("Casovna omejitev dosezena: shranjujem in koncam. Ponovni zagon nadaljuje.")
+            save_all(races, state, meta, today)
+            return 0
+        cov["biathlon"] = result
+        save_all(races, state, meta, today)
     for code, sk, cat, label, finished in jobs:
         cov = meta["coverage"].setdefault(label, {})
         if not args.force and finished and cov.get(sk) == "popolno":
