@@ -9,7 +9,7 @@ on:
         description: "weekly = samo tekoča sezona, backfill = vsa zgodovina od 1991/92"
         default: "weekly"
         type: choice
-        options: [weekly, backfill, reset-jumping, reset-alpine, reset-all, refilter, fill-startlists, add-extra, teams, champs, redo, recheck-levi, probe-cat, probe-find, probe-ibu, probe-team, probe-team2, check, validate, probe]
+        options: [weekly, backfill, biathlon, list-names, reset-jumping, reset-alpine, reset-all, refilter, fill-startlists, add-extra, teams, champs, redo, recheck-levi, probe-cat, probe-find, probe-ibu, probe-team, probe-team2, check, validate, probe]
   push:
     branches: [main]
     paths: [index.html, scripts/**, .github/workflows/update.yml]
@@ -55,7 +55,12 @@ jobs:
           elif [ "$MODE" = "probe-ibu" ]; then
             pip install biathlonresults >/dev/null 2>&1 || true
             python -c "import re,pathlib,importlib.util as u;s=u.find_spec('biathlonresults');d=pathlib.Path(list(s.submodule_search_locations)[0]) if s else None;[print('LIB',f.name,i,l.strip()[:200]) for f in (d.glob('*.py') if d else []) for i,l in enumerate(f.read_text().splitlines(),1) if re.search(r'api.?key|[.]js|bundle|re[.](search|findall)',l,re.I)]" || true
-            python scripts/update.py --probe-ibu "2526,2425,0506,9293"
+            python -c "import biathlonresults as b,inspect,json;print('LIBSRC',inspect.getsource(b.all_results));r=b.all_results('BTSLO21706199501');print('ALLRES keys',list(r.keys()) if isinstance(r,dict) else type(r));rows=r['Results'];print('ALLRES vrstic',len(rows));[print('ALLRES',json.dumps(x,ensure_ascii=False)[:600]) for x in rows[:5]];print('ALLRES Comp',sorted({str(x.get('Comp')) for x in rows}))" || true
+            python scripts/update.py --probe-ibu "9192,9293"
+          elif [ "$MODE" = "biathlon" ]; then
+            python scripts/update.py --biathlon --mode backfill --force --max-minutes 330
+          elif [ "$MODE" = "list-names" ]; then
+            python scripts/update.py --list-names
           elif [ "$MODE" = "redo" ]; then
             python scripts/update.py --redo --max-minutes 60
           elif [ "$MODE" = "champs" ]; then
