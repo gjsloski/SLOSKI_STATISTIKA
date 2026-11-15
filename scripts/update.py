@@ -745,7 +745,7 @@ def ibu_find_key(verbose=False):
         return m.group(1)
     srcs = SCRIPT_SRC_RE.findall(html)
     # najprej programi aplikacije, potem tuji (vendor)
-    srcs.sort(key=lambda u: ("vendor" in u.lower() or "polyfill" in u.lower(), srcs.index(u)))
+    srcs = [u for _, u in sorted(enumerate(srcs), key=lambda iu: ("vendor" in iu[1].lower() or "polyfill" in iu[1].lower(), iu[0]))]
     seen = []
     for src in srcs[:40]:
         url = urljoin(base, src)
