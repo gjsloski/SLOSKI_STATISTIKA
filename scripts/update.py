@@ -719,6 +719,58 @@ def probe_find(spec):
                 log(f"FIND {item}: [{q}] {t}")
 
 
+
+IBU_API = "https://biathlonresults.com/modules/sportapi/api"
+
+
+def ibu_json(path):
+    txt = get(f"{IBU_API}/{path}")
+    if not txt:
+        return None
+    try:
+        return json.loads(txt)
+    except ValueError:
+        log(f"IBU: neveljaven JSON za {path}: {txt[:200]!r}")
+        return None
+
+
+def probe_ibu(spec):
+    """Zgradba IBU API: sezone (npr. 2526,2425,0506,9293). Izpise vse dogodke (Level 1..4), tekme prvega dogodka
+    svetovnega pokala in prvenstva (OWG/WCH), rezultate in slovenske vrstice."""
+    for season in [x.strip() for x in spec.split(",") if x.strip()]:
+        picked = []
+        for level in (1, 2, 3, 4):
+            ev = ibu_json(f"Events?SeasonId={season}&Level={level}")
+            if not ev:
+                log(f"IBU {season} Level {level}: ni dogodkov")
+                continue
+            log(f"IBU {season} Level {level}: dogodkov {len(ev)}; polja: {sorted(ev[0].keys())}")
+            for e in ev:
+                log(f"IBU {season} L{level} dogodek: {e.get('EventId')} | {e.get('Description')} | {e.get('ShortDescription')} | "
+                    f"{str(e.get('StartDate'))[:10]} | {e.get('Organizer')} | {e.get('Level')}")
+            if level == 1:
+                picked.append(ev[0])
+                picked += [e for e in ev[1:] if re.search(r"champ|olymp|world ch", (e.get("Description") or "") + (e.get("ShortDescription") or ""), re.I)][:2]
+        for e in picked:
+            comps = ibu_json(f"Competitions?EventId={e['EventId']}")
+            if not comps:
+                continue
+            log(f"IBU {season} {e['EventId']} tekem: {len(comps)}; polja: {sorted(comps[0].keys())}")
+            for c in comps:
+                log(f"IBU {season} tekma: {json.dumps(c, ensure_ascii=False)[:420]}")
+            for c in comps[:3]:
+                res = ibu_json(f"Results?RaceId={c['RaceId']}")
+                if not res:
+                    continue
+                rows = res.get("Results") if isinstance(res, dict) else res
+                log(f"IBU {season} {c['RaceId']}: kljuci {sorted(res.keys()) if isinstance(res, dict) else 'seznam'}; vrstic {len(rows or [])}")
+                for r in (rows or [])[:2]:
+                    log(f"IBU {season} {c['RaceId']} vrstica: {json.dumps(r, ensure_ascii=False)[:700]}")
+                for r in rows or []:
+                    if r.get("Nat") == "SLO":
+                        log(f"IBU {season} {c['RaceId']} SLO: {json.dumps(r, ensure_ascii=False)[:500]}")
+
+
 def probe_cat(spec):
     """Izpise dogodke in tekme drugih kategorij (OWG, WSC, ...): SEKTOR:SEZONA:KATEGORIJA, npr. JP:2022:OWG"""
     for item in [x.strip() for x in spec.split(",") if x.strip()]:
@@ -1011,6 +1063,98 @@ def validate(races, today, deadline):
     log(f"Preverjanje s FIS: ujema {n_ok}, razlike {n_diff}, nepreverjeno {n_na}")
 
 # ----------------------------------------------------------------- glavni tok
+
+# ----------------------------------------------------------------- jubileji (10., 20., 30. ... zmaga / 2. / 3. mesto / stopnicke)
+SITE_URL = "https://gjsloski.github.io/SLOSKI_STATISTIKA/"
+MS_STEP = 10
+MS_NEW_DAYS = 14   # tekma, mlajsa od tega, je 'nova' in gre v obvestila; starejsi jubileji so le zgodovina
+MS_FEED_DAYS = 30
+SCOPE_TXT = {"WC": "v svetovnem pokalu", "GP": "v poletnem Grand Prixu", "WSC": "na svetovnih prvenstvih", "OWG": "na olimpijskih igrah"}
+METRIC_TXT = {"1": "zmaga", "2": "drugo mesto", "3": "tretje mesto", "S": "uvrstitev na stopničke"}
+
+
+def race_scope(r):
+    return r.get("c") or ("GP" if r.get("summer") else "WC")
+
+
+def compute_milestones(races):
+    """Vsi jubileji skozi zgodovino (posamicne tekme): vsak MS_STEP-ti dosezek sportnika, panoge in discipline."""
+    from collections import defaultdict
+    counts, names, out = defaultdict(int), {}, []
+    for r in sorted(races.values(), key=lambda r: (r["d"], r["id"])):
+        if r.get("t") == "ekipno":
+            continue
+        scope = race_scope(r)
+        for x in r["res"]:
+            if "id" in x:
+                names[x["id"]] = x["n"]
+            rk = x["r"]
+            ms = ([str(rk)] if rk in (1, 2, 3) else []) + (["S"] if rk <= 3 else [])
+            for m in ms:
+                for level, key in (("sportnik", x.get("id")), ("panoga", r["sport"]), ("disciplina", f"{r['sport']}/{r['disc']}")):
+                    if key is None:
+                        continue
+                    k = (level, key, scope, m)
+                    counts[k] += 1
+                    n = counts[k]
+                    if n % MS_STEP == 0:
+                        out.append({"id": f"{level}|{key}|{scope}|{m}|{n}", "level": level, "key": key, "scope": scope,
+                                    "m": m, "n": n, "d": r["d"], "place": r["place"], "sport": r["sport"], "disc": r["disc"],
+                                    "race": r["id"]})
+    for e in out:
+        if e["level"] == "sportnik":
+            e["subj"] = names.get(e["key"], str(e["key"]))
+        elif e["level"] == "panoga":
+            e["subj"] = f"Slovenija – {e['sport']}"
+        else:
+            e["subj"] = f"Slovenija – {e['sport']}, {e['disc']}"
+        dd = datetime.date.fromisoformat(e["d"]).strftime("%-d. %-m. %Y")
+        e["title"] = f"Jubilej: {e['subj']} – {e['n']}. {METRIC_TXT[e['m']]}"
+        e["text"] = (f"{e['subj']}: {e['n']}. {METRIC_TXT[e['m']]} {SCOPE_TXT[e['scope']]}. "
+                     f"Doseženo: {e['sport']}, {e['disc']}, {e['place']}, {dd}.")
+    return out
+
+
+def update_milestones(races, today):
+    """Zapise data/jubileji.json (za stran) in data/jubileji.xml (RSS za Brevo)."""
+    from email.utils import format_datetime
+    from xml.sax.saxutils import escape
+    path = DATA / "jubileji.json"
+    prev = {}
+    if path.exists():
+        try:
+            prev = {e["id"]: e for e in json.loads(path.read_text(encoding="utf-8")).get("events", [])}
+        except Exception:
+            prev = {}
+    now = datetime.datetime.now(datetime.timezone.utc)
+    new_from = (today - datetime.timedelta(days=MS_NEW_DAYS)).isoformat()
+    events = compute_milestones(races)
+    for e in events:
+        old = prev.get(e["id"])
+        if old:
+            e["seen"], e["b"] = old.get("seen"), old.get("b", 1)
+        elif e["d"] >= new_from:
+            e["seen"], e["b"] = now.isoformat(timespec="seconds"), 0
+        else:
+            e["seen"], e["b"] = e["d"] + "T00:00:00+00:00", 1
+    events.sort(key=lambda e: (e["d"], e["id"]))
+    path.write_text(json.dumps({"updated": today.isoformat(), "events": events}, ensure_ascii=False) + "\n", encoding="utf-8")
+    cutoff = now - datetime.timedelta(days=MS_FEED_DAYS)
+    feed = [e for e in events if e["b"] == 0 and datetime.datetime.fromisoformat(e["seen"]) >= cutoff]
+    feed.sort(key=lambda e: e["seen"], reverse=True)
+    items = "".join(
+        f"<item><title>{escape(e['title'])}</title><link>{SITE_URL}#jubileji</link>"
+        f"<guid isPermaLink=\"false\">{escape(e['id'])}</guid>"
+        f"<pubDate>{format_datetime(datetime.datetime.fromisoformat(e['seen']))}</pubDate>"
+        f"<description>{escape(e['text'])}</description></item>\n" for e in feed)
+    xml = ("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<rss version=\"2.0\"><channel>"
+           f"<title>SloSki – jubileji slovenskih smučark in smučarjev</title><link>{SITE_URL}</link>"
+           "<description>Jubilejni dosezki slovenskih smučark in smučarjev v svetovnem pokalu</description>"
+           f"<language>sl</language><lastBuildDate>{format_datetime(now)}</lastBuildDate>\n{items}</channel></rss>\n")
+    (DATA / "jubileji.xml").write_text(xml, encoding="utf-8")
+    log(f"Jubileji: {len(events)} skupaj, {len(feed)} v obvestilih")
+
+
 def save_all(races, state, meta, today):
     DATA.mkdir(exist_ok=True)
     ind = {}
@@ -1032,6 +1176,10 @@ def save_all(races, state, meta, today):
     meta["next"] = nxt.isoformat()
     (DATA / "meta.json").write_text(json.dumps(meta, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
     (DATA / "state.json").write_text(json.dumps(state, ensure_ascii=False) + "\n", encoding="utf-8")
+    try:
+        update_milestones(races, today)
+    except Exception as ex:  # jubileji ne smejo ustaviti zbiranja podatkov
+        log(f"Jubileji: napaka {ex!r}")
 
 
 def process_season(code, sport_key, races, state, cat, label, finished, extra_names, deadline):
@@ -1183,6 +1331,7 @@ def main():
     ap.add_argument("--redo", action="store_true", help="ponovno prebere ekipne tekme OWG/WSC iz REDO_CHAMP_RACES")
     ap.add_argument("--champs", action="store_true", help="zbere samo olimpijske igre (OWG) in svetovna prvenstva (WSC) od sezone --from-season")
     ap.add_argument("--probe-find", help="SEKTOR:raceid[:competitorid], npr. AL:109199:146979,NK:2949,AL:131579")
+    ap.add_argument("--probe-ibu", help="IBU API: sezone, npr. 2526,0506,9293")
     ap.add_argument("--probe-cat", help="dogodki in tekme kategorije, npr. JP:2022:OWG,JP:2023:WSC,AL:2022:OWG")
     ap.add_argument("--probe-team2", help="zgradba ekipne tekme: JP:7460,JP:6853 ali alpski naslovi AL:2024")
     ap.add_argument("--probe-team", help="izpise ekipne tekme sezone, npr. JP:2026,AL:2026")
@@ -1193,6 +1342,9 @@ def main():
     ap.add_argument("--teams", action="store_true", help="ponovno obdela strani, ki so bile prej preskocene (ekipne tekme), brez brisanja posamicnih")
     ap.add_argument("--force", action="store_true", help="ponovno obdela tudi sezone, oznacene kot popolne")
     args = ap.parse_args()
+    if args.probe_ibu:
+        probe_ibu(args.probe_ibu)
+        return 0
     if args.probe_find:
         probe_find(args.probe_find)
         return 0
