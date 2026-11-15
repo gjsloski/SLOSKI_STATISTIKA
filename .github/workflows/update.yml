@@ -53,6 +53,8 @@ jobs:
           elif [ "$MODE" = "recheck-levi" ]; then
             python scripts/update.py --mode weekly --recheck "AL:131579" --max-minutes 60
           elif [ "$MODE" = "probe-ibu" ]; then
+            pip install biathlonresults >/dev/null 2>&1 || true
+            python -c "import re,pathlib,importlib.util as u;s=u.find_spec('biathlonresults');d=pathlib.Path(list(s.submodule_search_locations)[0]) if s else None;[print('LIB',f.name,i,l.strip()[:200]) for f in (d.glob('*.py') if d else []) for i,l in enumerate(f.read_text().splitlines(),1) if re.search(r'api.?key|[.]js|bundle|re[.](search|findall)',l,re.I)]" || true
             python scripts/update.py --probe-ibu "2526,2425,0506,9293"
           elif [ "$MODE" = "redo" ]; then
             python scripts/update.py --redo --max-minutes 60
