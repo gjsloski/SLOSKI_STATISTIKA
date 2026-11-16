@@ -9,7 +9,7 @@ on:
         description: "weekly = samo tekoča sezona, backfill = vsa zgodovina od 1991/92"
         default: "weekly"
         type: choice
-        options: [weekly, backfill, biathlon, list-names, reset-jumping, reset-alpine, reset-all, refilter, fill-startlists, add-extra, teams, champs, redo, recheck-levi, probe-cat, probe-find, probe-ibu, probe-team, probe-team2, check, validate, probe]
+        options: [weekly, backfill, biathlon, list-names, reset-jumping, reset-alpine, reset-all, refilter, fill-startlists, add-extra, teams, champs, redo, recheck-levi, probe-cat, probe-find, probe-ibu, check-ibu, probe-team, probe-team2, check, validate, probe]
   push:
     branches: [main]
     paths: [index.html, scripts/**, .github/workflows/update.yml]
@@ -69,6 +69,8 @@ jobs:
             python scripts/update.py --teams --max-minutes 330
           elif [ "$MODE" = "add-extra" ]; then
             python scripts/update.py --add-extra --validate --max-minutes 120
+          elif [ "$MODE" = "check-ibu" ]; then
+            python scripts/update.py --check-ibu --max-minutes 120
           elif [ "$MODE" = "check" ]; then
             python scripts/update.py --check-races --max-minutes 330
           elif [ "$MODE" = "validate" ]; then
