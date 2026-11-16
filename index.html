@@ -60,6 +60,9 @@ tr.row:hover td{background:rgba(38,134,192,.07)}
 .pill:hover,.pill.g1:hover,.pill.g2:hover,.pill.g3:hover{background:var(--accent);color:#fff;box-shadow:0 1px 4px rgba(24,74,103,.35)}
 :root[data-theme="dark"] .pill:hover,:root[data-theme="dark"] .pill.g1:hover,:root[data-theme="dark"] .pill.g2:hover,:root[data-theme="dark"] .pill.g3:hover{color:#242428}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .pill:hover,:root:not([data-theme="light"]) .pill.g1:hover,:root:not([data-theme="light"]) .pill.g2:hover,:root:not([data-theme="light"]) .pill.g3:hover{color:#242428}}
+.cardhead{font-size:12px;color:var(--muted);margin:0 0 6px;display:flex;flex-wrap:wrap;gap:4px 16px;align-items:center}
+.cardhead a{color:var(--accent);font-weight:600;margin-right:12px}
+td.sp{font-size:12px;color:var(--muted);text-align:left}
 .note{font-size:12px;color:var(--muted)}
 .empty{padding:20px;text-align:center;color:var(--muted)}
 .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
@@ -161,6 +164,13 @@ footer{font-size:12px;color:var(--muted);padding:0 4px}
 <script>
 let META={updated:"",next:"",coverage:{}};
 let RACES=[];
+let LINK={},PNAME={};
+const SPFX={"Alpsko smučanje":"al","Smučarski skoki":"jp","Nordijska kombinacija":"nk","Biatlon":"bt","Smučarski teki":"cc","Deskanje na snegu":"sb","Freestyle":"fs"};
+const FISSEC={al:"AL",jp:"JP",nk:"NK",cc:"CC",sb:"SB",fs:"FS"};
+function pkey(r,x){const id=(SPFX[r.sport]||r.sport)+"|"+(x.id||x.n);return LINK[id]||id}
+function addPerson(p,r,x){const k=pkey(r,x),id=(SPFX[r.sport]||r.sport)+"|"+(x.id||x.n);
+  const q=(p[k]=p[k]||{n:PNAME[k]||x.n,g:r.g,items:[],sports:new Set(),ids:new Set()});
+  if(r.g!=="X"&&q.g==="X")q.g=r.g;q.sports.add(r.sport);if(x.id)q.ids.add(id);q.items.push({r:x.r,x:x.x,race:r})}
 let MODE="winter";
 const SUMMER_SPORTS=["Smučarski skoki","Nordijska kombinacija"];
 const CHAMP_SPORTS=["Alpsko smučanje","Smučarski skoki","Nordijska kombinacija","Biatlon"];
@@ -241,10 +251,24 @@ function sortRows(rows,nameOf,cOf){
 function counts(ranks){return [1,2,3].map(n=>ranks.filter(r=>r===n).length).concat(TOPS.map(n=>ranks.filter(r=>r<=n).length))}
 function cell(v,first){const td=el("td","num",String(v));if(v===0)td.classList.add("zero");else if(first)td.classList.add("hi");return td}
 function head(cols){const tr=el("tr");cols.forEach(c=>tr.appendChild(el("th",null,c)));const th=el("thead");th.appendChild(tr);return th}
+const SHORT={"Alpsko smučanje":"Alpsko","Smučarski skoki":"Skoki","Smučarski teki":"Teki","Nordijska kombinacija":"Nord. komb.","Biatlon":"Biatlon","Deskanje na snegu":"Snowboard","Freestyle":"Freestyle"};
+function cardHead(p){
+  const box=el("div","cardhead");
+  const seas=[...new Set(p.items.map(i=>i.race.d.slice(0,4)))].sort();
+  const sezs=p.items.filter(i=>!i.race.c&&!i.race.summer).map(i=>seasonOf(i.race.d)).sort();
+  const lines=[];
+  if(sezs.length)lines.push("Sezone: "+sezs[0]+(sezs[sezs.length-1]!==sezs[0]?" – "+sezs[sezs.length-1]:""));
+  const sp=[...p.sports];
+  if(sp.length>1)sp.forEach(x=>{const c=counts(p.items.filter(i=>i.race.sport===x).map(i=>i.r));lines.push(x+": 1.× "+c[0]+", 2.× "+c[1]+", 3.× "+c[2]+", top 30: "+c[6]);});
+  lines.forEach(t=>box.appendChild(el("div",null,t)));
+  const links=el("div","links");
+  [...p.ids].forEach(id=>{const [px,v]=id.split("|");if(FISSEC[px]&&/^\d+$/.test(v)){const a=el("a",null,"FIS profil"+(sp.length>1?" ("+px.toUpperCase()+")":""));a.href="https://www.fis-ski.com/DB/general/athlete-biography.html?sectorcode="+FISSEC[px]+"&competitorid="+v+"&type=result";a.target="_blank";a.rel="noopener";a.addEventListener("click",e=>e.stopPropagation());links.appendChild(a)}});
+  if(links.childNodes.length)box.appendChild(links);
+  return box}
 function render(){
   const rs=filtered();
   const people={};
-  rs.forEach(r=>r.res.forEach(x=>{const k=r.sport+"|"+(x.id||x.n);{const q=(people[k]=people[k]||{n:x.n,g:r.g,items:[]});if(r.g!=="X"&&q.g==="X")q.g=r.g;q.items.push({r:x.r,x:x.x,race:r})}}));
+  rs.forEach(r=>r.res.forEach(x=>addPerson(people,r,x)));
   const nr=rs.filter(r=>r.res.length).length,na=Object.keys(people).length,nu=Object.values(people).reduce((a,p)=>a+p.items.length,0);
   $("k1").textContent=nr;$("k1l").textContent=pl(nr,L_RACE);
   $("k2").textContent=na;$("k2l").textContent=pl(na,L_ATH);
@@ -253,15 +277,16 @@ function render(){
   if(!rs.length&&tab!=="season"){out.appendChild(el("div","empty","Za izbrane filtre še ni rezultatov (podatki za starejše sezone se še dopolnjujejo)."));return}
   const table=el("table");
   if(tab==="name"){
-    table.appendChild(head(["Športnik","1.","2.","3.","Top 5","Top 10","Top 15","Top 30"]));
+    table.appendChild(head(["Športnik","Panoga","1.","2.","3.","Top 5","Top 10","Top 15","Top 30"]));
+    table.querySelector("th:nth-child(2)").style.textAlign="left";
     const tb=el("tbody");
     sortRows(Object.values(people).map(p=>({p,c:counts(p.items.map(i=>i.r))})),o=>o.p.n,o=>o.c)
       .forEach(({p,c})=>{
         const tr=el("tr","row");const td=el("td","name",p.n);
         const real=p.items.filter(i=>!i.x);const best=real.length?String(Math.min(...real.map(i=>i.r))):"16.–30";
         td.appendChild(el("small",null,(p.g==="M"?"Moški":p.g==="X"?"Mešano":"Ženske")+" · najboljša uvrstitev: "+best+"."));
-        tr.appendChild(td);c.forEach((v,i)=>tr.appendChild(cell(v,i===0)));
-        const dt=el("tr","detail");dt.hidden=true;const dd=el("td");dd.colSpan=8;
+        tr.appendChild(td);tr.appendChild(el("td","sp",[...p.sports].map(x=>SHORT[x]||x).join(" · ")));c.forEach((v,i)=>tr.appendChild(cell(v,i===0)));
+        const dt=el("tr","detail");dt.hidden=true;const dd=el("td");dd.colSpan=9;dd.appendChild(cardHead(p));
         p.items.sort((a,b)=>(a.x?31:a.r)-(b.x?31:b.r)||a.race.d.localeCompare(b.race.d)).forEach(i=>dd.appendChild(el("span","pill"+(!i.x&&i.r<=3?" g"+i.r:""),(i.x?"16.–30.":i.r+".")+" · "+i.race.disc+" · "+i.race.place+" · "+fmtDate(i.race.d)+(i.race.t==="ekipno"?" (ekipno)":""))));
         dt.appendChild(dd);
         tr.addEventListener("click",()=>{dt.hidden=!dt.hidden});
@@ -315,7 +340,7 @@ function render(){
 }
 /* ---------- izvoz (Excel, PDF) ---------- */
 const XH=["1.","2.","3.","Top 5","Top 10","Top 15","Top 30"];
-function groupPeople(rs){const p={};rs.forEach(r=>r.res.forEach(x=>{const k=r.sport+"|"+(x.id||x.n);{const q=(p[k]=p[k]||{n:x.n,g:r.g,items:[]});if(r.g!=="X"&&q.g==="X")q.g=r.g;q.items.push({r:x.r,x:x.x,race:r})}}));return p}
+function groupPeople(rs){const p={};rs.forEach(r=>r.res.forEach(x=>addPerson(p,r,x)));return p}
 function fillAthletes(p){
   const sel=$("xa"),cur=sel.value;sel.textContent="";
   Object.entries(p).sort((a,b)=>a[1].n.localeCompare(b[1].n,"sl")).forEach(([k,v])=>sel.appendChild(new Option(v.n,String(k))));
@@ -338,8 +363,8 @@ function exportData(kind){
   const base={kind,filters:filterText()};
   if(kind==="ath"){
     const rows=sortRows(Object.values(p).map(a=>({a,c:counts(a.items.map(i=>i.r))})),o=>o.a.n,o=>o.c)
-      .map(({a,c})=>[a.n,a.g==="M"?"Moški":a.g==="X"?"Mešano":"Ženske",...c]);
-    return {...base,title:"Statistika po tekmovalcih",file:"statistika-po-tekmovalcih",head:["Tekmovalec","Spol",...XH],rows};
+      .map(({a,c})=>[a.n,a.g==="M"?"Moški":a.g==="X"?"Mešano":"Ženske",[...a.sports].join(", "),...c]);
+    return {...base,title:"Statistika po tekmovalcih",file:"statistika-po-tekmovalcih",head:["Tekmovalec","Spol","Panoga",...XH],rows};
   }
   if(kind==="sea"){
     const g={};rs.forEach(r=>(g[seasonOfRace(r)]=g[seasonOfRace(r)]||[]).push(r));
@@ -417,6 +442,10 @@ async function boot(){
     const [r,m]=await Promise.all([fetch("data/races.json?"+Date.now()),fetch("data/meta.json?"+Date.now())]);
     RACES=await r.json();META=await m.json();
   }catch(e){console.error(e)}
+  try{
+    const o=await (await fetch("data/osebe.json?"+Date.now())).json();
+    (o.osebe||[]).forEach(p=>{const k=p.id||(p.ids||[])[0];if(!k)return;(p.ids||[]).forEach(i=>{LINK[i]=k});if(p.ime)PNAME[k]=p.ime});
+  }catch(e){}
   init();
   jubInit();
   try{
