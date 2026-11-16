@@ -53,6 +53,10 @@ tr.row:hover td{background:rgba(38,134,192,.07)}
 .hi{font-weight:700;color:var(--accent)}
 .detail td{background:rgba(38,134,192,.09);text-align:left;font-size:13px;padding:6px 10px}
 .pill{display:inline-block;background:var(--chip);color:var(--chiptext);border-radius:999px;padding:2px 9px;font-size:12px;margin:2px 4px 2px 0}
+.pill{transition:background .12s,color .12s,box-shadow .12s;cursor:default}
+.pill:hover{background:var(--accent);color:#fff;box-shadow:0 1px 4px rgba(24,74,103,.35)}
+:root[data-theme="dark"] .pill:hover{color:#242428}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .pill:hover{color:#242428}}
 .note{font-size:12px;color:var(--muted)}
 .empty{padding:20px;text-align:center;color:var(--muted)}
 .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
