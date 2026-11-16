@@ -870,6 +870,11 @@ def ibu_name(row, extra_names):
     return fix_name(name, row.get("IBUId"), extra_names)
 
 
+def ibu_id_ok(i):
+    """IBU ponekod vpise nadomestni id (BT00000000000000) - takih vrstic ne moremo pripisati osebi."""
+    return bool(i) and not re.fullmatch(r"BT0+", i)
+
+
 def parse_ibu_race(event, comp, res, extra_names):
     """Vrne tekmo v nasi obliki (samo slovenski tekmovalci z mestom do 30) ali None."""
     rows = res.get("Results") or []
@@ -886,6 +891,9 @@ def parse_ibu_race(event, comp, res, extra_names):
             for m in rows:
                 if m.get("IsTeam") or m.get("Bib") != t.get("Bib") or not m.get("IBUId") or m["IBUId"] in seen:
                     continue
+                if not ibu_id_ok(m["IBUId"]):
+                    log(f"  OPOZORILO brez IBU id: {m.get('Name')} v {comp['RaceId']} (mesto {rk})")
+                    continue
                 seen.add(m["IBUId"])
                 out.append({"n": ibu_name(m, extra_names), "r": int(rk), "id": m["IBUId"]})
     else:
@@ -894,6 +902,9 @@ def parse_ibu_race(event, comp, res, extra_names):
                 continue
             rk = str(r.get("Rank") or "")
             if not rk.isdigit() or int(rk) > 30:
+                continue
+            if not ibu_id_ok(r["IBUId"]):
+                log(f"  OPOZORILO brez IBU id: {r.get('Name')} v {comp['RaceId']} (mesto {rk})")
                 continue
             seen.add(r["IBUId"])
             out.append({"n": ibu_name(r, extra_names), "r": int(rk), "id": r["IBUId"]})
@@ -1244,6 +1255,63 @@ def check_races(races, today, deadline):
     (DATA / "check.json").write_text(json.dumps(out, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
     log(f"Preverjanje tekem: preverjenih sezon {len(ours) - n_na}, nepreverjenih {n_na}, neskladij {len(issues)}")
 
+
+IBU_RACE_RE = re.compile(r"^BT\d{4}SWRL(CP\d\d|CH..|OG__)(SM|SW|MX)(SP|PU|IN|SI|MS|RL|SR|TM)$")
+
+
+def check_biathlon(races, today, deadline):
+    """Vsako nasu biatlonsko uvrstitev primerja z IBU stranjo tekmovalca (AllResults, po RaceId). Zapise data/check_ibu.json."""
+    ours = {}
+    for r in races.values():
+        if r["sport"] != BIATHLON or not r.get("ibu"):
+            continue
+        for x in r["res"]:
+            if x.get("id") and ibu_id_ok(x["id"]):
+                ours.setdefault(x["id"], {})[r["ibu"]] = (x["r"], r, x["n"])
+    issues, n_ok, n_na = [], 0, 0
+    nat_cache = {}
+
+    def nat_of(race_id, ibu_id):
+        if race_id not in nat_cache:
+            res = ibu_json(f"Results?RaceId={race_id}") or {}
+            nat_cache[race_id] = {r.get("IBUId"): r.get("Nat") for r in (res.get("Results") or []) if not r.get("IsTeam")}
+        return nat_cache[race_id].get(ibu_id)
+
+    for ibu_id, mine in sorted(ours.items()):
+        if time.time() > deadline:
+            log("Preverjanje IBU: casovna omejitev.")
+            break
+        data = ibu_json(f"AllResults?IBUId={ibu_id}")
+        rows = (data or {}).get("Results") if isinstance(data, dict) else None
+        name = next(iter(mine.values()))[2]
+        if not rows:
+            n_na += 1
+            log(f"  IBU ne vrne rezultatov za {name} ({ibu_id})")
+            continue
+        theirs = {}
+        for t in rows:
+            rk = str(t.get("Rank") or "").rstrip(".").strip()
+            theirs.setdefault(t.get("RaceId"), []).append(rk)
+        for rid, (rank, race, nm) in mine.items():
+            tp = theirs.get(rid)
+            if not (tp and str(rank) in tp):
+                issues.append({"n": nm, "ibu_id": ibu_id, "raceid": rid, "d": race["d"], "place": race["place"],
+                               "disc": race["disc"], "nase": rank, "ibu": ",".join(tp) if tp else None})
+                log(f"  NESKLAD {nm} {race['d']} {race['place']} {race['disc']}: nase {rank}, IBU {tp} ({rid})")
+        for rid, tp in theirs.items():
+            if rid in mine or not rid or not IBU_RACE_RE.match(rid):
+                continue
+            if not any(v.isdigit() and int(v) <= 30 for v in tp):
+                continue
+            if nat_of(rid, ibu_id) != "SLO":
+                continue  # tekmoval je za drugo drzavo (npr. Jakov Fak pred 2010)
+            issues.append({"n": name, "ibu_id": ibu_id, "raceid": rid, "d": "", "place": "", "disc": rid[-4:],
+                           "nase": None, "ibu": ",".join(tp)})
+            log(f"  MANJKA {name} ({ibu_id}) {rid}: IBU {tp}, pri nas ni")
+    out = {"updated": today.isoformat(), "preverjenih": len(ours) - n_na, "nepreverjenih": n_na, "nesklad": issues}
+    (DATA / "check_ibu.json").write_text(json.dumps(out, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+    log(f"Preverjanje IBU: preverjenih tekmovalcev {len(ours) - n_na}, nepreverjenih {n_na}, neskladij {len(issues)}")
+
 # ------------------------------------------------------------- preverjanje s FIS
 def season_of(date):
     y, m = int(date[:4]), int(date[5:7])
@@ -1589,6 +1657,7 @@ def main():
     ap.add_argument("--probe-team", help="izpise ekipne tekme sezone, npr. JP:2026,AL:2026")
     ap.add_argument("--validate", action="store_true", help="po zbiranju primerja stetje z FIS Podiums")
     ap.add_argument("--check-races", action="store_true", help="vsako uvrstitev primerja s stranjo sportnika na FIS (po raceid)")
+    ap.add_argument("--check-ibu", action="store_true", help="vsako biatlonsko uvrstitev primerja z IBU stranjo tekmovalca")
     ap.add_argument("--only-validate", action="store_true", help="samo preveri, brez zbiranja")
     ap.add_argument("--add-extra", action="store_true", help="doda tekme iz EXTRA_RACES (letalnice SFWC+WC), ki jih koledar ne navaja")
     ap.add_argument("--teams", action="store_true", help="ponovno obdela strani, ki so bile prej preskocene (ekipne tekme), brez brisanja posamicnih")
@@ -1703,6 +1772,10 @@ def main():
 
     if args.check_races:
         check_races(races, today, deadline)
+        return 0
+
+    if args.check_ibu:
+        check_biathlon(races, today, deadline)
         return 0
 
     jobs = []  # (code, sport, cat, label, finished)
