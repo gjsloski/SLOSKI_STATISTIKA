@@ -54,9 +54,12 @@ tr.row:hover td{background:rgba(38,134,192,.07)}
 .detail td{background:rgba(38,134,192,.09);text-align:left;font-size:13px;padding:6px 10px}
 .pill{display:inline-block;background:var(--chip);color:var(--chiptext);border-radius:999px;padding:2px 9px;font-size:12px;margin:2px 4px 2px 0}
 .pill{transition:background .12s,color .12s,box-shadow .12s;cursor:default}
-.pill:hover{background:var(--accent);color:#fff;box-shadow:0 1px 4px rgba(24,74,103,.35)}
-:root[data-theme="dark"] .pill:hover{color:#242428}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .pill:hover{color:#242428}}
+.pill.g1{background:#c8b275;color:#242428;box-shadow:inset 0 0 0 1px #bb9f52;font-weight:700}
+.pill.g2{background:#c9ccd4;color:#242428;box-shadow:inset 0 0 0 1px #8b8f9b;font-weight:700}
+.pill.g3{background:#dcae86;color:#242428;box-shadow:inset 0 0 0 1px #a8693a;font-weight:700}
+.pill:hover,.pill.g1:hover,.pill.g2:hover,.pill.g3:hover{background:var(--accent);color:#fff;box-shadow:0 1px 4px rgba(24,74,103,.35)}
+:root[data-theme="dark"] .pill:hover,:root[data-theme="dark"] .pill.g1:hover,:root[data-theme="dark"] .pill.g2:hover,:root[data-theme="dark"] .pill.g3:hover{color:#242428}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .pill:hover,:root:not([data-theme="light"]) .pill.g1:hover,:root:not([data-theme="light"]) .pill.g2:hover,:root:not([data-theme="light"]) .pill.g3:hover{color:#242428}}
 .note{font-size:12px;color:var(--muted)}
 .empty{padding:20px;text-align:center;color:var(--muted)}
 .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
@@ -259,7 +262,7 @@ function render(){
         td.appendChild(el("small",null,(p.g==="M"?"Moški":p.g==="X"?"Mešano":"Ženske")+" · najboljša uvrstitev: "+best+"."));
         tr.appendChild(td);c.forEach((v,i)=>tr.appendChild(cell(v,i===0)));
         const dt=el("tr","detail");dt.hidden=true;const dd=el("td");dd.colSpan=8;
-        p.items.sort((a,b)=>(a.x?31:a.r)-(b.x?31:b.r)||a.race.d.localeCompare(b.race.d)).forEach(i=>dd.appendChild(el("span","pill",(i.x?"16.–30.":i.r+".")+" · "+i.race.disc+" · "+i.race.place+" · "+fmtDate(i.race.d)+(i.race.t==="ekipno"?" (ekipno)":""))));
+        p.items.sort((a,b)=>(a.x?31:a.r)-(b.x?31:b.r)||a.race.d.localeCompare(b.race.d)).forEach(i=>dd.appendChild(el("span","pill"+(!i.x&&i.r<=3?" g"+i.r:""),(i.x?"16.–30.":i.r+".")+" · "+i.race.disc+" · "+i.race.place+" · "+fmtDate(i.race.d)+(i.race.t==="ekipno"?" (ekipno)":""))));
         dt.appendChild(dd);
         tr.addEventListener("click",()=>{dt.hidden=!dt.hidden});
         tb.appendChild(tr);tb.appendChild(dt);
@@ -305,7 +308,7 @@ function render(){
       const a=el("td","name",r.sport+" – "+r.disc+" ("+(r.g==="M"?"M":r.g==="X"?"mešano":"Ž")+")");a.appendChild(el("small",null,r.place+(r.t==="ekipno"?" · ekipno":"")));
       tr.appendChild(a);tr.appendChild(el("td",null,fmtDate(r.d)));
       const td=el("td");td.style.textAlign="left";
-      r.res.slice().sort((x,y)=>x.r-y.r).forEach(x=>td.appendChild(el("span","pill",(x.x?"16.–30.":x.r+".")+" "+x.n)));
+      r.res.slice().sort((x,y)=>x.r-y.r).forEach(x=>td.appendChild(el("span","pill"+(!x.x&&x.r<=3?" g"+x.r:""),(x.x?"16.–30.":x.r+".")+" "+x.n)));
       tr.appendChild(td);tb.appendChild(tr)});
     table.appendChild(tb);out.appendChild(table);
   }
