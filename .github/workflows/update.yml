@@ -5,11 +5,15 @@ on:
     - cron: "0 7 * * 0"        # vsako nedeljo ob 07:00 UTC
   workflow_dispatch:
     inputs:
+      spec:
+        description: "samo za probe-spec: PR:CC:4316,AT:CC:64404:2019,PF:CC:33935,PC:CC:2014:OWG"
+        default: ""
+        type: string
       mode:
         description: "weekly = samo tekoča sezona, backfill = vsa zgodovina od 1991/92"
         default: "weekly"
         type: choice
-        options: [weekly, backfill, biathlon, list-names, reset-jumping, reset-alpine, reset-all, refilter, fill-startlists, add-extra, teams, champs, redo, recheck-levi, probe-cat, probe-find, probe-ibu, check-ibu, probe-team, probe-team2, probe-xc, xc, check, validate, probe]
+        options: [weekly, backfill, biathlon, list-names, reset-jumping, reset-alpine, reset-all, refilter, fill-startlists, add-extra, teams, champs, redo, recheck-levi, probe-cat, probe-find, probe-ibu, check-ibu, probe-team, probe-team2, probe-xc, probe-spec, xc, check, validate, probe]
   push:
     branches: [main]
     paths: [index.html, scripts/**, .github/workflows/update.yml]
@@ -36,6 +40,8 @@ jobs:
           python-version: "3.12"
       - run: pip install requests beautifulsoup4 lxml
       - name: Zberi rezultate
+        env:
+          SPEC: ${{ github.event.inputs.spec }}
         run: |
           MODE="${{ github.event.inputs.mode || 'weekly' }}"
           if [ "$MODE" = "probe" ]; then
@@ -46,6 +52,8 @@ jobs:
             python scripts/update.py --probe-team2 "JP:338,JP:842,NK:2948,NK:1471,AL:109199,AL:114194,AL:122891"
           elif [ "$MODE" = "probe-xc" ]; then
             python scripts/update.py --probe-cat "CC:2026:WC,CC:2023:WSC,CC:2022:OWG" && python scripts/update.py --probe-team "CC:2026,CC:2020,CC:2010,CC:1998" && python scripts/update.py --probe-team2 "CC:S2025,CC:S2013"
+          elif [ "$MODE" = "probe-spec" ]; then
+            python scripts/update.py --probe-spec "$SPEC"
           elif [ "$MODE" = "xc" ]; then
             python scripts/update.py --mode backfill --max-minutes 330
           elif [ "$MODE" = "probe-team" ]; then
