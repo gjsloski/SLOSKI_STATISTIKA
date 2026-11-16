@@ -13,7 +13,7 @@ on:
         description: "weekly = samo tekoča sezona, backfill = vsa zgodovina od 1991/92"
         default: "weekly"
         type: choice
-        options: [weekly, backfill, biathlon, list-names, reset-jumping, reset-alpine, reset-all, refilter, fill-startlists, add-extra, teams, champs, redo, recheck-levi, probe-cat, probe-find, probe-ibu, check-ibu, probe-team, probe-team2, probe-xc, probe-spec, xc, check, validate, probe]
+        options: [weekly, backfill, biathlon, list-names, reset-jumping, reset-alpine, reset-all, refilter, fill-startlists, add-extra, teams, champs, redo, recheck-levi, probe-cat, probe-find, probe-ibu, check-ibu, probe-team, probe-team2, probe-xc, probe-spec, xc, reset-xc, check, validate, probe]
   push:
     branches: [main]
     paths: [index.html, scripts/**, .github/workflows/update.yml]
@@ -54,6 +54,8 @@ jobs:
             python scripts/update.py --probe-cat "CC:2026:WC,CC:2023:WSC,CC:2022:OWG" && python scripts/update.py --probe-team "CC:2026,CC:2020,CC:2010,CC:1998" && python scripts/update.py --probe-team2 "CC:S2025,CC:S2013"
           elif [ "$MODE" = "probe-spec" ]; then
             python scripts/update.py --probe-spec "$SPEC"
+          elif [ "$MODE" = "reset-xc" ]; then
+            python scripts/update.py --mode backfill --reset-sport xc --max-minutes 330
           elif [ "$MODE" = "xc" ]; then
             python scripts/update.py --mode backfill --max-minutes 330
           elif [ "$MODE" = "probe-team" ]; then
