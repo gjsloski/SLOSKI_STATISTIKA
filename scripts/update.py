@@ -56,6 +56,26 @@ DISC.sort(key=lambda kv: 0 if kv[0] == "Gundersen" else 1)  # nordijska kombinac
 # FIS zapisuje imena brez strešic; tukaj so popravki za pogosta slovenska imena.
 # Lahko jih dopolnis tudi v data/names.json (kljuc = ime kot ga izpise FIS ali FIS competitorid).
 NAME_FIX = {
+    "Klara Vindisar": "Klara Vindišar",
+    "Nika Vindisar": "Nika Vindišar",
+    "Matjaz Kladnik": "Matjaž Kladnik",
+    "Matjaz Zupan": "Matjaž Zupan",
+    "Samo Gostisa": "Samo Gostiša",
+    "Robert Meglic": "Robert Meglič",
+    "Primoz Peterka": "Primož Peterka",
+    "Anja Erzen": "Anja Eržen",
+    "Joze Mehle": "Jože Mehle",
+    "Joze Poklukar": "Jože Poklukar",
+    "Matjaz Poklukar": "Matjaž Poklukar",
+    "Kaja Maric": "Kaja Marič",
+    "Lili Drcar": "Lili Drčar",
+    "Matejka Mohoric": "Matejka Mohorič",
+    "Rok Trsan": "Rok Tršan",
+    "Simon Kocevar": "Simon Kočevar",
+    "Tomas Globocnik": "Tomaž Globočnik",
+    "Tomaz Zemva": "Tomaž Zemva",
+    "Urska Dolinar": "Urška Dolinar",
+    "Urska Poje": "Urška Poje",
     "Anamarija Lampic": "Anamarija Lampič",
     "Polona Klemencic": "Polona Klemenčič",
     "Ziva Klemencic": "Živa Klemenčič",
@@ -829,6 +849,20 @@ def ibu_local_date(comp):
         return st[:10]
 
 
+def ibu_race_date(event, comp):
+    """Datum tekme; ce je IBU-jev datum izven trajanja dogodka (pri starih sezonah je pogosto 1. 1.), vzamemo zacetek dogodka."""
+    d = ibu_local_date(comp)
+    start, end = (event.get("StartDate") or "")[:10], (event.get("EndDate") or "")[:10]
+    try:
+        lo = datetime.date.fromisoformat(start) - datetime.timedelta(days=2)
+        hi = datetime.date.fromisoformat(end or start) + datetime.timedelta(days=2)
+        if not (lo <= datetime.date.fromisoformat(d) <= hi):
+            return start
+    except ValueError:
+        pass
+    return d
+
+
 def ibu_name(row, extra_names):
     fam = " ".join(w.capitalize() if w.isupper() else w for w in (row.get("FamilyName") or "").split())
     fam = re.sub(r"(?<=[-'])([a-z])", lambda m: m.group(1).upper(), fam)
@@ -868,7 +902,7 @@ def parse_ibu_race(event, comp, res, extra_names):
         disc = "Mešana štafeta"
     nat = (event.get("Nat") or "").strip()
     place = (event.get("ShortDescription") or event.get("Description") or "").strip()
-    race = {"id": f"bt-{comp['RaceId']}", "ibu": comp["RaceId"], "d": ibu_local_date(comp),
+    race = {"id": f"bt-{comp['RaceId']}", "ibu": comp["RaceId"], "d": ibu_race_date(event, comp),
             "place": f"{place} ({nat})" if nat else place, "sport": BIATHLON, "disc": disc, "g": IBU_GENDER[cat_id],
             "t": "ekipno" if team else "posamicno", "res": sorted(out, key=lambda x: (x["r"], x["n"]))}
     c = ibu_cat(event["EventId"])
@@ -900,7 +934,7 @@ def process_biathlon(code, races, state, extra_names, deadline, finished, label)
             key = f"BT:{comp['RaceId']}"
             if state["seen"].get(key) in ("ok", "skip"):
                 continue
-            if ibu_local_date(comp) > today_iso:
+            if ibu_race_date(e, comp) > today_iso:
                 continue
             res = ibu_json(f"Results?RaceId={comp['RaceId']}")
             if res is None:
@@ -1594,6 +1628,10 @@ def main():
     meta = load_json(DATA / "meta.json", {"coverage": {}})
     meta.setdefault("coverage", {})
     extra_names = load_json(DATA / "names.json", {})
+    for r in races.values():  # imena s sumniki po identifikatorju (data/names.json) tudi na ze shranjenih tekmah
+        for x in r["res"]:
+            if "id" in x:
+                x["n"] = fix_name(x["n"], x["id"], extra_names)
     deadline = time.time() + args.max_minutes * 60
 
     if args.recheck:
