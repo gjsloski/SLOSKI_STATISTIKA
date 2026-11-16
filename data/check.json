@@ -1,6 +1,1827 @@
 {
- "updated": "2026-11-14",
- "preverjenih_sezon": 1358,
- "nepreverjenih": 0,
- "nesklad": []
+ "updated": "2026-11-16",
+ "preverjenih_sezon": 1701,
+ "nepreverjenih": 2,
+ "nesklad": [
+  {
+   "n": "Jose Kavalar",
+   "sezona": "1991/92",
+   "raceid": "234",
+   "d": "1992-02-22",
+   "place": "Albertville (FRA)",
+   "disc": "Posamični start",
+   "nase": 24,
+   "fis": null
+  },
+  {
+   "n": "Robert Kerstajn",
+   "sezona": "1994/95",
+   "raceid": "647",
+   "d": "1995-03-09",
+   "place": "Thunder Bay (CAN)",
+   "disc": "Posamični start",
+   "nase": 29,
+   "fis": null
+  },
+  {
+   "n": "Natasa Lacen",
+   "sezona": "1994/95",
+   "raceid": "659",
+   "d": "1995-03-18",
+   "place": "Thunder Bay (CAN)",
+   "disc": "Posamični start",
+   "nase": 26,
+   "fis": null
+  },
+  {
+   "n": "Jaroslava Bukvajova",
+   "sezona": "2001/02",
+   "raceid": "2947",
+   "d": "12-01-2002",
+   "place": "",
+   "disc": "Interval Start",
+   "nase": null,
+   "fis": "26"
+  },
+  {
+   "n": "Martin Bajcicak",
+   "sezona": "2002/03",
+   "raceid": "4316",
+   "d": "25-01-2003",
+   "place": "",
+   "disc": "Mass Start",
+   "nase": null,
+   "fis": "25"
+  },
+  {
+   "n": "Martin Bajcicak",
+   "sezona": "2002/03",
+   "raceid": "4118",
+   "d": "18-01-2003",
+   "place": "",
+   "disc": "Interval Start",
+   "nase": null,
+   "fis": "28"
+  },
+  {
+   "n": "Martin Bajcicak",
+   "sezona": "2002/03",
+   "raceid": "4334",
+   "d": "21-12-2002",
+   "place": "",
+   "disc": "Pursuit",
+   "nase": null,
+   "fis": "16"
+  },
+  {
+   "n": "Martin Bajcicak",
+   "sezona": "2002/03",
+   "raceid": "4328",
+   "d": "14-12-2002",
+   "place": "",
+   "disc": "Mass Start",
+   "nase": null,
+   "fis": "29"
+  },
+  {
+   "n": "Martin Bajcicak",
+   "sezona": "2002/03",
+   "raceid": "4320",
+   "d": "07-12-2002",
+   "place": "",
+   "disc": "Interval Start",
+   "nase": null,
+   "fis": "26"
+  },
+  {
+   "n": "Ivan Batory",
+   "sezona": "2002/03",
+   "raceid": "3852",
+   "d": "16-03-2003",
+   "place": "",
+   "disc": "Interval Start",
+   "nase": null,
+   "fis": "21"
+  },
+  {
+   "n": "Ivan Batory",
+   "sezona": "2002/03",
+   "raceid": "4338",
+   "d": "15-02-2003",
+   "place": "",
+   "disc": "Interval Start",
+   "nase": null,
+   "fis": "19"
+  },
+  {
+   "n": "Ivan Batory",
+   "sezona": "2002/03",
+   "raceid": "4316",
+   "d": "25-01-2003",
+   "place": "",
+   "disc": "Mass Start",
+   "nase": null,
+   "fis": "23"
+  },
+  {
+   "n": "Ivan Batory",
+   "sezona": "2002/03",
+   "raceid": "4118",
+   "d": "18-01-2003",
+   "place": "",
+   "disc": "Interval Start",
+   "nase": null,
+   "fis": "17"
+  },
+  {
+   "n": "Ivan Batory",
+   "sezona": "2002/03",
+   "raceid": "4334",
+   "d": "21-12-2002",
+   "place": "",
+   "disc": "Pursuit",
+   "nase": null,
+   "fis": "24"
+  },
+  {
+   "n": "Ivan Batory",
+   "sezona": "2002/03",
+   "raceid": "4332",
+   "d": "15-12-2002",
+   "place": "",
+   "disc": "Sprint Final",
+   "nase": null,
+   "fis": "26"
+  },
+  {
+   "n": "Ivan Batory",
+   "sezona": "2002/03",
+   "raceid": "4328",
+   "d": "14-12-2002",
+   "place": "",
+   "disc": "Mass Start",
+   "nase": null,
+   "fis": "5"
+  },
+  {
+   "n": "Ivan Batory",
+   "sezona": "2002/03",
+   "raceid": "4721",
+   "d": "30-11-2002",
+   "place": "",
+   "disc": "Interval Start",
+   "nase": null,
+   "fis": "6"
+  },
+  {
+   "n": "Ivan Batory",
+   "sezona": "2002/03",
+   "raceid": "4354",
+   "d": "23-11-2002",
+   "place": "",
+   "disc": "Interval Start",
+   "nase": null,
+   "fis": "8"
+  },
+  {
+   "n": "Martin Bajcicak",
+   "sezona": "2003/04",
+   "raceid": "5530",
+   "d": "14-03-2004",
+   "place": "",
+   "disc": "Interval Start",
+   "nase": null,
+   "fis": "11"
+  },
+  {
+   "n": "Martin Bajcicak",
+   "sezona": "2003/04",
+   "raceid": "5451",
+   "d": "07-03-2004",
+   "place": "",
+   "disc": "Interval Start",
+   "nase": null,
+   "fis": "8"
+  },
+  {
+   "n": "Martin Bajcicak",
+   "sezona": "2003/04",
+   "raceid": "5670",
+   "d": "28-02-2004",
+   "place": "",
+   "disc": "Interval Start",
+   "nase": null,
+   "fis": "9"
+  },
+  {
+   "n": "Martin Bajcicak",
+   "sezona": "2003/04",
+   "raceid": "5515",
+   "d": "25-01-2004",
+   "place": "",
+   "disc": "Marathon",
+   "nase": null,
+   "fis": "15"
+  },
+  {
+   "n": "Martin Bajcicak",
+   "sezona": "2003/04",
+   "raceid": "6171",
+   "d": "21-12-2003",
+   "place": "",
+   "disc": "Interval Start",
+   "nase": null,
+   "fis": "21"
+  },
+  {
+   "n": "Martin Bajcicak",
+   "sezona": "2003/04",
+   "raceid": "6173",
+   "d": "20-12-2003",
+   "place": "",
+   "disc": "Pursuit",
+   "nase": null,
+   "fis": "28"
+  },
+  {
+   "n": "Martin Bajcicak",
+   "sezona": "2003/04",
+   "raceid": "5860",
+   "d": "13-12-2003",
+   "place": "",
+   "disc": "Interval Start",
+   "nase": null,
+   "fis": "21"
+  },
+  {
+   "n": "Martin Bajcicak",
+   "sezona": "2003/04",
+   "raceid": "5421",
+   "d": "28-11-2003",
+   "place": "",
+   "disc": "Interval Start",
+   "nase": null,
+   "fis": "13"
+  },
+  {
+   "n": "Ivan Batory",
+   "sezona": "2003/04",
+   "raceid": "5451",
+   "d": "07-03-2004",
+   "place": "",
+   "disc": "Interval Start",
+   "nase": null,
+   "fis": "16"
+  },
+  {
+   "n": "Ivan Batory",
+   "sezona": "2003/04",
+   "raceid": "6173",
+   "d": "20-12-2003",
+   "place": "",
+   "disc": "Pursuit",
+   "nase": null,
+   "fis": "25"
+  },
+  {
+   "n": "Ivan Batory",
+   "sezona": "2003/04",
+   "raceid": "5421",
+   "d": "28-11-2003",
+   "place": "",
+   "disc": "Interval Start",
+   "nase": null,
+   "fis": "30"
+  },
+  {
+   "n": "Martin Bajcicak",
+   "sezona": "2004/05",
+   "raceid": "8200",
+   "d": "19-03-2005",
+   "place": "",
+   "disc": "Pursuit",
+   "nase": null,
+   "fis": "3"
+  },
+  {
+   "n": "Martin Bajcicak",
+   "sezona": "2004/05",
+   "raceid": "8320",
+   "d": "12-03-2005",
+   "place": "",
+   "disc": "Interval Start",
+   "nase": null,
+   "fis": "4"
+  },
+  {
+   "n": "Martin Bajcicak",
+   "sezona": "2004/05",
+   "raceid": "7271",
+   "d": "06-03-2005",
+   "place": "",
+   "disc": "Interval Start",
+   "nase": null,
+   "fis": "7"
+  },
+  {
+   "n": "Martin Bajcicak",
+   "sezona": "2004/05",
+   "raceid": "7968",
+   "d": "12-02-2005",
+   "place": "",
+   "disc": "Interval Start",
+   "nase": null,
+   "fis": "1"
+  },
+  {
+   "n": "Martin Bajcicak",
+   "sezona": "2004/05",
+   "raceid": "8022",
+   "d": "22-01-2005",
+   "place": "",
+   "disc": "Pursuit",
+   "nase": null,
+   "fis": "14"
+  },
+  {
+   "n": "Martin Bajcicak",
+   "sezona": "2004/05",
+   "raceid": "7556",
+   "d": "15-01-2005",
+   "place": "",
+   "disc": "Interval Start",
+   "nase": null,
+   "fis": "17"
+  },
+  {
+   "n": "Martin Bajcicak",
+   "sezona": "2004/05",
+   "raceid": "7232",
+   "d": "28-11-2004",
+   "place": "",
+   "disc": "Interval Start",
+   "nase": null,
+   "fis": "30"
+  },
+  {
+   "n": "Martin Bajcicak",
+   "sezona": "2004/05",
+   "raceid": "8084",
+   "d": "21-11-2004",
+   "place": "",
+   "disc": "Team",
+   "nase": null,
+   "fis": "11"
+  },
+  {
+   "n": "Martin Bajcicak",
+   "sezona": "2004/05",
+   "raceid": "8083",
+   "d": "20-11-2004",
+   "place": "",
+   "disc": "Interval Start",
+   "nase": null,
+   "fis": "26"
+  },
+  {
+   "n": "Ivan Batory",
+   "sezona": "2004/05",
+   "raceid": "7989",
+   "d": "11-12-2004",
+   "place": "",
+   "disc": "Pursuit",
+   "nase": null,
+   "fis": "19"
+  },
+  {
+   "n": "Ivan Batory",
+   "sezona": "2004/05",
+   "raceid": "7232",
+   "d": "28-11-2004",
+   "place": "",
+   "disc": "Interval Start",
+   "nase": null,
+   "fis": "14"
+  },
+  {
+   "n": "Ivan Batory",
+   "sezona": "2004/05",
+   "raceid": "8084",
+   "d": "21-11-2004",
+   "place": "",
+   "disc": "Team",
+   "nase": null,
+   "fis": "11"
+  },
+  {
+   "n": "Ivan Batory",
+   "sezona": "2004/05",
+   "raceid": "8083",
+   "d": "20-11-2004",
+   "place": "",
+   "disc": "Interval Start",
+   "nase": null,
+   "fis": "6"
+  },
+  {
+   "n": "Michal Malak",
+   "sezona": "2004/05",
+   "raceid": "8084",
+   "d": "21-11-2004",
+   "place": "",
+   "disc": "Team",
+   "nase": null,
+   "fis": "11"
+  },
+  {
+   "n": "Martin Bajcicak",
+   "sezona": "2005/06",
+   "raceid": "10704",
+   "d": "26-02-2006",
+   "place": "",
+   "disc": "Mass Start",
+   "nase": null,
+   "fis": "14"
+  },
+  {
+   "n": "Martin Bajcicak",
+   "sezona": "2005/06",
+   "raceid": "10696",
+   "d": "17-02-2006",
+   "place": "",
+   "disc": "Interval Start",
+   "nase": null,
+   "fis": "28"
+  },
+  {
+   "n": "Martin Bajcicak",
+   "sezona": "2005/06",
+   "raceid": "10689",
+   "d": "12-02-2006",
+   "place": "",
+   "disc": "Pursuit",
+   "nase": null,
+   "fis": "8"
+  },
+  {
+   "n": "Ivan Batory",
+   "sezona": "2005/06",
+   "raceid": "10696",
+   "d": "17-02-2006",
+   "place": "",
+   "disc": "Interval Start",
+   "nase": null,
+   "fis": "26"
+  },
+  {
+   "n": "Ivan Batory",
+   "sezona": "2005/06",
+   "raceid": "10689",
+   "d": "12-02-2006",
+   "place": "",
+   "disc": "Pursuit",
+   "nase": null,
+   "fis": "24"
+  },
+  {
+   "n": "Cze/Sui Fis",
+   "sezona": "2006/07",
+   "raceid": "11592",
+   "d": "2007-02-04",
+   "place": "Davos (SUI)",
+   "disc": "Štafeta",
+   "nase": 12,
+   "fis": "DSQ"
+  },
+  {
+   "n": "Fin/Sui Fis",
+   "sezona": "2006/07",
+   "raceid": "11592",
+   "d": "2007-02-04",
+   "place": "Davos (SUI)",
+   "disc": "Štafeta",
+   "nase": 12,
+   "fis": "DSQ"
+  },
+  {
+   "n": "Aus/Usa/Sui Fis",
+   "sezona": "2006/07",
+   "raceid": "11592",
+   "d": "2007-02-04",
+   "place": "Davos (SUI)",
+   "disc": "Štafeta",
+   "nase": 12,
+   "fis": "DNF"
+  },
+  {
+   "n": "Martin Bajcicak",
+   "sezona": "2006/07",
+   "raceid": "12538",
+   "d": "24-03-2007",
+   "place": "",
+   "disc": "Pursuit",
+   "nase": null,
+   "fis": "14"
+  },
+  {
+   "n": "Martin Bajcicak",
+   "sezona": "2006/07",
+   "raceid": "11890",
+   "d": "17-03-2007",
+   "place": "",
+   "disc": "Interval Start",
+   "nase": null,
+   "fis": "11"
+  },
+  {
+   "n": "Martin Bajcicak",
+   "sezona": "2006/07",
+   "raceid": "12398",
+   "d": "11-03-2007",
+   "place": "",
+   "disc": "Interval Start",
+   "nase": null,
+   "fis": "27"
+  },
+  {
+   "n": "Martin Bajcicak",
+   "sezona": "2006/07",
+   "raceid": "12417",
+   "d": "27-01-2007",
+   "place": "",
+   "disc": "Interval Start",
+   "nase": null,
+   "fis": "30"
+  },
+  {
+   "n": "Martin Bajcicak",
+   "sezona": "2006/07",
+   "raceid": "11679",
+   "d": "07-01-2007",
+   "place": "",
+   "disc": "Interval Start",
+   "nase": null,
+   "fis": "6"
+  },
+  {
+   "n": "Martin Bajcicak",
+   "sezona": "2006/07",
+   "raceid": "11830",
+   "d": "03-01-2007",
+   "place": "",
+   "disc": "Interval Start",
+   "nase": null,
+   "fis": "5"
+  },
+  {
+   "n": "Martin Bajcicak",
+   "sezona": "2006/07",
+   "raceid": "12439",
+   "d": "18-11-2006",
+   "place": "",
+   "disc": "Interval Start",
+   "nase": null,
+   "fis": "13"
+  },
+  {
+   "n": "Ivan Batory",
+   "sezona": "2006/07",
+   "raceid": "11890",
+   "d": "17-03-2007",
+   "place": "",
+   "disc": "Interval Start",
+   "nase": null,
+   "fis": "28"
+  },
+  {
+   "n": "Ivan Batory",
+   "sezona": "2006/07",
+   "raceid": "12398",
+   "d": "11-03-2007",
+   "place": "",
+   "disc": "Interval Start",
+   "nase": null,
+   "fis": "13"
+  },
+  {
+   "n": "Ivan Batory",
+   "sezona": "2006/07",
+   "raceid": "11590",
+   "d": "03-02-2007",
+   "place": "",
+   "disc": "Interval Start",
+   "nase": null,
+   "fis": "9"
+  },
+  {
+   "n": "Ivan Batory",
+   "sezona": "2006/07",
+   "raceid": "12417",
+   "d": "27-01-2007",
+   "place": "",
+   "disc": "Interval Start",
+   "nase": null,
+   "fis": "9"
+  },
+  {
+   "n": "Ivan Batory",
+   "sezona": "2006/07",
+   "raceid": "11830",
+   "d": "03-01-2007",
+   "place": "",
+   "disc": "Interval Start",
+   "nase": null,
+   "fis": "23"
+  },
+  {
+   "n": "Ivan Batory",
+   "sezona": "2006/07",
+   "raceid": "12618",
+   "d": "16-12-2006",
+   "place": "",
+   "disc": "Mass Start",
+   "nase": null,
+   "fis": "23"
+  },
+  {
+   "n": "Ivan Batory",
+   "sezona": "2006/07",
+   "raceid": "12819",
+   "d": "13-12-2006",
+   "place": "",
+   "disc": "Interval Start",
+   "nase": null,
+   "fis": "20"
+  },
+  {
+   "n": "Ivan Batory",
+   "sezona": "2006/07",
+   "raceid": "12339",
+   "d": "26-11-2006",
+   "place": "",
+   "disc": "Interval Start",
+   "nase": null,
+   "fis": "26"
+  },
+  {
+   "n": "Ivan Batory",
+   "sezona": "2006/07",
+   "raceid": "12439",
+   "d": "18-11-2006",
+   "place": "",
+   "disc": "Interval Start",
+   "nase": null,
+   "fis": "28"
+  },
+  {
+   "n": "Alena Prochazkova",
+   "sezona": "2006/07",
+   "raceid": "12589",
+   "d": "22-02-2007",
+   "place": "",
+   "disc": "Sprint Final",
+   "nase": null,
+   "fis": "13"
+  },
+  {
+   "n": "Martin Bajcicak",
+   "sezona": "2007/08",
+   "raceid": "13400",
+   "d": "16-03-2008",
+   "place": "",
+   "disc": "Pursuit",
+   "nase": null,
+   "fis": "16"
+  },
+  {
+   "n": "Martin Bajcicak",
+   "sezona": "2007/08",
+   "raceid": "13396",
+   "d": "14-03-2008",
+   "place": "",
+   "disc": "Interval Start",
+   "nase": null,
+   "fis": "26"
+  },
+  {
+   "n": "Martin Bajcicak",
+   "sezona": "2007/08",
+   "raceid": "13619",
+   "d": "08-03-2008",
+   "place": "",
+   "disc": "Interval Start",
+   "nase": null,
+   "fis": "7"
+  },
+  {
+   "n": "Martin Bajcicak",
+   "sezona": "2007/08",
+   "raceid": "13484",
+   "d": "23-02-2008",
+   "place": "",
+   "disc": "Pursuit",
+   "nase": null,
+   "fis": "19"
+  },
+  {
+   "n": "Martin Bajcicak",
+   "sezona": "2007/08",
+   "raceid": "13817",
+   "d": "16-02-2008",
+   "place": "",
+   "disc": "Interval Start",
+   "nase": null,
+   "fis": "15"
+  },
+  {
+   "n": "Martin Bajcicak",
+   "sezona": "2007/08",
+   "raceid": "13867",
+   "d": "25-01-2008",
+   "place": "",
+   "disc": "Interval Start",
+   "nase": null,
+   "fis": "10"
+  },
+  {
+   "n": "Martin Bajcicak",
+   "sezona": "2007/08",
+   "raceid": "13861",
+   "d": "22-01-2008",
+   "place": "",
+   "disc": "Pursuit",
+   "nase": null,
+   "fis": "11"
+  },
+  {
+   "n": "Martin Bajcicak",
+   "sezona": "2007/08",
+   "raceid": "13338",
+   "d": "06-01-2008",
+   "place": "",
+   "disc": "Pursuit",
+   "nase": null,
+   "fis": "3"
+  },
+  {
+   "n": "Martin Bajcicak",
+   "sezona": "2007/08",
+   "raceid": "14060",
+   "d": "02-01-2008",
+   "place": "",
+   "disc": "Interval Start",
+   "nase": null,
+   "fis": "30"
+  },
+  {
+   "n": "Martin Bajcicak",
+   "sezona": "2007/08",
+   "raceid": "13894",
+   "d": "29-12-2007",
+   "place": "",
+   "disc": "Pursuit",
+   "nase": null,
+   "fis": "6"
+  },
+  {
+   "n": "Martin Bajcicak",
+   "sezona": "2007/08",
+   "raceid": "13580",
+   "d": "24-11-2007",
+   "place": "",
+   "disc": "Interval Start",
+   "nase": null,
+   "fis": "29"
+  },
+  {
+   "n": "Martin Bajcicak",
+   "sezona": "2008/09",
+   "raceid": "15763",
+   "d": "23-03-2009",
+   "place": "",
+   "disc": "Interval Start",
+   "nase": null,
+   "fis": "24"
+  },
+  {
+   "n": "Martin Bajcicak",
+   "sezona": "2008/09",
+   "raceid": "14279",
+   "d": "22-03-2009",
+   "place": "",
+   "disc": "Interval Start",
+   "nase": null,
+   "fis": "29"
+  },
+  {
+   "n": "Martin Bajcicak",
+   "sezona": "2008/09",
+   "raceid": "14277",
+   "d": "21-03-2009",
+   "place": "",
+   "disc": "Pursuit",
+   "nase": null,
+   "fis": "16"
+  },
+  {
+   "n": "Martin Bajcicak",
+   "sezona": "2008/09",
+   "raceid": "14261",
+   "d": "14-02-2009",
+   "place": "",
+   "disc": "Interval Start",
+   "nase": null,
+   "fis": "25"
+  },
+  {
+   "n": "Martin Bajcicak",
+   "sezona": "2008/09",
+   "raceid": "14512",
+   "d": "01-03-2009",
+   "place": "",
+   "disc": "Mass Start",
+   "nase": null,
+   "fis": "21"
+  },
+  {
+   "n": "Martin Bajcicak",
+   "sezona": "2008/09",
+   "raceid": "14502",
+   "d": "22-02-2009",
+   "place": "",
+   "disc": "Pursuit",
+   "nase": null,
+   "fis": "15"
+  },
+  {
+   "n": "Martin Bajcicak",
+   "sezona": "2008/09",
+   "raceid": "14500",
+   "d": "20-02-2009",
+   "place": "",
+   "disc": "Interval Start",
+   "nase": null,
+   "fis": "10"
+  },
+  {
+   "n": "Ivan Batory",
+   "sezona": "2008/09",
+   "raceid": "14223",
+   "d": "01-01-2009",
+   "place": "",
+   "disc": "Sprint Final",
+   "nase": null,
+   "fis": "30"
+  },
+  {
+   "n": "Ivan Batory",
+   "sezona": "2008/09",
+   "raceid": "14225",
+   "d": "31-12-2008",
+   "place": "",
+   "disc": "Interval Start",
+   "nase": null,
+   "fis": "30"
+  },
+  {
+   "n": "Ivan Batory",
+   "sezona": "2008/09",
+   "raceid": "14219",
+   "d": "28-12-2008",
+   "place": "",
+   "disc": "Double Pursuit",
+   "nase": null,
+   "fis": "21"
+  },
+  {
+   "n": "Ivan Batory",
+   "sezona": "2008/09",
+   "raceid": "14500",
+   "d": "20-02-2009",
+   "place": "",
+   "disc": "Interval Start",
+   "nase": null,
+   "fis": "17"
+  },
+  {
+   "n": "Katja Visnar",
+   "sezona": "2008/09",
+   "raceid": "15712",
+   "d": "2009-02-18",
+   "place": "Liberec (CZE)",
+   "disc": "Posamični start",
+   "nase": 8,
+   "fis": null
+  },
+  {
+   "n": "Martin Bajcicak",
+   "sezona": "2009/10",
+   "raceid": "16217",
+   "d": "13-03-2010",
+   "place": "",
+   "disc": "Mass Start",
+   "nase": null,
+   "fis": "9"
+  },
+  {
+   "n": "Martin Bajcicak",
+   "sezona": "2009/10",
+   "raceid": "16203",
+   "d": "05-02-2010",
+   "place": "",
+   "disc": "Interval Start",
+   "nase": null,
+   "fis": "19"
+  },
+  {
+   "n": "Martin Bajcicak",
+   "sezona": "2009/10",
+   "raceid": "16201",
+   "d": "24-01-2010",
+   "place": "",
+   "disc": "Team Sprint",
+   "nase": null,
+   "fis": "13"
+  },
+  {
+   "n": "Martin Bajcicak",
+   "sezona": "2009/10",
+   "raceid": "16199",
+   "d": "23-01-2010",
+   "place": "",
+   "disc": "Pursuit",
+   "nase": null,
+   "fis": "11"
+  },
+  {
+   "n": "Martin Bajcicak",
+   "sezona": "2009/10",
+   "raceid": "16191",
+   "d": "16-01-2010",
+   "place": "",
+   "disc": "Interval Start",
+   "nase": null,
+   "fis": "13"
+  },
+  {
+   "n": "Martin Bajcicak",
+   "sezona": "2009/10",
+   "raceid": "16169",
+   "d": "20-12-2009",
+   "place": "",
+   "disc": "Mass Start",
+   "nase": null,
+   "fis": "26"
+  },
+  {
+   "n": "Martin Bajcicak",
+   "sezona": "2009/10",
+   "raceid": "16159",
+   "d": "12-12-2009",
+   "place": "",
+   "disc": "Interval Start",
+   "nase": null,
+   "fis": "13"
+  },
+  {
+   "n": "Ivan Batory",
+   "sezona": "2009/10",
+   "raceid": "16201",
+   "d": "24-01-2010",
+   "place": "",
+   "disc": "Team Sprint",
+   "nase": null,
+   "fis": "13"
+  },
+  {
+   "n": "Ivan Batory",
+   "sezona": "2009/10",
+   "raceid": "16199",
+   "d": "23-01-2010",
+   "place": "",
+   "disc": "Pursuit",
+   "nase": null,
+   "fis": "19"
+  },
+  {
+   "n": "Ivan Batory",
+   "sezona": "2009/10",
+   "raceid": "16151",
+   "d": "29-11-2009",
+   "place": "",
+   "disc": "Interval Start",
+   "nase": null,
+   "fis": "30"
+  },
+  {
+   "n": "Barbara Jezersek",
+   "sezona": "2013/14",
+   "raceid": "22447",
+   "d": "2014-01-03",
+   "place": "Cortina-Toblach (ITA)",
+   "disc": "Zasledovanje",
+   "nase": 30,
+   "fis": null
+  },
+  {
+   "n": "Barbara Jezersek",
+   "sezona": "2013/14",
+   "raceid": "22451",
+   "d": "2014-01-05",
+   "place": "Val di Fiemme (ITA)",
+   "disc": "Zasledovanje",
+   "nase": 29,
+   "fis": null
+  },
+  {
+   "n": "Barbara Jezersek",
+   "sezona": "2013/14",
+   "raceid": "22355",
+   "d": "14-12-2013",
+   "place": "",
+   "disc": "Interval Start",
+   "nase": null,
+   "fis": "23"
+  },
+  {
+   "n": "Alenka Cebasek",
+   "sezona": "2014/15",
+   "raceid": "24090",
+   "d": "2014-12-07",
+   "place": "Lillehammer (NOR)",
+   "disc": "Zasledovanje",
+   "nase": 24,
+   "fis": null
+  },
+  {
+   "n": "Lea Einfalt",
+   "sezona": "2014/15",
+   "raceid": "24118",
+   "d": "2015-01-11",
+   "place": "Val di Fiemme (ITA)",
+   "disc": "Zasledovanje",
+   "nase": 22,
+   "fis": null
+  },
+  {
+   "n": "Alenka Cebasek",
+   "sezona": "2015/16",
+   "raceid": "25844",
+   "d": "2016-03-12",
+   "place": "Canmore Nordic Centre (CAN)",
+   "disc": "Zasledovanje",
+   "nase": 30,
+   "fis": null
+  },
+  {
+   "n": "Anamarija Lampič",
+   "sezona": "2015/16",
+   "raceid": "25834",
+   "d": "2016-03-05",
+   "place": "Quebec City (CAN)",
+   "disc": "Zasledovanje",
+   "nase": 28,
+   "fis": null
+  },
+  {
+   "n": "Anamarija Lampič",
+   "sezona": "2017/18",
+   "raceid": "29803",
+   "d": "2017-12-17",
+   "place": "Toblach (ITA)",
+   "disc": "Zasledovanje",
+   "nase": 29,
+   "fis": null
+  },
+  {
+   "n": "Anamarija Lampič",
+   "sezona": "2017/18",
+   "raceid": "29811",
+   "d": "2018-01-01",
+   "place": "Lenzerheide (SUI)",
+   "disc": "Zasledovanje",
+   "nase": 29,
+   "fis": null
+  },
+  {
+   "n": "Anamarija Lampič",
+   "sezona": "2017/18",
+   "raceid": "29855",
+   "d": "2018-03-18",
+   "place": "Falun (SWE)",
+   "disc": "Zasledovanje",
+   "nase": 26,
+   "fis": null
+  },
+  {
+   "n": "Alenka Cebasek",
+   "sezona": "2018/19",
+   "raceid": "32006",
+   "d": "2019-01-03",
+   "place": "Oberstdorf (GER)",
+   "disc": "Zasledovanje",
+   "nase": 17,
+   "fis": null
+  },
+  {
+   "n": "Alenka Cebasek",
+   "sezona": "2018/19",
+   "raceid": "32010",
+   "d": "2019-01-06",
+   "place": "Val di Fiemme (ITA)",
+   "disc": "Zasledovanje",
+   "nase": 21,
+   "fis": null
+  },
+  {
+   "n": "Alenka Cebasek",
+   "sezona": "2018/19",
+   "raceid": "31945",
+   "d": "2019-01-13",
+   "place": "Dresden (GER)",
+   "disc": "Ekipni šprint",
+   "nase": 3,
+   "fis": null
+  },
+  {
+   "n": "Luka Prosen",
+   "sezona": "2018/19",
+   "raceid": "33934",
+   "d": "2019-01-13",
+   "place": "Dresden (GER)",
+   "disc": "Ekipni šprint",
+   "nase": 11,
+   "fis": null
+  },
+  {
+   "n": "Eva Urevc",
+   "sezona": "2018/19",
+   "raceid": "31962",
+   "d": "2019-02-10",
+   "place": "Lahti (FIN)",
+   "disc": "Ekipni šprint",
+   "nase": 8,
+   "fis": null
+  },
+  {
+   "n": "Vesna Fabjan",
+   "sezona": "2018/19",
+   "raceid": "31962",
+   "d": "2019-02-10",
+   "place": "Lahti (FIN)",
+   "disc": "Ekipni šprint",
+   "nase": 8,
+   "fis": null
+  },
+  {
+   "n": "Anamarija Lampič",
+   "sezona": "2018/19",
+   "raceid": "32006",
+   "d": "2019-01-03",
+   "place": "Oberstdorf (GER)",
+   "disc": "Zasledovanje",
+   "nase": 14,
+   "fis": null
+  },
+  {
+   "n": "Anamarija Lampič",
+   "sezona": "2018/19",
+   "raceid": "32010",
+   "d": "2019-01-06",
+   "place": "Val di Fiemme (ITA)",
+   "disc": "Zasledovanje",
+   "nase": 22,
+   "fis": null
+  },
+  {
+   "n": "Anamarija Lampič",
+   "sezona": "2018/19",
+   "raceid": "33935",
+   "d": "2019-02-10",
+   "place": "Lahti (FIN)",
+   "disc": "Ekipni šprint",
+   "nase": 5,
+   "fis": null
+  },
+  {
+   "n": "Anamarija Lampič",
+   "sezona": "2018/19",
+   "raceid": "31990",
+   "d": "2019-03-24",
+   "place": "Québec (CAN)",
+   "disc": "Zasledovanje",
+   "nase": 22,
+   "fis": null
+  },
+  {
+   "n": "Anamarija Lampič",
+   "sezona": "2018/19",
+   "raceid": "33931",
+   "d": "2019-02-24",
+   "place": "Seefeld (AUT)",
+   "disc": "Ekipni šprint",
+   "nase": 3,
+   "fis": null
+  },
+  {
+   "n": "Miha Simenc",
+   "sezona": "2018/19",
+   "raceid": "31947",
+   "d": "2019-01-13",
+   "place": "Dresden (GER)",
+   "disc": "Ekipni šprint",
+   "nase": 8,
+   "fis": null
+  },
+  {
+   "n": "Miha Simenc",
+   "sezona": "2018/19",
+   "raceid": "31964",
+   "d": "2019-02-10",
+   "place": "Lahti (FIN)",
+   "disc": "Ekipni šprint",
+   "nase": 11,
+   "fis": null
+  },
+  {
+   "n": "Miha Simenc",
+   "sezona": "2018/19",
+   "raceid": "33932",
+   "d": "2019-02-24",
+   "place": "Seefeld (AUT)",
+   "disc": "Ekipni šprint",
+   "nase": 4,
+   "fis": null
+  },
+  {
+   "n": "Janez Lampic",
+   "sezona": "2018/19",
+   "raceid": "31947",
+   "d": "2019-01-13",
+   "place": "Dresden (GER)",
+   "disc": "Ekipni šprint",
+   "nase": 8,
+   "fis": null
+  },
+  {
+   "n": "Janez Lampic",
+   "sezona": "2018/19",
+   "raceid": "31964",
+   "d": "2019-02-10",
+   "place": "Lahti (FIN)",
+   "disc": "Ekipni šprint",
+   "nase": 11,
+   "fis": null
+  },
+  {
+   "n": "Janez Lampic",
+   "sezona": "2018/19",
+   "raceid": "33932",
+   "d": "2019-02-24",
+   "place": "Seefeld (AUT)",
+   "disc": "Ekipni šprint",
+   "nase": 4,
+   "fis": null
+  },
+  {
+   "n": "Andrej Jenko",
+   "sezona": "2018/19",
+   "raceid": "33934",
+   "d": "2019-01-13",
+   "place": "Dresden (GER)",
+   "disc": "Ekipni šprint",
+   "nase": 11,
+   "fis": null
+  },
+  {
+   "n": "Katja Visnar",
+   "sezona": "2018/19",
+   "raceid": "31945",
+   "d": "2019-01-13",
+   "place": "Dresden (GER)",
+   "disc": "Ekipni šprint",
+   "nase": 3,
+   "fis": null
+  },
+  {
+   "n": "Katja Visnar",
+   "sezona": "2018/19",
+   "raceid": "33935",
+   "d": "2019-02-10",
+   "place": "Lahti (FIN)",
+   "disc": "Ekipni šprint",
+   "nase": 5,
+   "fis": null
+  },
+  {
+   "n": "Katja Visnar",
+   "sezona": "2018/19",
+   "raceid": "33931",
+   "d": "2019-02-24",
+   "place": "Seefeld (AUT)",
+   "disc": "Ekipni šprint",
+   "nase": 3,
+   "fis": null
+  },
+  {
+   "n": "Alenka Cebasek",
+   "sezona": "2019/20",
+   "raceid": "34355",
+   "d": "2019-12-22",
+   "place": "Planica (SLO)",
+   "disc": "Ekipni šprint",
+   "nase": 8,
+   "fis": null
+  },
+  {
+   "n": "Vesna Fabjan",
+   "sezona": "2019/20",
+   "raceid": "34355",
+   "d": "2019-12-22",
+   "place": "Planica (SLO)",
+   "disc": "Ekipni šprint",
+   "nase": 8,
+   "fis": null
+  },
+  {
+   "n": "Vesna Fabjan",
+   "sezona": "2019/20",
+   "raceid": "36146",
+   "d": "2020-01-12",
+   "place": "Dresden (GER)",
+   "disc": "Ekipni šprint",
+   "nase": 4,
+   "fis": null
+  },
+  {
+   "n": "Anamarija Lampič",
+   "sezona": "2019/20",
+   "raceid": "34337",
+   "d": "2019-12-01",
+   "place": "Ruka (FIN)",
+   "disc": "Zasledovanje",
+   "nase": 21,
+   "fis": null
+  },
+  {
+   "n": "Anamarija Lampič",
+   "sezona": "2019/20",
+   "raceid": "34355",
+   "d": "2019-12-22",
+   "place": "Planica (SLO)",
+   "disc": "Ekipni šprint",
+   "nase": 3,
+   "fis": null
+  },
+  {
+   "n": "Anamarija Lampič",
+   "sezona": "2019/20",
+   "raceid": "34367",
+   "d": "2020-01-01",
+   "place": "Toblach (ITA)",
+   "disc": "Zasledovanje",
+   "nase": 7,
+   "fis": null
+  },
+  {
+   "n": "Anamarija Lampič",
+   "sezona": "2019/20",
+   "raceid": "34409",
+   "d": "2020-02-16",
+   "place": "Östersund (SWE)",
+   "disc": "Zasledovanje",
+   "nase": 5,
+   "fis": null
+  },
+  {
+   "n": "Miha Simenc",
+   "sezona": "2019/20",
+   "raceid": "36144",
+   "d": "2019-12-22",
+   "place": "Planica (SLO)",
+   "disc": "Ekipni šprint",
+   "nase": 12,
+   "fis": null
+  },
+  {
+   "n": "Miha Simenc",
+   "sezona": "2019/20",
+   "raceid": "34384",
+   "d": "2020-01-12",
+   "place": "Dresden (GER)",
+   "disc": "Ekipni šprint",
+   "nase": 6,
+   "fis": null
+  },
+  {
+   "n": "Janez Lampic",
+   "sezona": "2019/20",
+   "raceid": "36144",
+   "d": "2019-12-22",
+   "place": "Planica (SLO)",
+   "disc": "Ekipni šprint",
+   "nase": 12,
+   "fis": null
+  },
+  {
+   "n": "Andrej Jenko",
+   "sezona": "2019/20",
+   "raceid": "34356",
+   "d": "2019-12-22",
+   "place": "Planica (SLO)",
+   "disc": "Ekipni šprint",
+   "nase": 14,
+   "fis": null
+  },
+  {
+   "n": "Luka Markun",
+   "sezona": "2019/20",
+   "raceid": "34384",
+   "d": "2020-01-12",
+   "place": "Dresden (GER)",
+   "disc": "Ekipni šprint",
+   "nase": 6,
+   "fis": null
+  },
+  {
+   "n": "Miha Jan",
+   "sezona": "2019/20",
+   "raceid": "34356",
+   "d": "2019-12-22",
+   "place": "Planica (SLO)",
+   "disc": "Ekipni šprint",
+   "nase": 14,
+   "fis": null
+  },
+  {
+   "n": "Katja Visnar",
+   "sezona": "2019/20",
+   "raceid": "34355",
+   "d": "2019-12-22",
+   "place": "Planica (SLO)",
+   "disc": "Ekipni šprint",
+   "nase": 3,
+   "fis": null
+  },
+  {
+   "n": "Katja Visnar",
+   "sezona": "2019/20",
+   "raceid": "36146",
+   "d": "2020-01-12",
+   "place": "Dresden (GER)",
+   "disc": "Ekipni šprint",
+   "nase": 4,
+   "fis": null
+  },
+  {
+   "n": "Eva Urevc",
+   "sezona": "2020/21",
+   "raceid": "36501",
+   "d": "2020-12-20",
+   "place": "Dresden (GER)",
+   "disc": "Ekipni šprint",
+   "nase": 2,
+   "fis": null
+  },
+  {
+   "n": "Eva Urevc",
+   "sezona": "2020/21",
+   "raceid": "38487",
+   "d": "2021-02-07",
+   "place": "Ulricehamn (SWE)",
+   "disc": "Ekipni šprint",
+   "nase": 3,
+   "fis": null
+  },
+  {
+   "n": "Eva Urevc",
+   "sezona": "2020/21",
+   "raceid": "36549",
+   "d": "2021-02-28",
+   "place": "Oberstdorf (GER)",
+   "disc": "Ekipni šprint",
+   "nase": 1,
+   "fis": null
+  },
+  {
+   "n": "Anamarija Lampič",
+   "sezona": "2020/21",
+   "raceid": "36513",
+   "d": "2020-11-29",
+   "place": "Ruka (FIN)",
+   "disc": "Zasledovanje",
+   "nase": 19,
+   "fis": null
+  },
+  {
+   "n": "Anamarija Lampič",
+   "sezona": "2020/21",
+   "raceid": "36501",
+   "d": "2020-12-20",
+   "place": "Dresden (GER)",
+   "disc": "Ekipni šprint",
+   "nase": 2,
+   "fis": null
+  },
+  {
+   "n": "Anamarija Lampič",
+   "sezona": "2020/21",
+   "raceid": "36660",
+   "d": "2021-01-03",
+   "place": "Val Müstair (SUI)",
+   "disc": "Zasledovanje",
+   "nase": 4,
+   "fis": null
+  },
+  {
+   "n": "Anamarija Lampič",
+   "sezona": "2020/21",
+   "raceid": "36521",
+   "d": "2021-01-06",
+   "place": "Toblach (ITA)",
+   "disc": "Zasledovanje",
+   "nase": 14,
+   "fis": null
+  },
+  {
+   "n": "Anamarija Lampič",
+   "sezona": "2020/21",
+   "raceid": "38487",
+   "d": "2021-02-07",
+   "place": "Ulricehamn (SWE)",
+   "disc": "Ekipni šprint",
+   "nase": 3,
+   "fis": null
+  },
+  {
+   "n": "Anamarija Lampič",
+   "sezona": "2020/21",
+   "raceid": "36549",
+   "d": "2021-02-28",
+   "place": "Oberstdorf (GER)",
+   "disc": "Ekipni šprint",
+   "nase": 1,
+   "fis": null
+  },
+  {
+   "n": "Janez Lampic",
+   "sezona": "2020/21",
+   "raceid": "36502",
+   "d": "2020-12-20",
+   "place": "Dresden (GER)",
+   "disc": "Ekipni šprint",
+   "nase": 12,
+   "fis": null
+  },
+  {
+   "n": "Janez Lampic",
+   "sezona": "2020/21",
+   "raceid": "36550",
+   "d": "2021-02-28",
+   "place": "Oberstdorf (GER)",
+   "disc": "Ekipni šprint",
+   "nase": 10,
+   "fis": null
+  },
+  {
+   "n": "Luka Markun",
+   "sezona": "2020/21",
+   "raceid": "36502",
+   "d": "2020-12-20",
+   "place": "Dresden (GER)",
+   "disc": "Ekipni šprint",
+   "nase": 12,
+   "fis": null
+  },
+  {
+   "n": "Vili Crv",
+   "sezona": "2020/21",
+   "raceid": "36550",
+   "d": "2021-02-28",
+   "place": "Oberstdorf (GER)",
+   "disc": "Ekipni šprint",
+   "nase": 10,
+   "fis": null
+  },
+  {
+   "n": "Eva Urevc",
+   "sezona": "2021/22",
+   "raceid": "39256",
+   "d": "2021-12-19",
+   "place": "Dresden (GER)",
+   "disc": "Ekipni šprint",
+   "nase": 2,
+   "fis": null
+  },
+  {
+   "n": "Eva Urevc",
+   "sezona": "2021/22",
+   "raceid": "39191",
+   "d": "28-12-2021",
+   "place": "",
+   "disc": "Sprint Final",
+   "nase": null,
+   "fis": "30"
+  },
+  {
+   "n": "Eva Urevc",
+   "sezona": "2021/22",
+   "raceid": "39419",
+   "d": "2022-02-16",
+   "place": "Beijing (CHN)",
+   "disc": "Ekipni šprint",
+   "nase": 7,
+   "fis": null
+  },
+  {
+   "n": "Anamarija Lampič",
+   "sezona": "2021/22",
+   "raceid": "39256",
+   "d": "2021-12-19",
+   "place": "Dresden (GER)",
+   "disc": "Ekipni šprint",
+   "nase": 2,
+   "fis": null
+  },
+  {
+   "n": "Anamarija Lampič",
+   "sezona": "2021/22",
+   "raceid": "39419",
+   "d": "2022-02-16",
+   "place": "Beijing (CHN)",
+   "disc": "Ekipni šprint",
+   "nase": 7,
+   "fis": null
+  },
+  {
+   "n": "Miha Simenc",
+   "sezona": "2021/22",
+   "raceid": "39257",
+   "d": "2021-12-19",
+   "place": "Dresden (GER)",
+   "disc": "Ekipni šprint",
+   "nase": 8,
+   "fis": null
+  },
+  {
+   "n": "Miha Simenc",
+   "sezona": "2021/22",
+   "raceid": "39422",
+   "d": "2022-02-16",
+   "place": "Beijing (CHN)",
+   "disc": "Ekipni šprint",
+   "nase": 8,
+   "fis": null
+  },
+  {
+   "n": "Janez Lampic",
+   "sezona": "2021/22",
+   "raceid": "39257",
+   "d": "2021-12-19",
+   "place": "Dresden (GER)",
+   "disc": "Ekipni šprint",
+   "nase": 18,
+   "fis": null
+  },
+  {
+   "n": "Vili Crv",
+   "sezona": "2021/22",
+   "raceid": "39257",
+   "d": "2021-12-19",
+   "place": "Dresden (GER)",
+   "disc": "Ekipni šprint",
+   "nase": 8,
+   "fis": null
+  },
+  {
+   "n": "Vili Crv",
+   "sezona": "2021/22",
+   "raceid": "39422",
+   "d": "2022-02-16",
+   "place": "Beijing (CHN)",
+   "disc": "Ekipni šprint",
+   "nase": 8,
+   "fis": null
+  },
+  {
+   "n": "Anja Mandeljc",
+   "sezona": "2021/22",
+   "raceid": "39256",
+   "d": "2021-12-19",
+   "place": "Dresden (GER)",
+   "disc": "Ekipni šprint",
+   "nase": 11,
+   "fis": null
+  },
+  {
+   "n": "Anze Gros",
+   "sezona": "2021/22",
+   "raceid": "39257",
+   "d": "2021-12-19",
+   "place": "Dresden (GER)",
+   "disc": "Ekipni šprint",
+   "nase": 18,
+   "fis": null
+  },
+  {
+   "n": "Klara Mali",
+   "sezona": "2021/22",
+   "raceid": "39256",
+   "d": "2021-12-19",
+   "place": "Dresden (GER)",
+   "disc": "Ekipni šprint",
+   "nase": 11,
+   "fis": null
+  },
+  {
+   "n": "Eva Urevc",
+   "sezona": "2022/23",
+   "raceid": "41541",
+   "d": "2022-11-27",
+   "place": "Ruka (FIN)",
+   "disc": "Zasledovanje",
+   "nase": 24,
+   "fis": null
+  },
+  {
+   "n": "Eva Urevc",
+   "sezona": "2022/23",
+   "raceid": "41572",
+   "d": "2023-01-04",
+   "place": "Oberstdorf (GER)",
+   "disc": "Zasledovanje",
+   "nase": 7,
+   "fis": null
+  },
+  {
+   "n": "Miha Simenc",
+   "sezona": "2022/23",
+   "raceid": "41609",
+   "d": "2023-02-05",
+   "place": "Toblach (ITA)",
+   "disc": "Štafeta",
+   "nase": 10,
+   "fis": "DNS"
+  },
+  {
+   "n": "Miha Licef",
+   "sezona": "2022/23",
+   "raceid": "41609",
+   "d": "2023-02-05",
+   "place": "Toblach (ITA)",
+   "disc": "Štafeta",
+   "nase": 10,
+   "fis": "DNS"
+  },
+  {
+   "n": "Vili Crv",
+   "sezona": "2022/23",
+   "raceid": "41609",
+   "d": "2023-02-05",
+   "place": "Toblach (ITA)",
+   "disc": "Štafeta",
+   "nase": 10,
+   "fis": "DNS"
+  },
+  {
+   "n": "Anja Mandeljc",
+   "sezona": "2022/23",
+   "raceid": "41572",
+   "d": "2023-01-04",
+   "place": "Oberstdorf (GER)",
+   "disc": "Zasledovanje",
+   "nase": 25,
+   "fis": null
+  },
+  {
+   "n": "Anja Mandeljc",
+   "sezona": "2022/23",
+   "raceid": "41627",
+   "d": "24-03-2023",
+   "place": "",
+   "disc": "Team Sprint",
+   "nase": null,
+   "fis": "16"
+  },
+  {
+   "n": "Izidor Karnicar",
+   "sezona": "2022/23",
+   "raceid": "41609",
+   "d": "2023-02-05",
+   "place": "Toblach (ITA)",
+   "disc": "Štafeta",
+   "nase": 10,
+   "fis": "DNS"
+  },
+  {
+   "n": "Lucija Medja",
+   "sezona": "2022/23",
+   "raceid": "41636",
+   "d": "2023-02-22",
+   "place": "Planica (SLO)",
+   "disc": "Posamični start",
+   "nase": 2,
+   "fis": null
+  }
+ ]
 }
