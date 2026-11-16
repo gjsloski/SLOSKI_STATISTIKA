@@ -1352,7 +1352,7 @@ def check_races(races, today, deadline):
             if not (tp and tp.isdigit() and int(tp) == rank):
                 issues.append({"n": name, "sezona": season_code_label(season), "raceid": rid, "d": race["d"],
                                "place": race["place"], "disc": race["disc"], "nase": rank, "fis": tp})
-                log(f"  NESKLAD {name} {season_code_label(season)} {race['d']} {race['place']} {race['disc']}: nase {rank}, FIS {tp} (raceid {rid})")
+                log(f"  NESKLAD {name} [{sec}:{cid}] {season_code_label(season)} {race['d']} {race['place']} {race['disc']} ({cat}): nase {rank}, FIS {tp} (raceid {rid})")
         for rid, t in theirs.items():
             if rid in mine or not t["pos"].isdigit() or int(t["pos"]) > 30:
                 continue
@@ -1362,7 +1362,9 @@ def check_races(races, today, deadline):
                 continue
             issues.append({"n": next((v[2] for v in mine.values()), cid), "sezona": season_code_label(season), "raceid": rid,
                            "d": t["date"], "place": "", "disc": t["disc"], "nase": None, "fis": t["pos"]})
-            log(f"  MANJKA {cid} {season_code_label(season)} {t['date']} {t['disc']}: FIS {t['pos']} (raceid {rid}), pri nas ni")
+            mine_txt = "; ".join(f"{v[1]['d']} {v[1]['place']} {v[1]['disc']} #{v[0]}" for v in list(mine.values())[:3])
+            log(f"  MANJKA {next((v[2] for v in mine.values()), cid)} [{sec}:{cid}] {season_code_label(season)} {t['date']} {t['disc']} ({cat}): "
+                f"FIS {t['pos']} (raceid {rid}), pri nas ni. Pri nas v sezoni ({len(mine)}): {mine_txt}")
     n_ok = len(ours) - n_na - len({(i["n"], i["sezona"]) for i in issues})
     out = {"updated": today.isoformat(), "preverjenih_sezon": len(ours) - n_na, "nepreverjenih": n_na, "nesklad": issues}
     (DATA / "check.json").write_text(json.dumps(out, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
