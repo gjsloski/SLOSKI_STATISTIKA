@@ -213,7 +213,7 @@ def parse_calendar(html, cat="WC"):
         e["text"].append(a.get_text(" ", strip=True))
     out = []
     for eid, e in events.items():
-        if re.search(r"\b" + cat + r"\b", " ".join(e["text"])):
+        if re.search(r"\b" + (r"S?WC" if cat == "WC" else cat) + r"\b", " ".join(e["text"])):
             out.append((eid, e["url"]))
     return out
 
@@ -401,7 +401,7 @@ def parse_race(html, sport_key, raceid, extra_names, cat="WC", trusted=False):
         return "skip", None
     needle = "World Cup" if cat == "WC" else "Grand Prix"
     champ = cat not in ("WC", "GP")  # OWG, WSC: koledar kategorije ze zagotavlja vrsto tekmovanja
-    if not trusted and not champ and not any(needle.lower() in l.lower() for l in head):
+    if not trusted and not champ and cfg["code"] != "CC" and not any(needle.lower() in l.lower() for l in head):
         return "skip", None
     title = next((l for l in head if TITLE_RE.match(l) and len(l) < 90), None)
     date = None
@@ -429,6 +429,16 @@ def parse_race(html, sport_key, raceid, extra_names, cat="WC", trusted=False):
     # ce je med njimi svetovni pokal / Grand Prix, je to tekma za uvrstitve
     if own_codes:
         own_code = cat if cat in own_codes else own_codes[0]
+        if cfg["code"] == "CC":
+            # teki: oznake so lahko vec (WC, SWC = etape Tour de Ski / posebne tekme SP, SPWQ, TSPQ ...); svetovno prvenstvo ima oznako FIS
+            allowed = {"WC": ("WC", "SWC"), "WSC": ("WSC", "FIS")}.get(cat, (cat,))
+            own_code = cat if any(c in allowed for c in own_codes) else own_codes[0]
+    if cfg["code"] == "CC" and not champ and not trusted:
+        if own_code is None:
+            if not any(needle.lower() in l.lower() for l in head):
+                return "skip", None
+        elif own_code != cat:
+            return "skip", None
     if champ and own_code != cat:
         return "skip", None  # trening, kvalifikacije, del kombinacije ...
     if own_code:
