@@ -2,7 +2,8 @@
  "coverage": {
   "2026/27": {
    "alpine": "v teku",
-   "jumping": "v teku"
+   "jumping": "v teku",
+   "xc": "v teku"
   },
   "Poletje 2026": {
    "jumping": "popolno",
@@ -151,12 +152,14 @@
   "Olimpijske igre 2027": {
    "alpine": "v teku",
    "jumping": "v teku",
-   "nordic": "v teku"
+   "nordic": "v teku",
+   "xc": "v teku"
   },
   "Svetovno prvenstvo 2027": {
    "alpine": "v teku",
    "jumping": "v teku",
-   "nordic": "v teku"
+   "nordic": "v teku",
+   "xc": "v teku"
   },
   "Olimpijske igre 2026": {
    "alpine": "popolno",
