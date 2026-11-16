@@ -1290,7 +1290,7 @@ def check_biathlon(races, today, deadline):
             continue
         theirs = {}
         for t in rows:
-            rk = str(t.get("Rank") or "").rstrip(".").strip()
+            rk = str(t.get("Rank") or "").strip().lstrip("=").rstrip(".").strip()
             theirs.setdefault(t.get("RaceId"), []).append(rk)
         for rid, (rank, race, nm) in mine.items():
             tp = theirs.get(rid)
