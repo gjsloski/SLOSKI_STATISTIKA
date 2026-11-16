@@ -173,7 +173,7 @@ function addPerson(p,r,x){const k=pkey(r,x),id=(SPFX[r.sport]||r.sport)+"|"+(x.i
   if(r.g!=="X"&&q.g==="X")q.g=r.g;q.sports.add(r.sport);if(x.id)q.ids.add(id);q.items.push({r:x.r,x:x.x,race:r})}
 let MODE="winter";
 const SUMMER_SPORTS=["Smučarski skoki","Nordijska kombinacija"];
-const CHAMP_SPORTS=["Alpsko smučanje","Smučarski skoki","Nordijska kombinacija","Biatlon"];
+const CHAMP_SPORTS=["Alpsko smučanje","Smučarski skoki","Smučarski teki","Nordijska kombinacija","Biatlon"];
 const isChamp=()=>MODE==="wsc"||MODE==="owg";
 function inMode(r){return MODE==="owg"?r.c==="OWG":MODE==="wsc"?r.c==="WSC":MODE==="summer"?!!r.summer&&!r.c:!r.summer&&!r.c}
 function seasonOfRace(r){return r.c?(r.c==="OWG"?"Olimpijske igre ":"Svetovno prvenstvo ")+r.d.slice(0,4):r.summer?"Poletje "+r.d.slice(0,4):seasonOf(r.d)}
@@ -215,7 +215,7 @@ const FIRST=1991,LAST=2026;
 function covText(lab){
   const c=(META.coverage||{})[lab];
   if(!c)return "še ni vneseno";
-  const names={alpine:"alpsko",jumping:"skoki",nordic:"kombinacija",biathlon:"biatlon"};
+  const names={alpine:"alpsko",jumping:"skoki",nordic:"kombinacija",biathlon:"biatlon",xc:"teki"};
   return Object.keys(c).map(k=>(names[k]||k)+": "+c[k]).join(" · ");
 }
 function seasonOf(d){const y=+d.slice(0,4),m=+d.slice(5,7),s=m>=8?y:y-1;return s+"/"+String(s+1).slice(2)}
