@@ -1141,6 +1141,53 @@ def probe_team(spec):
                             break
 
 
+def probe_parse(spec):
+    """SEKTOR:raceid[:kategorija] - kaj skripta naredi s to stranjo tekme: glava, seje z oznakami, status razclenitve in rezultat."""
+    for item in [x.strip() for x in spec.split(",") if x.strip()]:
+        parts = item.split(":")
+        sec, rid = parts[0], parts[1]
+        cat = parts[2] if len(parts) > 2 else "WC"
+        sk = next((k for k, c in SPORTS.items() if c["code"] == sec), None)
+        html = get(f"{BASE}/DB/general/results.html?sectorcode={sec}&raceid={rid}")
+        if not html or not sk:
+            log(f"RAZCLENITEV {item}: ni dosegljiva")
+            continue
+        soup = BeautifulSoup(html, "html.parser")
+        lines = [l for l in soup.get_text("\n", strip=True).split("\n") if l]
+        log(f"RAZCLENITEV {item}: glava {lines[:14]}")
+        log(f"RAZCLENITEV {item}: seje {[m.group(0)[:90] for m in TYPE_RE.finditer(' '.join(lines[:90]))][:8]}")
+        try:
+            status, race = parse_race(html, sk, rid, {}, cat)
+        except Exception as ex:  # noqa: BLE001
+            status, race = f"napaka {ex!r}", None
+        log(f"RAZCLENITEV {item}: status={status} tekma={race and {k: race[k] for k in ('d', 'disc', 'g', 't', 'res') if k in race}}")
+
+
+def probe_ath(spec):
+    """SEKTOR:competitorid:sezona[:kategorija] - vse vrstice strani sportnika (celice), da vidimo, kako FIS zapise tekme."""
+    for item in [x.strip() for x in spec.split(",") if x.strip()]:
+        parts = item.split(":")
+        sec, cid, season = parts[0], parts[1], parts[2]
+        cat = parts[3] if len(parts) > 3 else ""
+        extra = f"&categorycode={cat}&sort=&place=&disciplinecode=&position=&limit=100" if cat else ""
+        html = get(f"{BASE}/DB/general/athlete-biography.html?sectorcode={sec}&seasoncode={season}&competitorid={cid}&type=result{extra}")
+        if not html:
+            log(f"STRAN-SPORTNIKA {item}: ni dosegljiva")
+            continue
+        cells = athlete_row_cells(html)
+        parsed = parse_athlete_results(html)
+        log(f"STRAN-SPORTNIKA {item}: vrstic {len(cells)}, razclenjenih {len(parsed)}")
+        for rid, c in list(cells.items())[:70]:
+            log(f"STRAN-SPORTNIKA {item} raceid={rid} razclenjeno={'da' if rid in parsed else 'NE'} celice={c[:13]}")
+
+
+def probe_spec(spec):
+    """Mesan seznam: PR:CC:4316[:WC] (razclenitev tekme), AT:CC:64404:2019[:WSC] (stran sportnika), PF:CC:33935 (ekipa/clani), PC:CC:2014:OWG (dogodki)."""
+    for item in [x.strip() for x in spec.split(",") if x.strip()]:
+        kind, _, rest = item.partition(":")
+        {"PR": probe_parse, "AT": probe_ath, "PF": probe_find, "PC": probe_cat, "PT": probe_team2}.get(kind.upper(), lambda r: log(f"neznana vrsta {kind}"))(rest)
+
+
 def probe(spec):
     """Samo bere: za izbrane tekme izpise vse vrstice 'datum - naslov | oznaka' (brez sprememb podatkov)."""
     by_code = {cfg["code"]: cfg for cfg in SPORTS.values()}
@@ -1675,6 +1722,7 @@ def main():
     ap.add_argument("--probe", help="samo bere oznake vrst za tekme, npr. JP:6696,JP:7566")
     ap.add_argument("--redo", action="store_true", help="ponovno prebere ekipne tekme OWG/WSC iz REDO_CHAMP_RACES")
     ap.add_argument("--champs", action="store_true", help="zbere samo olimpijske igre (OWG) in svetovna prvenstva (WSC) od sezone --from-season")
+    ap.add_argument("--probe-spec", help="PR:CC:4316,AT:CC:64404:2019,PF:CC:33935,PC:CC:2014:OWG (razclenitev tekme, stran sportnika, ekipa, dogodki)")
     ap.add_argument("--probe-find", help="SEKTOR:raceid[:competitorid], npr. AL:109199:146979,NK:2949,AL:131579")
     ap.add_argument("--list-names", action="store_true", help="izpise vsa imena tekmovalcev (za popravke sumnikov)")
     ap.add_argument("--biathlon", action="store_true", help="zbere samo biatlon (IBU) od sezone --from-season")
@@ -1693,6 +1741,10 @@ def main():
     if args.probe_ibu:
         probe_ibu(args.probe_ibu)
         return 0
+    if args.probe_spec:
+        probe_spec(args.probe_spec)
+        return 0
+
     if args.probe_find:
         probe_find(args.probe_find)
         return 0
