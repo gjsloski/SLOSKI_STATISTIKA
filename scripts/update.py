@@ -31,8 +31,9 @@ SPORTS = {
     "alpine": {"code": "AL", "path": "alpine-skiing", "label": "Alpsko smučanje"},
     "jumping": {"code": "JP", "path": "ski-jumping", "label": "Smučarski skoki"},
     "nordic": {"code": "NK", "path": "nordic-combined", "label": "Nordijska kombinacija"},
+    "xc": {"code": "CC", "path": "cross-country", "label": "Smučarski teki"},
 }
-WINTER_SPORTS = ["alpine", "jumping"]
+WINTER_SPORTS = ["alpine", "jumping", "xc"]
 SUMMER_SPORTS = ["jumping", "nordic"]
 FIRST_SEASON = 1992  # prva sezona, ki jo zbiramo (1991/92)
 SUMMER_FROM = 2027  # koda sezone FIS (2027 = julij 2026 - junij 2027), torej poletje 2026
@@ -50,6 +51,19 @@ DISC = [
     ("Large Hill", "Velika skakalnica"),
     ("Normal Hill", "Normalna skakalnica"),
     ("Gundersen", "Gundersen"),
+]
+# Smucarski teki: vrstni red je pomemben (prva ujemajoca beseda v naslovu tekme)
+DISC_CC = [
+    ("Team Sprint", "Ekipni šprint"),
+    ("Relay", "Štafeta"),
+    ("Skiathlon", "Skiatlon"),
+    ("Duathlon", "Skiatlon"),
+    ("Pursuit", "Zasledovanje"),
+    ("Mass Start", "Skupinski start"),
+    ("Final Climb", "Zadnji vzpon"),
+    ("Sprint", "Šprint"),
+    ("Interval Start", "Posamični start"),
+    ("Individual", "Posamični start"),
 ]
 DISC.sort(key=lambda kv: 0 if kv[0] == "Gundersen" else 1)  # nordijska kombinacija: ime discipline je Gundersen, ne skakalnica
 
@@ -110,7 +124,7 @@ MONTH_RE = r"(January|February|March|April|May|June|July|August|September|Octobe
 DATE_RE = re.compile(r"^" + MONTH_RE + r" \d{1,2}, \d{4}$")
 TITLE_RE = re.compile(r"^(Men|Women|Ladies|Mixed|Team)\b")
 STOP_RE = re.compile(r"^(Did not|Did Not|Disqualified|Not qualified|DNF|DSQ|DNS|DNQ)", re.I)
-SKIP_WORDS = ("Relay", "Standings")
+SKIP_WORDS = ("Standings",)
 TEAM_RE = re.compile(r"\bTeam\b")
 TYPE_RE = re.compile(r"\d{1,2}\.\d{1,2}\.\d{4}\s*-\s*[^|]{3,90}\|\s*([A-Za-z]{2,6})\b")
 # oznake vrste tekme na FIS: WC = tekma, TRA = trening, COM = etapa kombinacije, kvalifikacije in poskusne serije
@@ -425,13 +439,16 @@ def parse_race(html, sport_key, raceid, extra_names, cat="WC", trusted=False):
     ti = head.index(title)
     if any(QUAL_RE.search(l) for l in head[ti:ti + 3] if len(l) < 90):
         return "skip", None
-    is_team = bool(TEAM_RE.search(title)) or title.startswith("Mixed")
+    is_team = bool(TEAM_RE.search(title)) or title.startswith("Mixed") or "Relay" in title
     gender = "M" if title.startswith("Men") else ("X" if title.startswith(("Mixed", "Team")) else "Ž")
     disc = None
-    for key, sl in DISC:
+    for key, sl in (DISC_CC if cfg["code"] == "CC" else DISC):
         if key.lower() in title.lower():
             disc = sl
             break
+    if disc is None and cfg["code"] == "CC":
+        m = re.search(r"(\d+(?:[.,]\d+)?)\s*km", title, re.I)
+        disc = f"{m.group(1).replace(',', '.')} km" if m else None  # npr. 10 km, 15 km (tehnika ni del discipline)
     if disc is None:
         disc = re.sub(r"^(Men|Women|Ladies)['’]?s?\s*", "", title).strip() or title
 
@@ -718,7 +735,7 @@ def probe_team2(spec):
                     continue
                 lines = [l for l in BeautifulSoup(rhtml, "html.parser").get_text("\n", strip=True).split("\n") if l][:90]
                 title = next((l for l in lines if TITLE_RE.match(l) and len(l) < 90), "")
-                if re.search(r"Team", title) and not done:
+                if re.search(r"Team|Relay", title) and not done:
                     log(f"ALTEAM {item} raceid={rid} {title}")
                     _probe_team_race(sec, f"{sec}:{rid}", rid)
                     done = True
@@ -1065,7 +1082,7 @@ def probe_cat(spec):
                 codes = [m.group(1) for m in TYPE_RE.finditer(" ".join(head))]
                 has_rank = any(l.strip().lower() == "rank" for l in lines)
                 slo = []
-                if TEAM_RE.search(title) or title.startswith("Mixed"):
+                if TEAM_RE.search(title) or title.startswith("Mixed") or "Relay" in title:
                     tr = team_result(sp, {})
                     slo = [f"{x['r']}. {x['n']}" for x in (tr or [])]
                 else:
@@ -1642,7 +1659,7 @@ def main():
     ap.add_argument("--from-season", type=int, default=1992, help="zimska sezona: koda = koncno leto (1992 = 1991/92)")
     ap.add_argument("--no-summer", action="store_true", help="preskoci poletno sezono (Grand Prix)")
     ap.add_argument("--max-minutes", type=int, default=330)
-    ap.add_argument("--reset-sport", help="(alpine, jumping, nordic ali vec z vejicami) zavrze zbrane podatke tega sporta (zimske in poletne) in jih zbere znova")
+    ap.add_argument("--reset-sport", help="(alpine, jumping, nordic, xc ali vec z vejicami) zavrze zbrane podatke tega sporta (zimske in poletne) in jih zbere znova")
     ap.add_argument("--refilter", action="store_true", help="ponovno preveri ze shranjene tekme z novim filtrom in odstrani neprave")
     ap.add_argument("--recheck", help="odstrani te tekme iz seznama ze obdelanih (npr. AL:49869,JP:4401), da se obdelajo znova")
     ap.add_argument("--probe", help="samo bere oznake vrst za tekme, npr. JP:6696,JP:7566")
@@ -1797,7 +1814,7 @@ def main():
     champ_jobs = []
     for code in ([cur] if args.mode == "weekly" and not args.champs else list(range(cur, args.from_season - 1, -1))):
         for cat in ("OWG", "WSC"):
-            for sk in ("alpine", "jumping", "nordic"):
+            for sk in ("alpine", "jumping", "nordic", "xc"):
                 champ_jobs.append((code, sk, cat, f"{CHAMP_NAMES[cat]} {code}", code < cur))
     if args.champs:
         jobs = champ_jobs
