@@ -344,7 +344,7 @@ def parse_team_page(soup):
         if ti is not None:
             cur = next((t for t in teams if t["tid"] == cid and t["nat"] == tk[ti]), None)
             if cur is None:
-                cur = {"rank": int(tk[0]), "nat": tk[ti], "tid": cid, "members": [], "name": " ".join(tk[2:ti])}
+                cur = {"rank": int(tk[0]), "nat": tk[ti], "tid": cid, "members": [], "name": " ".join(t for t in tk[1:ti] if not t.isdigit())}
                 teams.append(cur)
             continue
         m = parse_member(text, href)
@@ -354,6 +354,10 @@ def parse_team_page(soup):
             if cur is not None:
                 cur["members"].append(m)
     return teams, persons
+
+
+# Slovaki, ki jih je FIS pri starih ekipnih tekmah vodil pod oznako SLO (Bajcicak, Batory, Malak, Prochazkova, Bukvajova ...)
+NOT_SLO_CC = {"2575", "3323", "37158", "70424", "7912", "101716"}
 
 
 def is_slo_team(t):
@@ -378,7 +382,7 @@ def team_result(soup, extra_names):
             if m["nat"] != "SLO" and m["cid"] not in EXTRA_SLO:
                 continue
             rank = slo_rank
-        if rank is None or rank > 30 or not m["cid"] or m["cid"] in seen:
+        if rank is None or rank > 30 or not m["cid"] or m["cid"] in seen or m["cid"] in NOT_SLO_CC:
             continue
         seen.add(m["cid"])
         item = {"n": fix_name(m["name"], m["cid"], extra_names), "r": rank}
@@ -441,6 +445,10 @@ def parse_race(html, sport_key, raceid, extra_names, cat="WC", trusted=False):
             # teki: oznake so lahko vec (WC, SWC = etape Tour de Ski / posebne tekme SP, SPWQ, TSPQ ...); svetovno prvenstvo ima oznako FIS
             allowed = {"WC": ("WC", "SWC"), "WSC": ("WSC", "FIS")}.get(cat, (cat,))
             own_code = cat if any(c in allowed for c in own_codes) else own_codes[0]
+    if cfg["code"] == "CC" and cat == "WC" and not trusted:
+        ch = next((c for c in ("OWG", "WSC") if c in own_codes), None)
+        if ch:  # npr. Albertville 1992: stran ima oznako OWG in WC, FIS pa jo pri sportniku vodi kot OI
+            return parse_race(html, sport_key, raceid, extra_names, ch, trusted)
     if cfg["code"] == "CC" and not champ and not trusted:
         if own_code is None:
             if not any(needle.lower() in l.lower() for l in head):
