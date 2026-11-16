@@ -344,7 +344,7 @@ def parse_team_page(soup):
         if ti is not None:
             cur = next((t for t in teams if t["tid"] == cid and t["nat"] == tk[ti]), None)
             if cur is None:
-                cur = {"rank": int(tk[0]), "nat": tk[ti], "tid": cid, "members": []}
+                cur = {"rank": int(tk[0]), "nat": tk[ti], "tid": cid, "members": [], "name": " ".join(tk[2:ti])}
                 teams.append(cur)
             continue
         m = parse_member(text, href)
@@ -356,17 +356,22 @@ def parse_team_page(soup):
     return teams, persons
 
 
+def is_slo_team(t):
+    """FIS je v nekaterih starih tekmah Slovaska zapisal z oznako SLO (npr. Davos 2007: 'SLOVAKIA SLO')."""
+    return t["nat"] == "SLO" and not str(t.get("name", "")).upper().startswith("SLOVAK")
+
+
 def team_result(soup, extra_names):
     """Slovenski clani ekip z mestom ekipe. Vrne seznam {'n','r','id'} ali None, ce strani ni (odpovedana tekma)."""
     teams, persons = parse_team_page(soup)
     if not teams:
         return None
-    slo_rank = next((t["rank"] for t in teams if t["nat"] == "SLO"), None)
+    slo_rank = next((t["rank"] for t in teams if is_slo_team(t)), None)
     res, seen = [], set()
     for m in persons:
         cur = m["team"]
         if m["nat"] is None and cur is not None:
-            if cur["nat"] != "SLO" and m["cid"] not in EXTRA_SLO:
+            if not is_slo_team(cur) and m["cid"] not in EXTRA_SLO:
                 continue
             rank = cur["rank"]
         else:
@@ -376,7 +381,10 @@ def team_result(soup, extra_names):
         if rank is None or rank > 30 or not m["cid"] or m["cid"] in seen:
             continue
         seen.add(m["cid"])
-        res.append({"n": fix_name(m["name"], m["cid"], extra_names), "r": rank, "id": int(m["cid"])})
+        item = {"n": fix_name(m["name"], m["cid"], extra_names), "r": rank}
+        if m["cid"] != "0":  # FIS ima pri redkih clanih povezavo brez competitorid (id 0): brez id, da se ne zdruzijo razlicni ljudje
+            item["id"] = int(m["cid"])
+        res.append(item)
     return res
 
 
@@ -481,6 +489,12 @@ def parse_race(html, sport_key, raceid, extra_names, cat="WC", trusted=False):
             race["summer"] = True
         elif champ:
             race["c"] = cat
+        if cfg["code"] == "CC" and race["res"] and (champ or "Team Sprint" in title or "Relay" in title):
+            v = cc_verified(race, cat, raceid)
+            if v is None:
+                return "fail", None
+            if not v:
+                return "skip", None
         return "ok", race
 
     ranked, stopped = [], False
@@ -540,6 +554,12 @@ def parse_race(html, sport_key, raceid, extra_names, cat="WC", trusted=False):
         race["summer"] = True
     elif champ:
         race["c"] = cat
+    if cfg["code"] == "CC" and champ and race["res"]:
+        v = cc_verified(race, cat, raceid)
+        if v is None:
+            return "fail", None
+        if not v:
+            return "skip", None
     return "ok", race
 
 
@@ -548,6 +568,25 @@ def parse_race(html, sport_key, raceid, extra_names, cat="WC", trusted=False):
 
 ATH_CACHE = {}
 TEAMS_DONE = None  # mnozica kljucev, ki so ze bili ponovno obdelani v nacinu --teams
+
+
+def cc_verified(race, cat, raceid):
+    """Teki: strani z istim naslovom imajo polfinale/kvalifikacije (TSPSF, TSPQ) ali tekme, ki niso prvenstvo (oznaka FIS).
+    Stran je tekma za uvrstitve le, ce jo ima slovenski clan na svoji strani FIS v pravi kategoriji (WC/WSC/OWG) z istim mestom.
+    Vrne True/False, None ce strani sportnika ni mogoce prebrati."""
+    season = season_code_of(race["d"])
+    unreadable = False
+    for x in race["res"]:
+        if not x.get("id"):
+            continue
+        ar = athlete_results("CC", str(x["id"]), season, cat)
+        if ar is None:
+            unreadable = True
+            continue
+        row = ar.get(str(raceid))
+        if row and row["pos"].isdigit():
+            return True
+    return None if unreadable else False
 
 
 def season_code_of(date):
@@ -560,7 +599,7 @@ ATH_ROW_RE = re.compile(
     r"(?P<disc>.+?)\s+(?P<pos>\d{1,3}|(?:DNF|DNS|DSQ|DNQ|NPS|DQ|PEN|LAP)\d?)(?:\s+[\d.\-]+)*\s*$")
 
 
-POS_RE = re.compile(r"^(\d{1,3}|(?:DNF|DNS|DSQ|DNQ|NPS|DQ|PEN|LAP)\d?)$")
+POS_RE = re.compile(r"^(\d{1,3}(?: \(\d{1,3}\))?|(?:DNF|DNS|DSQ|DNQ|NPS|DQ|PEN|LAP)\d?)$")
 CAT_NAMES = {"World Cup": "WC", "Grand Prix": "GP"}
 
 
@@ -593,7 +632,7 @@ def parse_athlete_results(html):
             i = next((j + 2 for j in range(4, len(cells) - 4)
                       if cells[j] == cells[j + 1] and re.fullmatch(r"[A-Z]{2,5}", cells[j]) and not POS_RE.match(cells[j])), None)
         if i is not None and i >= 1 and i + 2 < len(cells) and POS_RE.match(cells[i + 2]):
-            out[rid] = {"date": cells[0], "cat": cells[i], "code": cells[i - 1], "disc": cells[i + 1], "pos": cells[i + 2]}
+            out[rid] = {"date": cells[0], "cat": cells[i], "code": cells[i - 1], "disc": cells[i + 1], "pos": cells[i + 2].split()[0]}
             continue
         # drugi zapis (vrstica kot eno besedilo: 'datum kraj DRZ World Cup disciplina uvrstitev ...')
         m = ATH_ROW_RE.match(re.sub(r"\s+", " ", " ".join(cells)).strip())
