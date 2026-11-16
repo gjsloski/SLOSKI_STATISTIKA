@@ -1,0 +1,227 @@
+{
+ "updated": "2026-11-16",
+ "preverjenih": 53,
+ "nepreverjenih": 0,
+ "nesklad": [
+  {
+   "n": "Jakov Fak",
+   "ibu_id": "BTCRO10108198701",
+   "raceid": "BT1011SWRLCP06SMMS",
+   "d": "2011-01-22",
+   "place": "Antholz-Anterselva (ITA)",
+   "disc": "Skupinski start",
+   "nase": 24,
+   "ibu": "=24"
+  },
+  {
+   "n": "Jakov Fak",
+   "ibu_id": "BTCRO10108198701",
+   "raceid": "BT1415SWRLCP04SMSP",
+   "d": "2015-01-10",
+   "place": "Oberhof (GER)",
+   "disc": "Šprint",
+   "nase": 16,
+   "ibu": "=16"
+  },
+  {
+   "n": "Jakov Fak",
+   "ibu_id": "BTCRO10108198701",
+   "raceid": "BT1819SWRLCH__SMSP",
+   "d": "2019-03-09",
+   "place": "Oestersund (SWE)",
+   "disc": "Šprint",
+   "nase": 17,
+   "ibu": "=17"
+  },
+  {
+   "n": "Klemen Bauer",
+   "ibu_id": "BTSLO10901198601",
+   "raceid": "BT1112SWRLCP08SMSP",
+   "d": "2012-02-11",
+   "place": "Kontiolahti (FIN)",
+   "disc": "Šprint",
+   "nase": 24,
+   "ibu": "=24"
+  },
+  {
+   "n": "Klemen Bauer",
+   "ibu_id": "BTSLO10901198601",
+   "raceid": "BT1415SWRLCP07SMSP",
+   "d": "2015-02-07",
+   "place": "Nove Mesto na Morave (CZE)",
+   "disc": "Šprint",
+   "nase": 24,
+   "ibu": "=24"
+  },
+  {
+   "n": "Klemen Bauer",
+   "ibu_id": "BTSLO10901198601",
+   "raceid": "BT1718SWRLCP02SMSP",
+   "d": "2017-12-08",
+   "place": "Hochfilzen (AUT)",
+   "disc": "Šprint",
+   "nase": 22,
+   "ibu": "=22"
+  },
+  {
+   "n": "Klemen Bauer",
+   "ibu_id": "BTSLO10901198601",
+   "raceid": "BT1819SWRLCH__SMSP",
+   "d": "2019-03-09",
+   "place": "Oestersund (SWE)",
+   "disc": "Šprint",
+   "nase": 17,
+   "ibu": "=17"
+  },
+  {
+   "n": "Janez Marič",
+   "ibu_id": "BTSLO11008197501",
+   "raceid": "BT0809SWRLCP03SMIN",
+   "d": "2008-12-18",
+   "place": "Hochfilzen (AUT)",
+   "disc": "Individualna",
+   "nase": 29,
+   "ibu": "=29"
+  },
+  {
+   "n": "Jože Poklukar",
+   "ibu_id": "BTSLO13001197301",
+   "raceid": "BT9697SWRLCP01SMSP",
+   "d": "1996-11-30",
+   "place": "Lillehammer (NOR)",
+   "disc": "Šprint",
+   "nase": 26,
+   "ibu": "=26"
+  },
+  {
+   "n": "Andreja Koblar",
+   "ibu_id": "BTSLO20209197101",
+   "raceid": "BT0001SWRLCP02SWSP",
+   "d": "2000-12-07",
+   "place": "Pokljuka/Antholz-Anterselva (SLO/ITA)",
+   "disc": "Šprint",
+   "nase": 19,
+   "ibu": "=19"
+  },
+  {
+   "n": "Dijana Ravnikar",
+   "ibu_id": "BTSLO20406197801",
+   "raceid": "BT0607SWRLCP05SWSP",
+   "d": "2007-01-12",
+   "place": "Ruhpolding (GER)",
+   "disc": "Šprint",
+   "nase": 28,
+   "ibu": "=28"
+  },
+  {
+   "n": "Dijana Ravnikar",
+   "ibu_id": "BTSLO20406197801",
+   "raceid": "BT0910SWRLCP01SWSP",
+   "d": "2009-12-05",
+   "place": "Oestersund (SWE)",
+   "disc": "Šprint",
+   "nase": 25,
+   "ibu": "=25"
+  },
+  {
+   "n": "Andreja Mali",
+   "ibu_id": "BTSLO21711197701",
+   "raceid": "BT0405SWRLCP02SWSP",
+   "d": "2004-12-11",
+   "place": "Oslo Holmenkollen (NOR)",
+   "disc": "Šprint",
+   "nase": 8,
+   "ibu": "=8"
+  },
+  {
+   "n": "Andreja Mali",
+   "ibu_id": "BTSLO21711197701",
+   "raceid": "BT0607SWRLCP09SWSP",
+   "d": "2007-03-15",
+   "place": "Khanty-Mansiysk (RUS)",
+   "disc": "Šprint",
+   "nase": 23,
+   "ibu": "=23"
+  },
+  {
+   "n": "Andreja Mali",
+   "ibu_id": "BTSLO21711197701",
+   "raceid": "BT0809SWRLCP07SWIN",
+   "d": "2009-03-11",
+   "place": "Whistler (CAN)",
+   "disc": "Individualna",
+   "nase": 28,
+   "ibu": "=28"
+  },
+  {
+   "n": "Andreja Mali",
+   "ibu_id": "BTSLO21711197701",
+   "raceid": "BT0910SWRLCP01SWSP",
+   "d": "2009-12-05",
+   "place": "Oestersund (SWE)",
+   "disc": "Šprint",
+   "nase": 25,
+   "ibu": "=25"
+  },
+  {
+   "n": "Tadeja Brankovič",
+   "ibu_id": "BTSLO22012197901",
+   "raceid": "BT9697SWRLCP05SWSP",
+   "d": "1997-01-11",
+   "place": "Ruhpolding (GER)",
+   "disc": "Šprint",
+   "nase": 25,
+   "ibu": "=25"
+  },
+  {
+   "n": "Tadeja Brankovič",
+   "ibu_id": "BTSLO22012197901",
+   "raceid": "BT0102SWRLCP03SWSP",
+   "d": "2001-12-21",
+   "place": "Brezno-Osrblie (SVK)",
+   "disc": "Šprint",
+   "nase": 11,
+   "ibu": "=11"
+  },
+  {
+   "n": "Tadeja Brankovič",
+   "ibu_id": "BTSLO22012197901",
+   "raceid": "BT0203SWRLCP02SWSP",
+   "d": "2002-12-13",
+   "place": "Pokljuka/Oestersund (SLO/SWE)",
+   "disc": "Šprint",
+   "nase": 25,
+   "ibu": "=25"
+  },
+  {
+   "n": "Tadeja Brankovič",
+   "ibu_id": "BTSLO22012197901",
+   "raceid": "BT0405SWRLCP02SWSP",
+   "d": "2004-12-11",
+   "place": "Oslo Holmenkollen (NOR)",
+   "disc": "Šprint",
+   "nase": 2,
+   "ibu": "=2"
+  },
+  {
+   "n": "Teja Gregorin",
+   "ibu_id": "BTSLO22906198001",
+   "raceid": "BT0506SWRLOG__SWSP",
+   "d": "2006-02-16",
+   "place": "Torino (ITA)",
+   "disc": "Šprint",
+   "nase": 14,
+   "ibu": "=14"
+  },
+  {
+   "n": "Teja Gregorin",
+   "ibu_id": "BTSLO22906198001",
+   "raceid": "BT1213SWRLCP02SWSP",
+   "d": "2012-12-07",
+   "place": "Hochfilzen (AUT)",
+   "disc": "Šprint",
+   "nase": 7,
+   "ibu": "=7"
+  }
+ ]
+}
