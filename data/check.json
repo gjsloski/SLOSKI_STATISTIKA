@@ -1,45 +1,19 @@
 {
  "updated": "2026-11-17",
- "preverjenih_sezon": 1656,
+ "preverjenih_sezon": 1659,
  "nepreverjenih": 0,
  "nesklad": [
   {
    "n": "Barbara Jezersek",
-   "sezona": "2013/14",
-   "raceid": "22355",
-   "d": "14-12-2013",
+   "sezona": "2016/17",
+   "raceid": "27739",
+   "d": "02-03-2017",
    "place": "",
-   "disc": "Interval Start",
+   "disc": "Team",
    "nase": null,
-   "fis": "23",
+   "fis": "15",
    "cid": "215895",
-   "cat": "WC",
-   "sec": "CC"
-  },
-  {
-   "n": "Eva Urevc",
-   "sezona": "2021/22",
-   "raceid": "39191",
-   "d": "28-12-2021",
-   "place": "",
-   "disc": "Sprint Final",
-   "nase": null,
-   "fis": "30",
-   "cid": "154317",
-   "cat": "WC",
-   "sec": "CC"
-  },
-  {
-   "n": "Anja Mandeljc",
-   "sezona": "2022/23",
-   "raceid": "41627",
-   "d": "24-03-2023",
-   "place": "",
-   "disc": "Team Sprint",
-   "nase": null,
-   "fis": "16",
-   "cid": "194004",
-   "cat": "WC",
+   "cat": "WSC",
    "sec": "CC"
   }
  ]
