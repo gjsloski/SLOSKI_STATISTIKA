@@ -1,20 +1,6 @@
 {
  "updated": "2026-11-17",
- "preverjenih_sezon": 1659,
+ "preverjenih_sezon": 1657,
  "nepreverjenih": 0,
- "nesklad": [
-  {
-   "n": "Barbara Jezersek",
-   "sezona": "2016/17",
-   "raceid": "27739",
-   "d": "02-03-2017",
-   "place": "",
-   "disc": "Team",
-   "nase": null,
-   "fis": "15",
-   "cid": "215895",
-   "cat": "WSC",
-   "sec": "CC"
-  }
- ]
+ "nesklad": []
 }
