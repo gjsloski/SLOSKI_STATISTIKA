@@ -1332,6 +1332,42 @@ def page_is_skipped(sec, rid):
     return _SKIP_PAGE[k]
 
 
+def diagnose_race(sec, rid, cat, cids):
+    """Za neskladje izpise, kaj je na FIS strani tekme in kaj iz nje razbere nasa koda (samo bere)."""
+    sport_key = next((k for k, c in SPORTS.items() if c["code"] == sec), None)
+    html = get(f"{BASE}/DB/general/results.html?sectorcode={sec}&raceid={rid}")
+    if not html or not sport_key:
+        log(f"  DIAGNOZA {sec}:{rid}: stran ni dosegljiva")
+        return
+    soup = BeautifulSoup(html, "lxml") if _has_lxml() else BeautifulSoup(html, "html.parser")
+    lines = [l for l in soup.get_text("\n", strip=True).split("\n") if l]
+    head = lines[:90]
+    title = next((l for l in head if TITLE_RE.match(l) and len(l) < 90), None)
+    codes = [m.group(0)[:70] for m in TYPE_RE.finditer(" ".join(head))]
+    try:
+        status, race = parse_race(html, sport_key, rid, {}, cat)
+    except Exception as e:  # noqa: BLE001
+        status, race = f"napaka {e}", None
+    log(f"  DIAGNOZA {sec}:{rid} ({cat}): naslov={title!r} status={status} nas_rezultat="
+        f"{[(x['n'], x['r']) for x in race['res']] if race else None}")
+    log(f"  DIAGNOZA {sec}:{rid}: seje na strani={codes[:12]}")
+    teams, persons = parse_team_page(soup)
+    log(f"  DIAGNOZA {sec}:{rid}: ekipe={[(t['rank'], t['nat'], t['name']) for t in teams[:40]]}")
+    shown = 0
+    for a_ in soup.find_all("a", href=True):
+        if "athlete-biography" not in a_["href"]:
+            continue
+        txt = a_.get_text(" ", strip=True)
+        cid_ = parse_qs(urlparse(a_["href"]).query).get("competitorid", [None])[0]
+        if cid_ in cids or " SLO" in txt:
+            log(f"  DIAGNOZA {sec}:{rid}: vrstica [{cid_}] {txt[:90]!r}")
+            shown += 1
+            if shown >= 14:
+                break
+    if not shown:
+        log(f"  DIAGNOZA {sec}:{rid}: na strani ni nobene slovenske vrstice ali iskanega ID")
+
+
 def check_races(races, today, deadline):
     """Vsako nasu uvrstitev slovenskega tekmovalca primerja z njegovo stranjo na FIS (po raceid). Zapise data/check.json."""
     by_label = {cfg["label"]: cfg["code"] for cfg in SPORTS.values()}
@@ -1359,7 +1395,7 @@ def check_races(races, today, deadline):
             tp = t["pos"] if t else None
             if not (tp and tp.isdigit() and int(tp) == rank):
                 issues.append({"n": name, "sezona": season_code_label(season), "raceid": rid, "d": race["d"],
-                               "place": race["place"], "disc": race["disc"], "nase": rank, "fis": tp})
+                               "place": race["place"], "disc": race["disc"], "nase": rank, "fis": tp, "cid": cid, "cat": cat, "sec": sec})
                 log(f"  NESKLAD {name} [{sec}:{cid}] {season_code_label(season)} {race['d']} {race['place']} {race['disc']} ({cat}): nase {rank}, FIS {tp} (raceid {rid})")
         for rid, t in theirs.items():
             if rid in mine or not t["pos"].isdigit() or int(t["pos"]) > 30:
@@ -1369,10 +1405,15 @@ def check_races(races, today, deadline):
             if page_is_skipped(sec, rid):
                 continue
             issues.append({"n": next((v[2] for v in mine.values()), cid), "sezona": season_code_label(season), "raceid": rid,
-                           "d": t["date"], "place": "", "disc": t["disc"], "nase": None, "fis": t["pos"]})
+                           "d": t["date"], "place": "", "disc": t["disc"], "nase": None, "fis": t["pos"], "cid": cid, "cat": cat, "sec": sec})
             mine_txt = "; ".join(f"{v[1]['d']} {v[1]['place']} {v[1]['disc']} #{v[0]}" for v in list(mine.values())[:3])
             log(f"  MANJKA {next((v[2] for v in mine.values()), cid)} [{sec}:{cid}] {season_code_label(season)} {t['date']} {t['disc']} ({cat}): "
                 f"FIS {t['pos']} (raceid {rid}), pri nas ni. Pri nas v sezoni ({len(mine)}): {mine_txt}")
+    diag = {}
+    for i in issues:
+        diag.setdefault((i["sec"], i["raceid"], i["cat"]), set()).add(str(i["cid"]))
+    for (sec_, rid, cat_), cids in list(diag.items())[:12]:
+        diagnose_race(sec_, rid, cat_, cids)
     n_ok = len(ours) - n_na - len({(i["n"], i["sezona"]) for i in issues})
     out = {"updated": today.isoformat(), "preverjenih_sezon": len(ours) - n_na, "nepreverjenih": n_na, "nesklad": issues}
     (DATA / "check.json").write_text(json.dumps(out, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
