@@ -135,6 +135,10 @@ BAD_TYPES = {"TRA", "COM", "QUA", "QUAL", "QUF", "Q", "TRI", "TRL", "PRO", "PCR"
 # Tekme svetovnega pokala, ki jih koledar FIS (kategorija WC) ne navaja, ker so voden kot svetovno prvenstvo v poletih (SFWC + WC):
 # Harrachov 1992, Planica 1994, Tauplitz/Bad Mitterndorf 1996 in 1998. Strani so preverjene s probe (naslov in oznaka 'WC').
 EXTRA_RACES = ["JP:1823", "JP:1822", "JP:1321", "JP:329", "JP:330", "JP:331", "JP:652", "JP:809"]  # zadnji dve: ekipni tekmi 1992 in 1995 (clani brez leta rojstva)
+EXTRA_SLO_CC = {"215895"}  # Barbara Jezersek: FIS jo je pri Davosu 14.12.2013 vodil pod AUS (competitorid velja samo za teke)
+INDIV_EXTRA = {
+    "CC:39191": [{"n": "Eva Urevc", "r": 30, "id": 154317}],  # Lenzerheide 28.12.2021, sprint (TdS), 30. mesto po strani sportnika
+}
 EXTRA_SLO = {"68518", "27683", "58901", "18035", "53613", "61013"}  # Zupan, Janus, Stirn, Franc Urban, Sarec Veronika, Tepes Miran
 # Strani, ki jih FIS vodi kot tekmo (OWG), a jih na straneh sportnikov NI med uvrstitvami (del olimpijske kombinacije):
 # Nagano 13.2.1998, smuk kot del kombinacije. Preverjeno: strani sportnikov Brezavsek in Pen tega raceid nimata.
@@ -279,7 +283,7 @@ def parse_row(text, href):
     surname = " ".join(w.title() for w in sur)
     name = f"{given} {surname}".strip()
     cid = parse_qs(urlparse(href).query).get("competitorid", [None])[0]
-    return {"cid": cid, "name": name, "rank": int(tokens[0]), "nat": tokens[y + nat_off]}
+    return {"cid": cid, "name": name, "rank": int(tokens[0]), "nat": tokens[y + nat_off], "nums": k}
 
 
 def parse_member(text, href):
@@ -512,11 +516,16 @@ def parse_race(html, sport_key, raceid, extra_names, cat="WC", trusted=False):
             if s and ranked and not stopped and node.find_parent("a") is None and STOP_RE.match(s):
                 stopped = True
             continue
-        if isinstance(node, Tag) and node.name == "a" and not stopped:
+        if isinstance(node, Tag) and node.name == "a":
             href = node.get("href", "")
             if "athlete-biography" not in href:
                 continue
             row = parse_row(node.get_text(" ", strip=True), href)
+            if row and stopped:
+                # teki (npr. TdS sprint): FIS za razdelkom 'Did not qualify' navede se vrstice z mestom do 30
+                # (rang, startna st., FIS koda); vrstice DNS/DNF imajo samo startno st. in kodo, torej < 3 vodilne stevilke
+                if not (cfg["code"] == "CC" and row.get("nums", 0) >= 3 and row["rank"] <= 30):
+                    row = None
             if row:
                 ranked.append(row)
     if len(ranked) < 5:
@@ -542,11 +551,16 @@ def parse_race(html, sport_key, raceid, extra_names, cat="WC", trusted=False):
     for r in ranked:
         if r["rank"] <= 30 and r["nat"] in ("JUG", "YUG") and r["cid"] not in EXTRA_SLO:
             log(f"  JUG/YUG v top 30: {r['name']} (competitorid {r['cid']}) {r['rank']}. mesto, {date} {place} - ni steto")
-        if (r["nat"] == "SLO" or r["cid"] in EXTRA_SLO) and r["rank"] <= 30:
+        if cfg["code"] == "CC" and any(y.get("id") == int(r["cid"] or 0) for y in res):
+            continue  # ista oseba dvakrat (npr. razdelek za 'Did not qualify')
+        if (r["nat"] == "SLO" or r["cid"] in EXTRA_SLO or (cfg["code"] == "CC" and r["cid"] in EXTRA_SLO_CC)) and r["rank"] <= 30:
             item = {"n": fix_name(r["name"], r["cid"], extra_names), "r": r["rank"]}
             if r["cid"]:
                 item["id"] = int(r["cid"])
             res.append(item)
+    for x in INDIV_EXTRA.get(f"{cfg['code']}:{raceid}", []):  # uvrstitev, ki jo FIS vodi pri sportniku, a je na strani tekme ni mogoce brati
+        if all(y.get("id") != x["id"] for y in res):
+            res.append(dict(x))
     race = {
         "id": f"{cfg['code'].lower()}-{raceid}",
         "fis": int(raceid),
@@ -1739,6 +1753,7 @@ def process_season(code, sport_key, races, state, cat, label, finished, extra_na
 
 
 TEAM_EXTRA = {  # FIS pri sportniku steje ekipni rezultat, na strani tekme pa ga ni med clani
+    "CC:41627": [{"n": "Anja Mandeljc", "r": 16, "id": 194004}],  # Lahti 24.3.2023, ekipni sprint Ž: kombinirana ekipa 'FIS', 16. mesto
     "AL:109199": [{"n": "Ana Bucik", "r": 7, "id": 146979}],  # OI Beijing 2022, ekipni paralelni slalom, 7. mesto (potrdil narocnik)
 }
 
