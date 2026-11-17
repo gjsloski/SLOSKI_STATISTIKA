@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-16",
+ "updated": "2026-11-17",
  "preverjenih_sezon": 1656,
  "nepreverjenih": 0,
  "nesklad": [
@@ -11,7 +11,10 @@
    "place": "",
    "disc": "Interval Start",
    "nase": null,
-   "fis": "23"
+   "fis": "23",
+   "cid": "215895",
+   "cat": "WC",
+   "sec": "CC"
   },
   {
    "n": "Eva Urevc",
@@ -21,7 +24,10 @@
    "place": "",
    "disc": "Sprint Final",
    "nase": null,
-   "fis": "30"
+   "fis": "30",
+   "cid": "154317",
+   "cat": "WC",
+   "sec": "CC"
   },
   {
    "n": "Anja Mandeljc",
@@ -31,7 +37,10 @@
    "place": "",
    "disc": "Team Sprint",
    "nase": null,
-   "fis": "16"
+   "fis": "16",
+   "cid": "194004",
+   "cat": "WC",
+   "sec": "CC"
   }
  ]
 }
