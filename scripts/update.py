@@ -135,7 +135,9 @@ BAD_TYPES = {"TRA", "COM", "QUA", "QUAL", "QUF", "Q", "TRI", "TRL", "PRO", "PCR"
 # Tekme svetovnega pokala, ki jih koledar FIS (kategorija WC) ne navaja, ker so voden kot svetovno prvenstvo v poletih (SFWC + WC):
 # Harrachov 1992, Planica 1994, Tauplitz/Bad Mitterndorf 1996 in 1998. Strani so preverjene s probe (naslov in oznaka 'WC').
 EXTRA_RACES = ["JP:1823", "JP:1822", "JP:1321", "JP:329", "JP:330", "JP:331", "JP:652", "JP:809"]  # zadnji dve: ekipni tekmi 1992 in 1995 (clani brez leta rojstva)
-EXTRA_SLO_CC = {"215895"}  # Barbara Jezersek: FIS jo je pri Davosu 14.12.2013 vodil pod AUS (competitorid velja samo za teke)
+# Barbara Jezersek: FIS jo je pri Davosu 14.12.2013 vodil pod AUS, ceprav je tekmovala za Slovenijo (kasneje res za Avstralijo, zato
+# velja samo za tekme pred datumom). competitorid velja samo za teke.
+EXTRA_SLO_CC = {"215895": "2014-07-01"}
 INDIV_EXTRA = {
     "CC:39191": [{"n": "Eva Urevc", "r": 30, "id": 154317}],  # Lenzerheide 28.12.2021, sprint (TdS), 30. mesto po strani sportnika
 }
@@ -553,7 +555,7 @@ def parse_race(html, sport_key, raceid, extra_names, cat="WC", trusted=False):
             log(f"  JUG/YUG v top 30: {r['name']} (competitorid {r['cid']}) {r['rank']}. mesto, {date} {place} - ni steto")
         if cfg["code"] == "CC" and any(y.get("id") == int(r["cid"] or 0) for y in res):
             continue  # ista oseba dvakrat (npr. razdelek za 'Did not qualify')
-        if (r["nat"] == "SLO" or r["cid"] in EXTRA_SLO or (cfg["code"] == "CC" and r["cid"] in EXTRA_SLO_CC)) and r["rank"] <= 30:
+        if (r["nat"] == "SLO" or r["cid"] in EXTRA_SLO or (cfg["code"] == "CC" and date < EXTRA_SLO_CC.get(r["cid"], "0000"))) and r["rank"] <= 30:
             item = {"n": fix_name(r["name"], r["cid"], extra_names), "r": r["rank"]}
             if r["cid"]:
                 item["id"] = int(r["cid"])
