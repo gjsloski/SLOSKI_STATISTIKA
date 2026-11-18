@@ -545,12 +545,13 @@ def parse_race(html, sport_key, raceid, extra_names, cat="WC", trusted=False):
                 return "skip", None
         return "ok", race
 
-    ranked, stopped = [], False
+    ranked, stopped, stop_txt = [], False, ""
     for node in soup.descendants:
         if isinstance(node, NavigableString):
             s = str(node).strip()
-            if s and ranked and not stopped and node.find_parent("a") is None and STOP_RE.match(s):
+            if s and ranked and (not stopped or cfg["code"] == "SB") and node.find_parent("a") is None and STOP_RE.match(s):
                 stopped = True
+                stop_txt = s
             continue
         if isinstance(node, Tag) and node.name == "a":
             href = node.get("href", "")
@@ -558,10 +559,11 @@ def parse_race(html, sport_key, raceid, extra_names, cat="WC", trusted=False):
                 continue
             row = parse_row(node.get_text(" ", strip=True), href, lenient=(cfg["code"] == "SB"))
             if row and stopped and cfg["code"] == "SB":
-                # deskanje: pod 'Did not qualify' FIS navede se uvrstitve do 30 (rang, FIS koda, brez startne st.);
-                # sprejmemo le vrstice, katerih mesto je vecje od vseh dotlej sprejetih (vrstice DNS/DNF tega ne izpolnjejo zanesljivo)
-                top = max((x["rank"] for x in ranked), default=0)
-                if not (row["nums"] == 2 and top < row["rank"] <= 30):
+                # deskanje: pod razdelkom 'Did not qualify' FIS navede se uvrstitve do 30 (rang, FIS koda, brez startne st.);
+                # razdelki DNS / DNF / DSQ (nastopa ni bilo ali ni dokoncal) niso uvrstitve
+                low = stop_txt.lower()
+                bad = any(w in low for w in ("start", "finish", "disq", "dns", "dnf", "dsq"))
+                if not (row["nums"] == 2 and row["rank"] <= 30 and not bad and all(y["cid"] != row["cid"] for y in ranked)):
                     row = None
             elif row and stopped:
                 # teki (npr. TdS sprint): FIS za razdelkom 'Did not qualify' navede se vrstice z mestom do 30
@@ -1414,6 +1416,7 @@ def diagnose_race(sec, rid, cat, cids):
     log(f"  DIAGNOZA {sec}:{rid} ({cat}): naslov={title!r} status={status} nas_rezultat="
         f"{[(x['n'], x['r']) for x in race['res']] if race else None}")
     log(f"  DIAGNOZA {sec}:{rid}: seje na strani={codes[:12]}")
+    log(f"  DIAGNOZA {sec}:{rid}: razdelki={[l[:40] for l in lines if STOP_RE.match(l)][:8]}")
     teams, persons = parse_team_page(soup)
     log(f"  DIAGNOZA {sec}:{rid}: ekipe={[(t['rank'], t['nat'], t['name']) for t in teams[:40]]}")
     shown = 0
