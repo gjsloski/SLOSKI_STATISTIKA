@@ -66,6 +66,30 @@ td.sp{font-size:12px;color:var(--muted);text-align:left}
 .note{font-size:12px;color:var(--muted)}
 .empty{padding:20px;text-align:center;color:var(--muted)}
 .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.hl-wrap{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}
+.hl{appearance:none;border:0;font:inherit;text-align:left;cursor:pointer;display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:14px;color:#fff;
+  background:var(--led);position:relative;overflow:hidden;box-shadow:0 2px 8px rgba(24,74,103,.18);transition:transform .12s,box-shadow .12s}
+.hl::after{content:"";position:absolute;right:-34px;top:-34px;width:120px;height:120px;border-radius:50%;background:var(--sijaj);opacity:.45;pointer-events:none}
+.hl:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(24,74,103,.3)}
+.hl:focus-visible{outline:3px solid var(--smreka);outline-offset:2px}
+.hl[aria-expanded="true"]{box-shadow:inset 0 0 0 3px var(--sijaj),0 4px 14px rgba(24,74,103,.3)}
+.hl .ico{flex:0 0 auto;width:54px;height:54px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;position:relative;z-index:1}
+.hl .ico svg{width:38px;height:38px}
+.hl .ico.big{width:64px;height:64px}.hl .ico.big svg{width:52px;height:52px}
+.hl .ico.small{width:44px;height:44px}.hl .ico.small svg{width:26px;height:26px}
+.hl .txt{position:relative;z-index:1;min-width:0}
+.hl b{display:block;font-size:34px;line-height:1;font-weight:700;letter-spacing:-.5px}
+.hl .lab{display:block;font-size:14px;font-weight:600;margin-top:3px}
+.hl small{display:block;font-size:12px;margin-top:3px;color:#fff;opacity:.92}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin:0 3px 0 6px;vertical-align:-1px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.25)}
+.dot:first-child{margin-left:0}
+.dot.g1{background:#E3B93C}.dot.g2{background:#D5D8DF}.dot.g3{background:#CD8A56}
+.hl-det{margin-top:-4px}
+.hl-det table{min-width:0}
+.hl-det td.l,.hl-det th.l{text-align:left}
+.sumline{margin:0 2px 8px}
+@media (max-width:1000px){.hl-wrap{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:560px){.hl-wrap{grid-template-columns:1fr}.hl b{font-size:30px}}
 .kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center}
 .kpi b{display:block;font-size:24px;color:var(--accent);line-height:1.1}
 .kpi span{font-size:12px;color:var(--muted)}
@@ -114,11 +138,13 @@ footer{font-size:12px;color:var(--muted);padding:0 4px}
       <div class="scroll" id="jubOut" style="margin-top:8px"></div>
     </div>
   </div>
-  <div class="kpis">
-    <div class="kpi"><b id="k1">0</b><span id="k1l">tekem z uvrstitvami</span></div>
-    <div class="kpi"><b id="k2">0</b><span id="k2l">športnikov</span></div>
-    <div class="kpi"><b id="k3">0</b><span id="k3l">uvrstitev v top 30</span></div>
+  <div class="hl-wrap" id="hl">
+    <button type="button" class="hl" id="hl1" aria-expanded="false" aria-controls="hlDet"><span class="ico"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M14 3h8l4 14h-8z" fill="#fff" opacity=".9"/><path d="M34 3h-8l-4 14h8z" fill="#6CADDE"/><circle cx="24" cy="30" r="14" fill="#E3B93C" stroke="#B8902A" stroke-width="2"/><circle cx="24" cy="30" r="10" fill="none" stroke="#B8902A" stroke-width="1.5" opacity=".7"/><text x="24" y="36" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="700" font-size="17" fill="#8a6a14">1</text></svg></span><span class="txt"><b id="h1">0</b><span class="lab" id="h1l">zmag</span><small id="h1s"></small></span></button>
+    <button type="button" class="hl" id="hl2" aria-expanded="false" aria-controls="hlDet"><span class="ico big"><svg viewBox="0 0 48 48" aria-hidden="true"><defs><radialGradient id="gl" cx=".35" cy=".3" r=".85"><stop offset="0" stop-color="#fff"/><stop offset=".45" stop-color="#CFE6F6"/><stop offset="1" stop-color="#6CADDE"/></radialGradient></defs><path d="M15 43h18l-2-7H17z" fill="#184A67"/><rect x="13" y="42" width="22" height="4" rx="1.5" fill="#184A67"/><circle cx="24" cy="21" r="16" fill="url(#gl)" stroke="#fff" stroke-width="1.5"/><path d="M12 14c5-6 13-8 20-4" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" opacity=".9"/><path d="M24 5l2.4 5.6 6 .5-4.6 3.9 1.4 5.9L24 17.8l-5.2 3.1 1.4-5.9-4.6-3.9 6-.5z" fill="#fff" opacity=".55" transform="translate(0 9) scale(.9) translate(2.6 0)"/></svg></span><span class="txt"><b id="h2">0</b><span class="lab" id="h2l">velikih kristalnih globusov</span><small id="h2s"></small></span></button>
+    <button type="button" class="hl" id="hl4" aria-expanded="false" aria-controls="hlDet"><span class="ico small"><svg viewBox="0 0 48 48" aria-hidden="true"><defs><radialGradient id="gl2" cx=".35" cy=".3" r=".85"><stop offset="0" stop-color="#fff"/><stop offset=".45" stop-color="#CFE6F6"/><stop offset="1" stop-color="#6CADDE"/></radialGradient></defs><path d="M15 43h18l-2-7H17z" fill="#184A67"/><rect x="13" y="42" width="22" height="4" rx="1.5" fill="#184A67"/><circle cx="24" cy="21" r="16" fill="url(#gl2)" stroke="#fff" stroke-width="1.5"/><path d="M12 14c5-6 13-8 20-4" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" opacity=".9"/><path d="M24 5l2.4 5.6 6 .5-4.6 3.9 1.4 5.9L24 17.8l-5.2 3.1 1.4-5.9-4.6-3.9 6-.5z" fill="#fff" opacity=".55" transform="translate(0 9) scale(.9) translate(2.6 0)"/></svg></span><span class="txt"><b id="h4">0</b><span class="lab" id="h4l">malih kristalnih globusov</span><small id="h4s"></small></span></button>
+    <button type="button" class="hl" id="hl3" aria-expanded="false" aria-controls="hlDet"><span class="ico"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M13 3h8l5 15h-8z" fill="#E8483E"/><path d="M35 3h-8l-5 15h8z" fill="#fff" opacity=".9"/><circle cx="24" cy="31" r="13.5" fill="#D5D8DF" stroke="#8B8F9B" stroke-width="2"/><circle cx="24" cy="31" r="9.5" fill="none" stroke="#8B8F9B" stroke-width="1.5" opacity=".7"/><path d="M24 24.5l2 4.2 4.6.6-3.4 3.2.9 4.6-4.1-2.3-4.1 2.3.9-4.6-3.4-3.2 4.6-.6z" fill="#6B6F7B"/></svg></span><span class="txt"><b id="h3">0</b><span class="lab" id="h3l">medalj na SP in OI</span><small id="h3s"></small></span></button>
   </div>
+  <div class="card hl-det" id="hlDet" hidden></div>
   <div class="card">
     <div class="filters">
       <div><label for="fq">Iskanje športnika</label><input id="fq" type="search" placeholder="ime ali priimek" autocomplete="off"></div>
@@ -131,6 +157,7 @@ footer{font-size:12px;color:var(--muted);padding:0 4px}
       <div><label for="fr">Vrstni red</label><select id="fr"><option value="desc">Največ najprej</option><option value="asc">Najmanj najprej</option></select></div>
     </div>
   </div>
+  <p class="note sumline"><b id="k1">0</b> <span id="k1l"></span> · <b id="k2">0</b> <span id="k2l"></span> · <b id="k3">0</b> <span id="k3l"></span> <span>(po izbranih filtrih)</span></p>
   <div class="tabs" role="tablist">
     <button class="tab" role="tab" data-t="name" aria-selected="true">Po športnikih</button>
     <button class="tab" role="tab" data-t="sport" aria-selected="false">Po panogah</button>
@@ -178,6 +205,93 @@ const isChamp=()=>MODE==="wsc"||MODE==="owg";
 function inMode(r){return MODE==="owg"?r.c==="OWG":MODE==="wsc"?r.c==="WSC":MODE==="summer"?!!r.summer&&!r.c:!r.summer&&!r.c}
 function seasonOfRace(r){return r.c?(r.c==="OWG"?"Olimpijske igre ":"Svetovno prvenstvo ")+r.d.slice(0,4):r.summer?"Poletje "+r.d.slice(0,4):seasonOf(r.d)}
 function setHeader(){}
+/* ---------- izpostavljene ploščice: zmage, veliki kristalni globusi, medalje SP/OI ---------- */
+let GLOBES=[],MALI=[];
+const L_WIN=["zmaga","zmagi","zmage","zmag"];
+const L_GLOBE=["velik kristalni globus","velika kristalna globusa","veliki kristalni globusi","velikih kristalnih globusov"];
+const L_MALI=["mali kristalni globus","mala kristalna globusa","mali kristalni globusi","malih kristalnih globusov"];
+const L_MED=["medalja na SP in OI","medalji na SP in OI","medalje na SP in OI","medalj na SP in OI"];
+/* zmage: tekme svetovnega pokala in Grand Prixa (brez SP in OI); ekipna tekma = ena zmaga.
+   medalje: 1.-3. mesto na SP in OI; posamično vsak športnik, ekipno ena medalja na uvrstitev. */
+function hlStats(races,globes,mali){
+  const wins={ind:0,team:0,by:{}},med={WSC:[0,0,0],OWG:[0,0,0],by:{}};
+  races.forEach(r=>{
+    const ex=r.res.filter(x=>!x.x);
+    if(!r.c){
+      if(ex.some(x=>x.r===1)){const k=r.t==="ekipno"?"team":"ind";wins[k]++;const b=(wins.by[r.sport]=wins.by[r.sport]||{ind:0,team:0});b[k]++}
+    }else if(r.c==="WSC"||r.c==="OWG"){
+      const ranks=r.t==="ekipno"?[...new Set(ex.filter(x=>x.r<=3).map(x=>x.r))]:ex.filter(x=>x.r<=3).map(x=>x.r);
+      const b=(med.by[r.sport]=med.by[r.sport]||{WSC:[0,0,0],OWG:[0,0,0]});
+      ranks.forEach(k=>{med[r.c][k-1]++;b[r.c][k-1]++});
+    }
+  });
+  const gb={};globes.forEach(g=>{gb[g.panoga]=(gb[g.panoga]||0)+1});
+  const mb={};mali.forEach(g=>{mb[g.panoga]=(mb[g.panoga]||0)+1});
+  return {wins,med,globes:{n:globes.length,by:gb},mali:{n:mali.length,by:mb}};
+}
+function hlDetail(which,st){
+  const box=$("hlDet");box.textContent="";
+  const table=el("table");
+  const sum=a=>a.reduce((x,y)=>x+y,0);
+  if(which==="hl1"){
+    table.appendChild(head(["Panoga","Posamično","Ekipno","Skupaj"]));
+    table.querySelector("th:first-child").classList.add("l");
+    const tb=el("tbody");
+    Object.entries(st.wins.by).sort((a,b)=>(b[1].ind+b[1].team)-(a[1].ind+a[1].team)).forEach(([k,v])=>{
+      const tr=el("tr");tr.appendChild(el("td","l",k));[v.ind,v.team,v.ind+v.team].forEach((n,i)=>tr.appendChild(cell(n,i===2)));tb.appendChild(tr)});
+    table.appendChild(tb);box.appendChild(table);
+    box.appendChild(el("p","note","Šteje zmage v svetovnem pokalu in FIS Grand Prixu; zmage na svetovnih prvenstvih in olimpijskih igrah so med medaljami. Ekipna zmaga je ena zmaga (ne ena na člana ekipe)."));
+  }else if(which==="hl2"){
+    table.appendChild(head(["Sezona","Tekmovalec","Panoga"]));
+    table.querySelectorAll("th").forEach(t=>t.classList.add("l"));
+    const tb=el("tbody");
+    GLOBES.slice().sort((a,b)=>b.sezona.localeCompare(a.sezona)||a.ime.localeCompare(b.ime,"sl")).forEach(g=>{
+      const tr=el("tr");tr.appendChild(el("td","l",g.sezona));
+      const n=el("td","l name",g.ime);if(g.opomba)n.appendChild(el("small",null,g.opomba));tr.appendChild(n);
+      tr.appendChild(el("td","l",g.panoga));tb.appendChild(tr)});
+    table.appendChild(tb);box.appendChild(table);
+    box.appendChild(el("p","note","Veliki kristalni globus prejme skupni zmagovalec svetovnega pokala v sezoni (alpsko smučanje, smučarski skoki, deskanje na snegu). Seznam se dopolni ob koncu vsake sezone."));
+  }else if(which==="hl4"){
+    table.appendChild(head(["Sezona","Tekmovalec","Panoga","Disciplina"]));
+    table.querySelectorAll("th").forEach(t=>t.classList.add("l"));
+    const tb=el("tbody");
+    MALI.slice().sort((a,b)=>b.sezona.localeCompare(a.sezona)||a.ime.localeCompare(b.ime,"sl")).forEach(g=>{
+      const tr=el("tr");tr.appendChild(el("td","l",g.sezona));
+      const n=el("td","l name",g.ime);if(g.opomba)n.appendChild(el("small",null,g.opomba));tr.appendChild(n);
+      tr.appendChild(el("td","l",g.panoga));tr.appendChild(el("td","l",g.disciplina||""));tb.appendChild(tr)});
+    table.appendChild(tb);box.appendChild(table);
+    const per={};MALI.forEach(g=>{per[g.ime]=(per[g.ime]||0)+1});
+    box.appendChild(el("p","note","Največ malih globusov: "+Object.entries(per).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0],"sl")).slice(0,5).map(([k,v])=>k+" "+v).join(" · ")+". Mali kristalni globus prejme zmagovalec posamezne discipline svetovnega pokala (npr. poleti, slalom, šprint, paralelni veleslalom)."));
+  }else{
+    table.appendChild(head(["Tekmovanje","Zlate","Srebrne","Bronaste","Skupaj"]));
+    table.querySelector("th:first-child").classList.add("l");
+    const tb=el("tbody");
+    [["Svetovna prvenstva","WSC"],["Olimpijske igre","OWG"]].forEach(([lab,k])=>{
+      const a=st.med[k];const tr=el("tr");tr.appendChild(el("td","l",lab));a.forEach(n=>tr.appendChild(cell(n,false)));tr.appendChild(cell(sum(a),true));tb.appendChild(tr)});
+    const tot=[0,1,2].map(i=>st.med.WSC[i]+st.med.OWG[i]);
+    const tr=el("tr");tr.appendChild(el("td","l name","Skupaj"));tot.forEach(n=>tr.appendChild(cell(n,false)));tr.appendChild(cell(sum(tot),true));tb.appendChild(tr);
+    table.appendChild(tb);box.appendChild(table);
+    box.appendChild(el("p","note","Ekipna medalja šteje kot ena medalja. Zajeti so športi, ki so že vneseni v podatke (alpsko smučanje, skoki, nordijska kombinacija, teki, biatlon); deskanje na snegu in freestyle še nista vključena."));
+  }
+  box.hidden=false;
+}
+function renderHL(){
+  const st=hlStats(RACES,GLOBES,MALI);
+  const w=st.wins.ind+st.wins.team,m=[0,1,2].map(i=>st.med.WSC[i]+st.med.OWG[i]),mt=m[0]+m[1]+m[2];
+  $("h1").textContent=w;$("h1l").textContent=pl(w,L_WIN);$("h1s").textContent=st.wins.ind+" posamičnih · "+st.wins.team+" ekipnih";
+  $("h2").textContent=st.globes.n;$("h2l").textContent=pl(st.globes.n,L_GLOBE);
+  $("h2s").textContent=Object.entries(st.globes.by).sort((a,b)=>b[1]-a[1]).map(([k,v])=>(SHORT[k]||k)+" "+v).join(" · ");
+  $("h4").textContent=st.mali.n;$("h4l").textContent=pl(st.mali.n,L_MALI);
+  $("h4s").textContent=Object.entries(st.mali.by).sort((a,b)=>b[1]-a[1]).map(([k,v])=>(SHORT[k]||k)+" "+v).join(" · ");
+  $("h3").textContent=mt;$("h3l").textContent=pl(mt,L_MED);
+  const s3=$("h3s");s3.textContent="";
+  m.forEach((n,i)=>{s3.appendChild(el("i","dot g"+(i+1)));s3.appendChild(document.createTextNode(String(n)))});
+  ["hl1","hl2","hl4","hl3"].forEach(id=>{const b=$(id);b.onclick=()=>{
+    const open=b.getAttribute("aria-expanded")==="true";
+    ["hl1","hl2","hl4","hl3"].forEach(x=>$(x).setAttribute("aria-expanded","false"));
+    if(open){$("hlDet").hidden=true;return}
+    b.setAttribute("aria-expanded","true");hlDetail(id,st)}});
+}
 function fillSports(){
   const fs=$("fs");fs.textContent="";fs.appendChild(new Option("Vsi športi",""));
   (isChamp()?CHAMP_SPORTS:MODE==="summer"?SUMMER_SPORTS:SPORTS).forEach(x=>fs.appendChild(new Option(x,x)));
@@ -207,6 +321,7 @@ function init(){
   document.querySelectorAll(".mode").forEach(b=>b.addEventListener("click",()=>{
     MODE=b.dataset.m;document.querySelectorAll(".mode").forEach(x=>x.setAttribute("aria-selected",x===b));
     fillSports();fillSeason();fillDisc();setHeader();render()}));
+  renderHL();
   $("upd").textContent=META.updated?("Zadnja posodobitev: "+fmtDate(META.updated)+" · naslednja: nedelja, "+fmtDate(META.next)):"Podatki se še nalagajo.";
   render();
 }
@@ -446,6 +561,7 @@ async function boot(){
     const o=await (await fetch("data/osebe.json?"+Date.now())).json();
     (o.osebe||[]).forEach(p=>{const k=p.id||(p.ids||[])[0];if(!k)return;(p.ids||[]).forEach(i=>{LINK[i]=k});if(p.ime)PNAME[k]=p.ime});
   }catch(e){}
+  try{const gj=await (await fetch("data/globusi.json?"+Date.now())).json();GLOBES=gj.globusi||[];MALI=gj.mali||[]}catch(e){}
   init();
   jubInit();
   try{
