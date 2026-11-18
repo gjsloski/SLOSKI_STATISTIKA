@@ -4,7 +4,7 @@
 Zimska sezona: alpsko smucanje (AL) in smucarski skoki (JP), posamicne tekme svetovnega pokala (WC).
 Poletna sezona: FIS Grand Prix (GP) v smucarskih skokih (JP) in nordijski kombinaciji (NK), od leta 2026 naprej.
 Nacini:
-  --mode weekly    samo tekoca sezona (vsako nedeljo)
+  --mode weekly    samo tekoca sezona (vsak ponedeljek ob 5.00)
   --mode backfill  vse sezone od --from-season (privzeto 1992 = sezona 1991/92) do danes
 Izhod: data/races.json, data/meta.json, data/state.json
 """
@@ -1698,7 +1698,7 @@ def save_all(races, state, meta, today):
     body = "[\n" + ",\n".join(json.dumps(r, ensure_ascii=False) for r in rs) + "\n]\n"
     (DATA / "races.json").write_text(body, encoding="utf-8")
     meta["updated"] = today.isoformat()
-    nxt = today + datetime.timedelta(days=(6 - today.weekday()) % 7 or 7)
+    nxt = today + datetime.timedelta(days=(0 - today.weekday()) % 7 or 7)  # naslednji ponedeljek
     meta["next"] = nxt.isoformat()
     (DATA / "meta.json").write_text(json.dumps(meta, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
     (DATA / "state.json").write_text(json.dumps(state, ensure_ascii=False) + "\n", encoding="utf-8")
