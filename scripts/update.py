@@ -32,8 +32,11 @@ SPORTS = {
     "jumping": {"code": "JP", "path": "ski-jumping", "label": "Smučarski skoki"},
     "nordic": {"code": "NK", "path": "nordic-combined", "label": "Nordijska kombinacija"},
     "xc": {"code": "CC", "path": "cross-country", "label": "Smučarski teki"},
+    "snowboard": {"code": "SB", "path": "snowboard", "label": "Deskanje na snegu"},
 }
-WINTER_SPORTS = ["alpine", "jumping", "xc"]
+# koledar FIS: pot za posamezno panogo ni vedno enaka, zato poskusimo se splosno stran
+CAL_PATHS_FALLBACK = ["general"]
+WINTER_SPORTS = ["alpine", "jumping", "xc", "snowboard"]
 SUMMER_SPORTS = ["jumping", "nordic"]
 FIRST_SEASON = 1992  # prva sezona, ki jo zbiramo (1991/92)
 SUMMER_FROM = 2027  # koda sezone FIS (2027 = julij 2026 - junij 2027), torej poletje 2026
@@ -64,6 +67,24 @@ DISC_CC = [
     ("Sprint", "Šprint"),
     ("Interval Start", "Posamični start"),
     ("Individual", "Posamični start"),
+]
+# Deskanje na snegu: vrstni red je pomemben (prva ujemajoca beseda v naslovu tekme)
+DISC_SB = [
+    ("Team Parallel Giant Slalom", "Ekipni paralelni veleslalom"),
+    ("Team Parallel Slalom", "Ekipni paralelni slalom"),
+    ("Team Snowboard Cross", "Ekipni snowboard cross"),
+    ("Parallel Giant Slalom", "Paralelni veleslalom"),
+    ("Parallel Slalom", "Paralelni slalom"),
+    ("Parallel", "Paralelni slalom"),
+    ("Snowboard Cross", "Snowboard cross"),
+    ("Snowboardcross", "Snowboard cross"),
+    ("Giant Slalom", "Veleslalom"),
+    ("Halfpipe", "Halfpipe"),
+    ("Half-pipe", "Halfpipe"),
+    ("Slopestyle", "Slopestyle"),
+    ("Big Air", "Big air"),
+    ("Slalom", "Slalom"),
+    ("Cross", "Snowboard cross"),
 ]
 DISC.sort(key=lambda kv: 0 if kv[0] == "Gundersen" else 1)  # nordijska kombinacija: ime discipline je Gundersen, ne skakalnica
 
@@ -474,7 +495,7 @@ def parse_race(html, sport_key, raceid, extra_names, cat="WC", trusted=False):
     is_team = bool(TEAM_RE.search(title)) or title.startswith("Mixed") or "Relay" in title
     gender = "M" if title.startswith("Men") else ("X" if title.startswith(("Mixed", "Team")) else "Ž")
     disc = None
-    for key, sl in (DISC_CC if cfg["code"] == "CC" else DISC):
+    for key, sl in (DISC_CC if cfg["code"] == "CC" else DISC_SB if cfg["code"] == "SB" else DISC):
         if key.lower() in title.lower():
             disc = sl
             break
@@ -1127,6 +1148,13 @@ def probe_cat(spec):
         path = next(c["path"] for c in SPORTS.values() if c["code"] == sec)
         url = (f"{BASE}/DB/{path}/calendar-results.html?sectorcode={sec}&seasoncode={season}&categorycode={cat}")
         html = get(url)
+        if not html or "eventid=" not in html:
+            for alt in CAL_PATHS_FALLBACK:
+                h2 = get(url.replace(f"/DB/{path}/", f"/DB/{alt}/"))
+                if h2 and "eventid=" in h2:
+                    log(f"KAT {item}: koledar najden na poti /DB/{alt}/")
+                    html = h2
+                    break
         if not html:
             log(f"KAT {item}: koledar ni dosegljiv")
             continue
@@ -1686,11 +1714,22 @@ def process_season(code, sport_key, races, state, cat, label, finished, extra_na
     cal_url = (f"{BASE}/DB/{cfg['path']}/calendar-results.html?sectorcode={cfg['code']}"
                f"&seasoncode={code}&categorycode={cat}")
     html = get(cal_url)
+    events = parse_calendar(html, cat) if html else []
+    if not events:
+        for alt in CAL_PATHS_FALLBACK:
+            if alt == cfg["path"]:
+                continue
+            alt_url = cal_url.replace(f"/DB/{cfg['path']}/", f"/DB/{alt}/")
+            h2 = get(alt_url)
+            ev2 = parse_calendar(h2, cat) if h2 else []
+            if ev2:
+                log(f"  koledar najden na rezervni poti: {alt_url}")
+                html, events = h2, ev2
+                break
     failures = 0
     if not html:
         log(f"  koledar ni dosegljiv: {cal_url}")
         return "delno"
-    events = parse_calendar(html, cat)
     log(f"{label} {cfg['label']} ({cat}): {len(events)} dogodkov")
     if not events:
         return "delno" if finished else "v teku"
@@ -1983,7 +2022,7 @@ def main():
     champ_jobs = []
     for code in ([cur] if args.mode == "weekly" and not args.champs else list(range(cur, args.from_season - 1, -1))):
         for cat in ("OWG", "WSC"):
-            for sk in ("alpine", "jumping", "nordic", "xc"):
+            for sk in ("alpine", "jumping", "nordic", "xc", "snowboard"):
                 champ_jobs.append((code, sk, cat, f"{CHAMP_NAMES[cat]} {code}", code < cur))
     if args.champs:
         jobs = champ_jobs
