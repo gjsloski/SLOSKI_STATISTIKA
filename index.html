@@ -185,7 +185,7 @@ footer{font-size:12px;color:var(--muted);padding:0 4px}
   </div>
   <footer>
     <p id="upd"></p>
-    <p>Vir rezultatov: FIS (fis-ski.com). Zimska sezona šteje posamične tekme svetovnega pokala v alpskem smučanju in smučarskih skokih, poletna sezona pa posamične tekme FIS Grand Prix v smučarskih skokih in nordijski kombinaciji (od leta 2026 naprej, brez preteklih let). Privzeto so prikazane posamične tekme; z izbiro »Vrsta tekme« lahko prikažete ekipne tekme (vsak slovenski član ekipe dobi mesto ekipe) ali oboje. Stolpci 1., 2. in 3. štejejo točno to mesto, stolpci Top 5, Top 10, Top 15 in Top 30 pa so kumulativni (2. mesto šteje tudi v Top 5). Podatki se posodobijo vsako nedeljo od 1. 9. 2026 do 30. 4. 2027. Zgodovina sega do sezone 1991/92; stolpec »Stanje« v pogledu »Po sezonah« pove, ali je sezona popolna.</p>
+    <p>Vir rezultatov: FIS (fis-ski.com). Zimska sezona šteje posamične tekme svetovnega pokala v alpskem smučanju in smučarskih skokih, poletna sezona pa posamične tekme FIS Grand Prix v smučarskih skokih in nordijski kombinaciji (od leta 2026 naprej, brez preteklih let). Privzeto so prikazane posamične tekme; z izbiro »Vrsta tekme« lahko prikažete ekipne tekme (vsak slovenski član ekipe dobi mesto ekipe) ali oboje. Stolpci 1., 2. in 3. štejejo točno to mesto, stolpci Top 5, Top 10, Top 15 in Top 30 pa so kumulativni (2. mesto šteje tudi v Top 5). Podatki se posodobijo vsak ponedeljek zjutraj od 1. 9. 2026 do 30. 4. 2027. Zgodovina sega do sezone 1991/92; stolpec »Stanje« v pogledu »Po sezonah« pove, ali je sezona popolna.</p>
   </footer>
 </main>
 <div id="printArea"></div>
@@ -325,7 +325,7 @@ function init(){
     MODE=b.dataset.m;document.querySelectorAll(".mode").forEach(x=>x.setAttribute("aria-selected",x===b));
     fillSports();fillSeason();fillDisc();setHeader();render()}));
   renderHL();
-  $("upd").textContent=META.updated?("Zadnja posodobitev: "+fmtDate(META.updated)+" · naslednja: nedelja, "+fmtDate(META.next)):"Podatki se še nalagajo.";
+  $("upd").textContent=META.updated?("Zadnja posodobitev: "+fmtDate(META.updated)+" · naslednja: ponedeljek, "+fmtDate(META.next)):"Podatki se še nalagajo.";
   render();
 }
 /* Sezone od 1991/92 (začetek samostojne Slovenije in SZS) do 2026/27. Stanje podatkov: popolno | delno | v teku; kar ni naštetega = še ni vneseno */
