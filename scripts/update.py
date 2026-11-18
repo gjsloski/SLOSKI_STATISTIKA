@@ -164,6 +164,9 @@ EXTRA_SLO_CC = {"215895": "2014-07-01"}
 INDIV_EXTRA = {
     "CC:39191": [{"n": "Eva Urevc", "r": 30, "id": 154317}],  # Lenzerheide 28.12.2021, sprint (TdS), 30. mesto po strani sportnika
 }
+# deskanje: competitorid slovenskih tekmovalcev (za strani brez oznake drzave pri vrstici)
+SB_NONAT_SLO = {"31083", "32003", "74104", "17438", "72814", "74106", "89328", "74102", "13191", "103356", "80062", "155757",
+                "32008", "128945", "119507", "80059", "80058", "90555", "74346"}
 EXTRA_SLO = {"68518", "27683", "58901", "18035", "53613", "61013"}  # Zupan, Janus, Stirn, Franc Urban, Sarec Veronika, Tepes Miran
 # Strani, ki jih FIS vodi kot tekmo (OWG), a jih na straneh sportnikov NI med uvrstitvami (del olimpijske kombinacije):
 # Nagano 13.2.1998, smuk kot del kombinacije. Preverjeno: strani sportnikov Brezavsek in Pen tega raceid nimata.
@@ -268,7 +271,7 @@ def _has_lxml():
         return False
 
 
-def parse_row(text, href):
+def parse_row(text, href, lenient=False):
     tokens = text.split()
     if len(tokens) < 6 or not tokens[0].isdigit():
         return None
@@ -292,6 +295,14 @@ def parse_row(text, href):
                 y = i
                 nat_off = 0
                 break
+    if y is None and lenient:
+        # deskanje, stare strani (npr. 2001/02): vrstica brez oznake drzave ('6 1202606 KOSIR Dejan 1973 400.00');
+        # drzava ostane prazna, slovenski clan se prepozna po competitorid (SB_NONAT_SLO)
+        for i in range(k, len(tokens)):
+            if re.fullmatch(r"(19|20)\d\d", tokens[i]) and i > k and (i + 1 >= len(tokens) or re.fullmatch(r"[-+]?[\d'.:]+|DNF\d?|DSQ\d?|DNS\d?", tokens[i + 1])):
+                y = i
+                nat_off = None
+                break
     if y is None:
         return None
     name_tokens = tokens[k:y]
@@ -308,7 +319,7 @@ def parse_row(text, href):
     surname = " ".join(w.title() for w in sur)
     name = f"{given} {surname}".strip()
     cid = parse_qs(urlparse(href).query).get("competitorid", [None])[0]
-    return {"cid": cid, "name": name, "rank": int(tokens[0]), "nat": tokens[y + nat_off], "nums": k}
+    return {"cid": cid, "name": name, "rank": int(tokens[0]), "nat": ("" if nat_off is None else tokens[y + nat_off]), "nums": k}
 
 
 def parse_member(text, href):
@@ -545,8 +556,14 @@ def parse_race(html, sport_key, raceid, extra_names, cat="WC", trusted=False):
             href = node.get("href", "")
             if "athlete-biography" not in href:
                 continue
-            row = parse_row(node.get_text(" ", strip=True), href)
-            if row and stopped:
+            row = parse_row(node.get_text(" ", strip=True), href, lenient=(cfg["code"] == "SB"))
+            if row and stopped and cfg["code"] == "SB":
+                # deskanje: pod 'Did not qualify' FIS navede se uvrstitve do 30 (rang, FIS koda, brez startne st.);
+                # sprejmemo le vrstice, katerih mesto je vecje od vseh dotlej sprejetih (vrstice DNS/DNF tega ne izpolnjejo zanesljivo)
+                top = max((x["rank"] for x in ranked), default=0)
+                if not (row["nums"] == 2 and top < row["rank"] <= 30):
+                    row = None
+            elif row and stopped:
                 # teki (npr. TdS sprint): FIS za razdelkom 'Did not qualify' navede se vrstice z mestom do 30
                 # (rang, startna st., FIS koda); vrstice DNS/DNF imajo samo startno st. in kodo, torej < 3 vodilne stevilke
                 if not (cfg["code"] == "CC" and row.get("nums", 0) >= 3 and row["rank"] <= 30):
@@ -578,7 +595,7 @@ def parse_race(html, sport_key, raceid, extra_names, cat="WC", trusted=False):
             log(f"  JUG/YUG v top 30: {r['name']} (competitorid {r['cid']}) {r['rank']}. mesto, {date} {place} - ni steto")
         if cfg["code"] == "CC" and any(y.get("id") == int(r["cid"] or 0) for y in res):
             continue  # ista oseba dvakrat (npr. razdelek za 'Did not qualify')
-        if (r["nat"] == "SLO" or r["cid"] in EXTRA_SLO or (cfg["code"] == "CC" and date < EXTRA_SLO_CC.get(r["cid"], "0000"))) and r["rank"] <= 30:
+        if (r["nat"] == "SLO" or r["cid"] in EXTRA_SLO or (cfg["code"] == "SB" and r["nat"] == "" and r["cid"] in SB_NONAT_SLO) or (cfg["code"] == "CC" and date < EXTRA_SLO_CC.get(r["cid"], "0000"))) and r["rank"] <= 30:
             item = {"n": fix_name(r["name"], r["cid"], extra_names), "r": r["rank"]}
             if r["cid"]:
                 item["id"] = int(r["cid"])
@@ -1458,7 +1475,7 @@ def check_races(races, today, deadline):
     diag = {}
     for i in issues:
         diag.setdefault((i["sec"], i["raceid"], i["cat"]), set()).add(str(i["cid"]))
-    for (sec_, rid, cat_), cids in list(diag.items())[:12]:
+    for (sec_, rid, cat_), cids in list(diag.items())[:40]:
         diagnose_race(sec_, rid, cat_, cids)
     n_ok = len(ours) - n_na - len({(i["n"], i["sezona"]) for i in issues})
     out = {"updated": today.isoformat(), "preverjenih_sezon": len(ours) - n_na, "nepreverjenih": n_na, "nesklad": issues}
