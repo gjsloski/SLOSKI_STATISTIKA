@@ -2,7 +2,8 @@ name: Posodobitev statistike
 
 on:
   schedule:
-    - cron: "0 7 * * 0"        # vsako nedeljo ob 07:00 UTC
+    - cron: "0 5 * * 1"        # vsak ponedeljek ob 5.00 po slovenskem času
+      timezone: "Europe/Ljubljana"
   workflow_dispatch:
     inputs:
       spec:
