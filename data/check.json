@@ -1,6 +1,6 @@
 {
  "updated": "2026-11-18",
- "preverjenih_sezon": 2087,
+ "preverjenih_sezon": 2086,
  "nepreverjenih": 0,
  "nesklad": [
   {
@@ -511,6 +511,19 @@
    "sec": "SB"
   },
   {
+   "n": "Izidor Sustersic",
+   "sezona": "2013/14",
+   "raceid": "11153",
+   "d": "22-02-2014",
+   "place": "",
+   "disc": "Parallel Slalom",
+   "nase": null,
+   "fis": "30",
+   "cid": "74102",
+   "cat": "OWG",
+   "sec": "SB"
+  },
+  {
    "n": "Gloria Kotnik",
    "sezona": "2014/15",
    "raceid": "11740",
@@ -546,19 +559,6 @@
    "nase": null,
    "fis": "16",
    "cid": "155757",
-   "cat": "WC",
-   "sec": "SB"
-  },
-  {
-   "n": "Tit Stante",
-   "sezona": "2022/23",
-   "raceid": "20000",
-   "d": "2023-01-21",
-   "place": "Laax (SUI)",
-   "disc": "Halfpipe",
-   "nase": 29,
-   "fis": "DNS",
-   "cid": "177403",
    "cat": "WC",
    "sec": "SB"
   }
