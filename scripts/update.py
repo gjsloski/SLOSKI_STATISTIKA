@@ -70,6 +70,8 @@ DISC_CC = [
 ]
 # Deskanje na snegu: vrstni red je pomemben (prva ujemajoca beseda v naslovu tekme)
 DISC_SB = [
+    ("Parallel Team", "Ekipni paralelni slalom"),
+    ("Snowboard Cross Team", "Ekipni snowboard cross"),
     ("Team Parallel Giant Slalom", "Ekipni paralelni veleslalom"),
     ("Team Parallel Slalom", "Ekipni paralelni slalom"),
     ("Team Snowboard Cross", "Ekipni snowboard cross"),
