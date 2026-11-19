@@ -14,7 +14,7 @@ on:
         description: "weekly = samo tekoča sezona, backfill = vsa zgodovina od 1991/92"
         default: "weekly"
         type: choice
-        options: [weekly, backfill, biathlon, list-names, reset-jumping, reset-alpine, reset-all, refilter, fill-startlists, add-extra, teams, champs, redo, recheck-levi, probe-cat, probe-find, probe-ibu, check-ibu, probe-team, probe-team2, probe-xc, probe-sb, reset-sb, probe-spec, xc, reset-xc, check, validate, probe]
+        options: [weekly, backfill, biathlon, list-names, reset-jumping, reset-alpine, reset-all, refilter, fill-startlists, add-extra, teams, champs, redo, recheck-levi, probe-cat, probe-find, probe-ibu, check-ibu, probe-team, probe-team2, probe-xc, probe-sb, reset-sb, probe-new, probe-spec, xc, reset-xc, check, validate, probe]
   push:
     branches: [main]
     paths: [index.html, scripts/**, .github/workflows/update.yml]
@@ -55,6 +55,8 @@ jobs:
             python scripts/update.py --probe-cat "CC:2026:WC,CC:2023:WSC,CC:2022:OWG" && python scripts/update.py --probe-team "CC:2026,CC:2020,CC:2010,CC:1998" && python scripts/update.py --probe-team2 "CC:S2025,CC:S2013"
           elif [ "$MODE" = "probe-sb" ]; then
             python scripts/update.py --probe-cat "SB:2026:WC,SB:2018:WC,SB:2010:WC,SB:1996:WC,SB:2022:OWG,SB:2025:WSC" && python scripts/update.py --probe-team "SB:2026,SB:2022"
+          elif [ "$MODE" = "probe-new" ]; then
+            python scripts/update.py --probe-cat "TM:2026:WC,TM:2018:WC,TM:2010:WC,TM:2003:WC,TM:2025:WSC,FS:2026:WC,FS:2018:WC,FS:2010:WC,FS:2002:WC,FS:2025:WSC,FS:2022:OWG" && python scripts/update.py --probe-team "TM:2026,FS:2026"
           elif [ "$MODE" = "reset-sb" ]; then
             python scripts/update.py --mode backfill --reset-sport snowboard --max-minutes 330
           elif [ "$MODE" = "probe-spec" ]; then
