@@ -4,7 +4,9 @@
    "alpine": "v teku",
    "jumping": "v teku",
    "xc": "v teku",
-   "snowboard": "v teku"
+   "snowboard": "v teku",
+   "telemark": "v teku",
+   "freestyle": "v teku"
   },
   "Poletje 2026": {
    "jumping": "popolno",
@@ -225,14 +227,18 @@
    "jumping": "v teku",
    "nordic": "v teku",
    "xc": "v teku",
-   "snowboard": "v teku"
+   "snowboard": "v teku",
+   "telemark": "v teku",
+   "freestyle": "delno"
   },
   "Svetovno prvenstvo 2027": {
    "alpine": "v teku",
    "jumping": "v teku",
    "nordic": "v teku",
    "xc": "v teku",
-   "snowboard": "v teku"
+   "snowboard": "v teku",
+   "telemark": "v teku",
+   "freestyle": "v teku"
   },
   "Olimpijske igre 2026": {
    "alpine": "popolno",
