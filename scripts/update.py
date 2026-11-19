@@ -33,6 +33,9 @@ SPORTS = {
     "nordic": {"code": "NK", "path": "nordic-combined", "label": "Nordijska kombinacija"},
     "xc": {"code": "CC", "path": "cross-country", "label": "Smučarski teki"},
     "snowboard": {"code": "SB", "path": "snowboard", "label": "Deskanje na snegu"},
+    # samo za poskusni zagon (probe); v WINTER_SPORTS ju se ni
+    "telemark": {"code": "TM", "path": "telemark", "label": "Telemark"},
+    "freestyle": {"code": "FS", "path": "freestyle-ski", "label": "Freestyle"},
 }
 # koledar FIS: pot za posamezno panogo ni vedno enaka, zato poskusimo se splosno stran
 CAL_PATHS_FALLBACK = ["general"]
