@@ -33,13 +33,12 @@ SPORTS = {
     "nordic": {"code": "NK", "path": "nordic-combined", "label": "Nordijska kombinacija"},
     "xc": {"code": "CC", "path": "cross-country", "label": "Smučarski teki"},
     "snowboard": {"code": "SB", "path": "snowboard", "label": "Deskanje na snegu"},
-    # samo za poskusni zagon (probe); v WINTER_SPORTS ju se ni
     "telemark": {"code": "TM", "path": "telemark", "label": "Telemark"},
     "freestyle": {"code": "FS", "path": "freestyle-ski", "label": "Freestyle"},
 }
 # koledar FIS: pot za posamezno panogo ni vedno enaka, zato poskusimo se splosno stran
 CAL_PATHS_FALLBACK = ["general"]
-WINTER_SPORTS = ["alpine", "jumping", "xc", "snowboard"]
+WINTER_SPORTS = ["alpine", "jumping", "xc", "snowboard", "telemark", "freestyle"]
 SUMMER_SPORTS = ["jumping", "nordic"]
 FIRST_SEASON = 1992  # prva sezona, ki jo zbiramo (1991/92)
 SUMMER_FROM = 2027  # koda sezone FIS (2027 = julij 2026 - junij 2027), torej poletje 2026
@@ -72,6 +71,14 @@ DISC_CC = [
     ("Individual", "Posamični start"),
 ]
 # Deskanje na snegu: vrstni red je pomemben (prva ujemajoca beseda v naslovu tekme)
+DISC_TM = [("Team Parallel Sprint", "Ekipni paralelni sprint"), ("Parallel Sprint", "Paralelni sprint"),
+           ("Parallel Giant Slalom", "Paralelni veleslalom"), ("Giant Slalom", "Veleslalom"), ("Sprint", "Sprint"),
+           ("Classic", "Klasika")]
+DISC_FS = [("Aerials Team", "Ekipni akrobatski skoki"), ("Ski Cross Team", "Ekipni ski cross"), ("Team Ski Cross", "Ekipni ski cross"),
+           ("Team Aerials", "Ekipni akrobatski skoki"), ("Dual Moguls", "Vzporedne grbine"), ("Moguls", "Grbine"),
+           ("Aerials", "Akrobatski skoki"), ("Ski Cross", "Ski cross"), ("Skicross", "Ski cross"), ("Big Air", "Big air"),
+           ("Slopestyle", "Slopestyle"), ("Halfpipe", "Halfpipe"), ("Half-pipe", "Halfpipe"), ("Ballet", "Balet"),
+           ("Acro", "Akrobatika"), ("Combined", "Kombinacija")]
 DISC_SB = [
     ("Parallel Team", "Ekipni paralelni slalom"),
     ("Snowboard Cross Team", "Ekipni snowboard cross"),
@@ -511,7 +518,7 @@ def parse_race(html, sport_key, raceid, extra_names, cat="WC", trusted=False):
     is_team = bool(TEAM_RE.search(title)) or title.startswith("Mixed") or "Relay" in title
     gender = "M" if title.startswith("Men") else ("X" if title.startswith(("Mixed", "Team")) else "Ž")
     disc = None
-    for key, sl in (DISC_CC if cfg["code"] == "CC" else DISC_SB if cfg["code"] == "SB" else DISC):
+    for key, sl in (DISC_CC if cfg["code"] == "CC" else DISC_SB if cfg["code"] == "SB" else DISC_TM if cfg["code"] == "TM" else DISC_FS if cfg["code"] == "FS" else DISC):
         if key.lower() in title.lower():
             disc = sl
             break
@@ -2052,7 +2059,7 @@ def main():
     champ_jobs = []
     for code in ([cur] if args.mode == "weekly" and not args.champs else list(range(cur, args.from_season - 1, -1))):
         for cat in ("OWG", "WSC"):
-            for sk in ("alpine", "jumping", "nordic", "xc", "snowboard"):
+            for sk in ("alpine", "jumping", "nordic", "xc", "snowboard", "telemark", "freestyle"):
                 champ_jobs.append((code, sk, cat, f"{CHAMP_NAMES[cat]} {code}", code < cur))
     if args.champs:
         jobs = champ_jobs
