@@ -269,34 +269,39 @@ function hlDetail(which,st){
     const per={};MALI.forEach(g=>{per[g.ime]=(per[g.ime]||0)+1});
     box.appendChild(el("p","note","Največ malih globusov: "+Object.entries(per).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0],"sl")).slice(0,5).map(([k,v])=>k+" "+v).join(" · ")+". Mali kristalni globus prejme zmagovalec posamezne discipline svetovnega pokala (npr. poleti, slalom, šprint, paralelni veleslalom)."));
   }else{
-    table.appendChild(head(["Tekmovanje","Zlate","Srebrne","Bronaste","Skupaj"]));
+    table.appendChild(head(["Tekmovanje","Zlate","Srebrne","Bronaste","Skupaj",""]));
     table.querySelector("th:first-child").classList.add("l");
     const tb=el("tbody");
+    /* športniki z medaljami na izbranem tekmovanju (SP ali OI); klik na športnika pokaže njegove medalje na tem tekmovanju */
+    const athTable=k=>{
+      const per={};
+      RACES.filter(r=>r.c===k).forEach(r=>r.res.filter(x=>!x.x&&x.r<=3).forEach(x=>{
+        const id=x.id?String(x.id):x.n;const p=per[id]=per[id]||{n:x.n,sp:new Set(),it:[],c:[0,0,0]};
+        p.sp.add(r.sport);p.c[x.r-1]++;p.it.push({r:x.r,race:r})}));
+      const t2=el("table");
+      t2.appendChild(head(["Športnik","Panoga","Zlate","Srebrne","Bronaste","Skupaj",""]));
+      t2.querySelectorAll("th").forEach((t,i)=>{if(i<2)t.classList.add("l")});
+      const tb2=el("tbody");
+      Object.values(per).sort((x,y)=>(y.c[0]-x.c[0])||(y.c[1]-x.c[1])||(y.c[2]-x.c[2])||x.n.localeCompare(y.n,"sl")).forEach(p=>{
+        const tr=el("tr","row");tr.appendChild(el("td","l name",p.n));tr.appendChild(el("td","l sp",[...p.sp].map(z=>SHORT[z]||z).join(" · ")));
+        p.c.forEach(n=>tr.appendChild(cell(n,false)));tr.appendChild(cell(sum(p.c),true));
+        const cv=el("td","chev");cv.appendChild(el("i",null,"▾"));tr.appendChild(cv);
+        const dt=el("tr","detail");dt.hidden=true;const dd=el("td");dd.colSpan=7;
+        p.it.sort((x,y)=>x.r-y.r||y.race.d.localeCompare(x.race.d)).forEach(i=>dd.appendChild(el("span","pill g"+i.r,i.r+". · "+i.race.d.slice(0,4)+" · "+i.race.disc+" · "+i.race.place+" · "+fmtDate(i.race.d)+(i.race.t==="ekipno"?" (ekipno)":""))));
+        dt.appendChild(dd);
+        tr.addEventListener("click",e=>{e.stopPropagation();dt.hidden=!dt.hidden;tr.classList.toggle("open",!dt.hidden)});
+        tb2.appendChild(tr);tb2.appendChild(dt)});
+      t2.appendChild(tb2);return t2};
     [["Svetovna prvenstva","WSC"],["Olimpijske igre","OWG"]].forEach(([lab,k])=>{
-      const a=st.med[k];const tr=el("tr");tr.appendChild(el("td","l",lab));a.forEach(n=>tr.appendChild(cell(n,false)));tr.appendChild(cell(sum(a),true));tb.appendChild(tr)});
-    const tot=[0,1,2].map(i=>st.med.WSC[i]+st.med.OWG[i]);
-    const tr=el("tr");tr.appendChild(el("td","l name","Skupaj"));tot.forEach(n=>tr.appendChild(cell(n,false)));tr.appendChild(cell(sum(tot),true));tb.appendChild(tr);
-    table.appendChild(tb);box.appendChild(table);
-    /* vse medalje po športnikih; klik na vrstico pokaže posamezne medalje */
-    const per={};
-    RACES.filter(r=>r.c==="WSC"||r.c==="OWG").forEach(r=>r.res.filter(x=>!x.x&&x.r<=3).forEach(x=>{
-      const k=x.id?String(x.id):x.n;const p=per[k]=per[k]||{n:x.n,sp:new Set(),it:[],c:[0,0,0]};
-      p.sp.add(r.sport);p.c[x.r-1]++;p.it.push({r:x.r,race:r})}));
-    const t2=el("table");t2.style.marginTop="14px";
-    t2.appendChild(head(["Športnik","Panoga","Zlate","Srebrne","Bronaste","Skupaj",""]));
-    t2.querySelectorAll("th").forEach((t,i)=>{if(i<2)t.classList.add("l")});
-    const tb2=el("tbody");
-    Object.values(per).sort((a,b)=>(b.c[0]-a.c[0])||(b.c[1]-a.c[1])||(b.c[2]-a.c[2])||a.n.localeCompare(b.n,"sl")).forEach(p=>{
-      const tr=el("tr","row");tr.appendChild(el("td","l name",p.n));tr.appendChild(el("td","l sp",[...p.sp].map(x=>SHORT[x]||x).join(" · ")));
-      p.c.forEach(n=>tr.appendChild(cell(n,false)));tr.appendChild(cell(sum(p.c),true));
+      const a=st.med[k];const tr=el("tr","row");tr.appendChild(el("td","l",lab));a.forEach(n=>tr.appendChild(cell(n,false)));tr.appendChild(cell(sum(a),true));
       const cv=el("td","chev");cv.appendChild(el("i",null,"▾"));tr.appendChild(cv);
-      const dt=el("tr","detail");dt.hidden=true;const dd=el("td");dd.colSpan=7;
-      p.it.sort((a,b)=>a.r-b.r||b.race.d.localeCompare(a.race.d)).forEach(i=>dd.appendChild(el("span","pill g"+i.r,i.r+". · "+(i.race.c==="OWG"?"OI ":"SP ")+i.race.d.slice(0,4)+" · "+i.race.disc+" · "+i.race.place+" · "+fmtDate(i.race.d)+(i.race.t==="ekipno"?" (ekipno)":""))));
-      dt.appendChild(dd);
-      tr.addEventListener("click",()=>{dt.hidden=!dt.hidden;tr.classList.toggle("open",!dt.hidden)});
-      tb2.appendChild(tr);tb2.appendChild(dt)});
-    t2.appendChild(tb2);box.appendChild(t2);
-    box.appendChild(el("p","note","Ekipna medalja šteje kot ena medalja. Zajeti so športi, ki so že vneseni v podatke (alpsko smučanje, skoki, nordijska kombinacija, teki, biatlon, deskanje na snegu); freestyle, telemark in paraskijanje še niso vključeni."));
+      const dt=el("tr","detail");dt.hidden=true;const dd=el("td");dd.colSpan=6;
+      tr.addEventListener("click",()=>{if(!dd.firstChild)dd.appendChild(athTable(k));dt.hidden=!dt.hidden;tr.classList.toggle("open",!dt.hidden)});
+      dt.appendChild(dd);tb.appendChild(tr);tb.appendChild(dt)});
+    const tot=[0,1,2].map(i=>st.med.WSC[i]+st.med.OWG[i]);
+    const tr=el("tr");tr.appendChild(el("td","l name","Skupaj"));tot.forEach(n=>tr.appendChild(cell(n,false)));tr.appendChild(cell(sum(tot),true));tr.appendChild(el("td"));tb.appendChild(tr);
+    table.appendChild(tb);box.appendChild(table);
+    box.appendChild(el("p","note","Tapni na tekmovanje za športnike z medaljami, nato na športnika za njegove medalje. Ekipna medalja šteje kot ena medalja. Zajeti so športi, ki so že vneseni v podatke (alpsko smučanje, skoki, nordijska kombinacija, teki, biatlon, deskanje na snegu); freestyle, telemark in paraskijanje še niso vključeni."));
   }
   box.hidden=false;
 }
