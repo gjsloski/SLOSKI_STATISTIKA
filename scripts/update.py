@@ -559,11 +559,11 @@ def parse_race(html, sport_key, raceid, extra_names, cat="WC", trusted=False):
                 continue
             row = parse_row(node.get_text(" ", strip=True), href, lenient=(cfg["code"] == "SB"))
             if row and stopped and cfg["code"] == "SB":
-                # deskanje: pod razdelkom 'Did not qualify' FIS navede se uvrstitve do 30 (rang, FIS koda, brez startne st.);
-                # razdelki DNS / DNF / DSQ (nastopa ni bilo ali ni dokoncal) niso uvrstitve
-                low = stop_txt.lower()
-                bad = any(w in low for w in ("start", "finish", "disq", "dns", "dnf", "dsq"))
-                if not (row["nums"] == 2 and row["rank"] <= 30 and not bad and all(y["cid"] != row["cid"] for y in ranked)):
+                # deskanje: pod razdelki 'Did not finish / Disqualified / Did not start' FIS pri nekaterih tekmah navede tudi prave
+                # uvrstitve (rang, FIS koda, brez startne st.), pri drugih pa gre za DNS. Razlocimo jih na strani sportnika (spodaj).
+                if row["nums"] == 2 and row["rank"] <= 30 and all(y["cid"] != row["cid"] for y in ranked):
+                    row["unv"] = True
+                else:
                     row = None
             elif row and stopped:
                 # teki (npr. TdS sprint): FIS za razdelkom 'Did not qualify' navede se vrstice z mestom do 30
@@ -598,6 +598,11 @@ def parse_race(html, sport_key, raceid, extra_names, cat="WC", trusted=False):
         if cfg["code"] == "CC" and any(y.get("id") == int(r["cid"] or 0) for y in res):
             continue  # ista oseba dvakrat (npr. razdelek za 'Did not qualify')
         if (r["nat"] == "SLO" or r["cid"] in EXTRA_SLO or (cfg["code"] == "SB" and r["nat"] == "" and r["cid"] in SB_NONAT_SLO) or (cfg["code"] == "CC" and date < EXTRA_SLO_CC.get(r["cid"], "0000"))) and r["rank"] <= 30:
+            if r.get("unv"):
+                ar = athlete_results("SB", str(r["cid"]), season_code_of(date), cat)
+                prow = ar.get(str(raceid)) if ar else None
+                if not (prow and prow["pos"].isdigit() and int(prow["pos"]) == r["rank"]):
+                    continue
             item = {"n": fix_name(r["name"], r["cid"], extra_names), "r": r["rank"]}
             if r["cid"]:
                 item["id"] = int(r["cid"])
