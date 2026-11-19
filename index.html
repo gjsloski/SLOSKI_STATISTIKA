@@ -47,6 +47,9 @@ th:first-child{border-top-left-radius:8px}th:last-child{border-top-right-radius:
 td.name{font-weight:600}
 td.name small{display:block;font-weight:400;color:var(--muted);font-size:12px}
 tr.row{cursor:pointer}
+.chev{width:28px;text-align:center;color:var(--accent);font-size:15px;line-height:1}
+.chev i{display:inline-block;transition:transform .15s;font-style:normal}
+tr.row.open .chev i{transform:rotate(180deg)}
 tr.row:hover td{background:rgba(38,134,192,.07)}
 .num{font-variant-numeric:tabular-nums}
 .zero{color:var(--muted);opacity:.55}
@@ -201,7 +204,7 @@ function addPerson(p,r,x){const k=pkey(r,x),id=(SPFX[r.sport]||r.sport)+"|"+(x.i
   if(r.g!=="X"&&q.g==="X")q.g=r.g;q.sports.add(r.sport);if(x.id)q.ids.add(id);q.items.push({r:x.r,x:x.x,race:r})}
 let MODE="winter";
 const SUMMER_SPORTS=["Smučarski skoki","Nordijska kombinacija"];
-const CHAMP_SPORTS=["Alpsko smučanje","Smučarski skoki","Smučarski teki","Nordijska kombinacija","Biatlon"];
+const CHAMP_SPORTS=["Alpsko smučanje","Smučarski skoki","Smučarski teki","Nordijska kombinacija","Biatlon","Deskanje na snegu"];
 const isChamp=()=>MODE==="wsc"||MODE==="owg";
 function inMode(r){return MODE==="owg"?r.c==="OWG":MODE==="wsc"?r.c==="WSC":MODE==="summer"?!!r.summer&&!r.c:!r.summer&&!r.c}
 function seasonOfRace(r){return r.c?(r.c==="OWG"?"Olimpijske igre ":"Svetovno prvenstvo ")+r.d.slice(0,4):r.summer?"Poletje "+r.d.slice(0,4):seasonOf(r.d)}
@@ -274,7 +277,26 @@ function hlDetail(which,st){
     const tot=[0,1,2].map(i=>st.med.WSC[i]+st.med.OWG[i]);
     const tr=el("tr");tr.appendChild(el("td","l name","Skupaj"));tot.forEach(n=>tr.appendChild(cell(n,false)));tr.appendChild(cell(sum(tot),true));tb.appendChild(tr);
     table.appendChild(tb);box.appendChild(table);
-    box.appendChild(el("p","note","Ekipna medalja šteje kot ena medalja. Zajeti so športi, ki so že vneseni v podatke (alpsko smučanje, skoki, nordijska kombinacija, teki, biatlon); deskanje na snegu in freestyle še nista vključena."));
+    /* vse medalje po športnikih; klik na vrstico pokaže posamezne medalje */
+    const per={};
+    RACES.filter(r=>r.c==="WSC"||r.c==="OWG").forEach(r=>r.res.filter(x=>!x.x&&x.r<=3).forEach(x=>{
+      const k=x.id?String(x.id):x.n;const p=per[k]=per[k]||{n:x.n,sp:new Set(),it:[],c:[0,0,0]};
+      p.sp.add(r.sport);p.c[x.r-1]++;p.it.push({r:x.r,race:r})}));
+    const t2=el("table");t2.style.marginTop="14px";
+    t2.appendChild(head(["Športnik","Panoga","Zlate","Srebrne","Bronaste","Skupaj",""]));
+    t2.querySelectorAll("th").forEach((t,i)=>{if(i<2)t.classList.add("l")});
+    const tb2=el("tbody");
+    Object.values(per).sort((a,b)=>(b.c[0]-a.c[0])||(b.c[1]-a.c[1])||(b.c[2]-a.c[2])||a.n.localeCompare(b.n,"sl")).forEach(p=>{
+      const tr=el("tr","row");tr.appendChild(el("td","l name",p.n));tr.appendChild(el("td","l sp",[...p.sp].map(x=>SHORT[x]||x).join(" · ")));
+      p.c.forEach(n=>tr.appendChild(cell(n,false)));tr.appendChild(cell(sum(p.c),true));
+      const cv=el("td","chev");cv.appendChild(el("i",null,"▾"));tr.appendChild(cv);
+      const dt=el("tr","detail");dt.hidden=true;const dd=el("td");dd.colSpan=7;
+      p.it.sort((a,b)=>a.r-b.r||b.race.d.localeCompare(a.race.d)).forEach(i=>dd.appendChild(el("span","pill g"+i.r,i.r+". · "+(i.race.c==="OWG"?"OI ":"SP ")+i.race.d.slice(0,4)+" · "+i.race.disc+" · "+i.race.place+" · "+fmtDate(i.race.d)+(i.race.t==="ekipno"?" (ekipno)":""))));
+      dt.appendChild(dd);
+      tr.addEventListener("click",()=>{dt.hidden=!dt.hidden;tr.classList.toggle("open",!dt.hidden)});
+      tb2.appendChild(tr);tb2.appendChild(dt)});
+    t2.appendChild(tb2);box.appendChild(t2);
+    box.appendChild(el("p","note","Ekipna medalja šteje kot ena medalja. Zajeti so športi, ki so že vneseni v podatke (alpsko smučanje, skoki, nordijska kombinacija, teki, biatlon, deskanje na snegu); freestyle, telemark in paraskijanje še niso vključeni."));
   }
   box.hidden=false;
 }
@@ -333,7 +355,7 @@ const FIRST=1991,LAST=2026;
 function covText(lab){
   const c=(META.coverage||{})[lab];
   if(!c)return "še ni vneseno";
-  const names={alpine:"alpsko",jumping:"skoki",nordic:"kombinacija",biathlon:"biatlon",xc:"teki"};
+  const names={alpine:"alpsko",jumping:"skoki",nordic:"kombinacija",biathlon:"biatlon",xc:"teki",snowboard:"deskanje"};
   return Object.keys(c).map(k=>(names[k]||k)+": "+c[k]).join(" · ");
 }
 function seasonOf(d){const y=+d.slice(0,4),m=+d.slice(5,7),s=m>=8?y:y-1;return s+"/"+String(s+1).slice(2)}
@@ -395,7 +417,7 @@ function render(){
   if(!rs.length&&tab!=="season"){out.appendChild(el("div","empty","Za izbrane filtre še ni rezultatov (podatki za starejše sezone se še dopolnjujejo)."));return}
   const table=el("table");
   if(tab==="name"){
-    table.appendChild(head(["Športnik","Panoga","1.","2.","3.","Top 5","Top 10","Top 15","Top 30"]));
+    table.appendChild(head(["Športnik","Panoga","1.","2.","3.","Top 5","Top 10","Top 15","Top 30",""]));
     table.querySelector("th:nth-child(2)").style.textAlign="left";
     const tb=el("tbody");
     sortRows(Object.values(people).map(p=>({p,c:counts(p.items.map(i=>i.r))})),o=>o.p.n,o=>o.c)
@@ -404,10 +426,11 @@ function render(){
         const real=p.items.filter(i=>!i.x);const best=real.length?String(Math.min(...real.map(i=>i.r))):"16.–30";
         td.appendChild(el("small",null,(p.g==="M"?"Moški":p.g==="X"?"Mešano":"Ženske")+" · najboljša uvrstitev: "+best+"."));
         tr.appendChild(td);tr.appendChild(el("td","sp",[...p.sports].map(x=>SHORT[x]||x).join(" · ")));c.forEach((v,i)=>tr.appendChild(cell(v,i===0)));
-        const dt=el("tr","detail");dt.hidden=true;const dd=el("td");dd.colSpan=9;dd.appendChild(cardHead(p));
+        const cv=el("td","chev");cv.appendChild(el("i",null,"▾"));tr.appendChild(cv);
+        const dt=el("tr","detail");dt.hidden=true;const dd=el("td");dd.colSpan=10;dd.appendChild(cardHead(p));
         p.items.sort((a,b)=>(a.x?31:a.r)-(b.x?31:b.r)||a.race.d.localeCompare(b.race.d)).forEach(i=>dd.appendChild(el("span","pill"+(!i.x&&i.r<=3?" g"+i.r:""),(i.x?"16.–30.":i.r+".")+" · "+i.race.disc+" · "+i.race.place+" · "+fmtDate(i.race.d)+(i.race.t==="ekipno"?" (ekipno)":""))));
         dt.appendChild(dd);
-        tr.addEventListener("click",()=>{dt.hidden=!dt.hidden});
+        tr.addEventListener("click",()=>{dt.hidden=!dt.hidden;tr.classList.toggle("open",!dt.hidden)});
         tb.appendChild(tr);tb.appendChild(dt);
       });
     table.appendChild(tb);
