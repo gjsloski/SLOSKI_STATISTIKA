@@ -196,15 +196,15 @@ footer{font-size:12px;color:var(--muted);padding:0 4px}
 let META={updated:"",next:"",coverage:{}};
 let RACES=[];
 let LINK={},PNAME={};
-const SPFX={"Alpsko smučanje":"al","Smučarski skoki":"jp","Nordijska kombinacija":"nk","Biatlon":"bt","Smučarski teki":"cc","Deskanje na snegu":"sb","Freestyle":"fs"};
-const FISSEC={al:"AL",jp:"JP",nk:"NK",cc:"CC",sb:"SB",fs:"FS"};
+const SPFX={"Alpsko smučanje":"al","Smučarski skoki":"jp","Nordijska kombinacija":"nk","Biatlon":"bt","Smučarski teki":"cc","Deskanje na snegu":"sb","Freestyle":"fs","Telemark":"tm"};
+const FISSEC={al:"AL",jp:"JP",nk:"NK",cc:"CC",sb:"SB",fs:"FS",tm:"TM"};
 function pkey(r,x){const id=(SPFX[r.sport]||r.sport)+"|"+(x.id||x.n);return LINK[id]||id}
 function addPerson(p,r,x){const k=pkey(r,x),id=(SPFX[r.sport]||r.sport)+"|"+(x.id||x.n);
   const q=(p[k]=p[k]||{n:PNAME[k]||x.n,g:r.g,items:[],sports:new Set(),ids:new Set()});
   if(r.g!=="X"&&q.g==="X")q.g=r.g;q.sports.add(r.sport);if(x.id)q.ids.add(id);q.items.push({r:x.r,x:x.x,race:r})}
 let MODE="winter";
 const SUMMER_SPORTS=["Smučarski skoki","Nordijska kombinacija"];
-const CHAMP_SPORTS=["Alpsko smučanje","Smučarski skoki","Smučarski teki","Nordijska kombinacija","Biatlon","Deskanje na snegu"];
+const CHAMP_SPORTS=["Alpsko smučanje","Smučarski skoki","Smučarski teki","Nordijska kombinacija","Biatlon","Deskanje na snegu","Freestyle","Telemark"];
 const isChamp=()=>MODE==="wsc"||MODE==="owg";
 function inMode(r){return MODE==="owg"?r.c==="OWG":MODE==="wsc"?r.c==="WSC":MODE==="summer"?!!r.summer&&!r.c:!r.summer&&!r.c}
 function seasonOfRace(r){return r.c?(r.c==="OWG"?"Olimpijske igre ":"Svetovno prvenstvo ")+r.d.slice(0,4):r.summer?"Poletje "+r.d.slice(0,4):seasonOf(r.d)}
@@ -301,7 +301,7 @@ function hlDetail(which,st){
     const tot=[0,1,2].map(i=>st.med.WSC[i]+st.med.OWG[i]);
     const tr=el("tr");tr.appendChild(el("td","l name","Skupaj"));tot.forEach(n=>tr.appendChild(cell(n,false)));tr.appendChild(cell(sum(tot),true));tr.appendChild(el("td"));tb.appendChild(tr);
     table.appendChild(tb);box.appendChild(table);
-    box.appendChild(el("p","note","Tapni na tekmovanje za športnike z medaljami, nato na športnika za njegove medalje. Ekipna medalja šteje kot ena medalja. Zajeti so športi, ki so že vneseni v podatke (alpsko smučanje, skoki, nordijska kombinacija, teki, biatlon, deskanje na snegu); freestyle, telemark in paraskijanje še niso vključeni."));
+    box.appendChild(el("p","note","Tapni na tekmovanje za športnike z medaljami, nato na športnika za njegove medalje. Ekipna medalja šteje kot ena medalja. Zajeti so športi, ki so že vneseni v podatke (alpsko smučanje, skoki, nordijska kombinacija, teki, biatlon, deskanje na snegu, freestyle, telemark); paraskijanje še ni vključeno."));
   }
   box.hidden=false;
 }
@@ -331,7 +331,7 @@ function seasonLabels(){
   if(MODE==="summer")return [...new Set(RACES.filter(r=>r.summer).map(seasonOfRace))].sort().reverse();
   return Array.from({length:LAST-FIRST+1},(_,i)=>{const s=LAST-i;return s+"/"+String(s+1).slice(2)});
 }
-const SPORTS=["Alpsko smučanje","Smučarski skoki","Smučarski teki","Nordijska kombinacija","Biatlon","Deskanje na snegu","Freestyle"];
+const SPORTS=["Alpsko smučanje","Smučarski skoki","Smučarski teki","Nordijska kombinacija","Biatlon","Deskanje na snegu","Freestyle","Telemark"];
 const TOPS=[5,10,15,30];
 const $=id=>document.getElementById(id);
 const el=(tag,cls,txt)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(txt!==undefined)e.textContent=txt;return e};
@@ -360,7 +360,7 @@ const FIRST=1991,LAST=2026;
 function covText(lab){
   const c=(META.coverage||{})[lab];
   if(!c)return "še ni vneseno";
-  const names={alpine:"alpsko",jumping:"skoki",nordic:"kombinacija",biathlon:"biatlon",xc:"teki",snowboard:"deskanje"};
+  const names={alpine:"alpsko",jumping:"skoki",nordic:"kombinacija",biathlon:"biatlon",xc:"teki",snowboard:"deskanje",freestyle:"freestyle",telemark:"telemark"};
   return Object.keys(c).map(k=>(names[k]||k)+": "+c[k]).join(" · ");
 }
 function seasonOf(d){const y=+d.slice(0,4),m=+d.slice(5,7),s=m>=8?y:y-1;return s+"/"+String(s+1).slice(2)}
@@ -396,7 +396,7 @@ function sortRows(rows,nameOf,cOf){
 function counts(ranks){return [1,2,3].map(n=>ranks.filter(r=>r===n).length).concat(TOPS.map(n=>ranks.filter(r=>r<=n).length))}
 function cell(v,first){const td=el("td","num",String(v));if(v===0)td.classList.add("zero");else if(first)td.classList.add("hi");return td}
 function head(cols){const tr=el("tr");cols.forEach(c=>tr.appendChild(el("th",null,c)));const th=el("thead");th.appendChild(tr);return th}
-const SHORT={"Alpsko smučanje":"Alpsko","Smučarski skoki":"Skoki","Smučarski teki":"Teki","Nordijska kombinacija":"Nord. komb.","Biatlon":"Biatlon","Deskanje na snegu":"Snowboard","Freestyle":"Freestyle"};
+const SHORT={"Alpsko smučanje":"Alpsko","Smučarski skoki":"Skoki","Smučarski teki":"Teki","Nordijska kombinacija":"Nord. komb.","Biatlon":"Biatlon","Deskanje na snegu":"Snowboard","Freestyle":"Freestyle","Telemark":"Telemark"};
 function cardHead(p){
   const box=el("div","cardhead");
   const seas=[...new Set(p.items.map(i=>i.race.d.slice(0,4)))].sort();
