@@ -608,11 +608,16 @@ def parse_race(html, sport_key, raceid, extra_names, cat="WC", trusted=False):
         if cfg["code"] == "CC" and any(y.get("id") == int(r["cid"] or 0) for y in res):
             continue  # ista oseba dvakrat (npr. razdelek za 'Did not qualify')
         if (r["nat"] == "SLO" or r["cid"] in EXTRA_SLO or (cfg["code"] == "SB" and r["nat"] == "" and r["cid"] in SB_NONAT_SLO) or (cfg["code"] == "CC" and date < EXTRA_SLO_CC.get(r["cid"], "0000"))) and r["rank"] <= 30:
-            if r.get("unv"):
-                ar = athlete_results("SB", str(r["cid"]), season_code_of(date), cat)
-                prow = ar.get(str(raceid)) if ar else None
-                if not (prow and prow["pos"].isdigit() and int(prow["pos"]) == r["rank"]):
-                    continue
+            if r.get("unv") or cfg["code"] in ("TM", "FS"):
+                # telemark/freestyle: na strani prireditve so skupaj svetovni pokal in mladinski SP (iste strani, isti naslovi),
+                # zato vsako slovensko uvrstitev potrdimo na strani sportnika v isti kategoriji (juniorske tekme tam niso)
+                ar = athlete_results(cfg["code"], str(r["cid"]), season_code_of(date), cat)
+                if ar is None and cfg["code"] in ("TM", "FS") and not r.get("unv"):
+                    pass  # strani sportnika ni bilo mogoce brati - uvrstitev ostane, preverjanje jo bo po potrebi javilo
+                else:
+                    prow = ar.get(str(raceid)) if ar else None
+                    if not (prow and prow["pos"].isdigit() and int(prow["pos"]) == r["rank"]):
+                        continue
             item = {"n": fix_name(r["name"], r["cid"], extra_names), "r": r["rank"]}
             if r["cid"]:
                 item["id"] = int(r["cid"])
