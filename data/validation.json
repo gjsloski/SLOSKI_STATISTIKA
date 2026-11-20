@@ -1,50 +1,7 @@
 {
  "updated": "2026-11-20",
- "ujema": 76,
- "razlike": 2,
+ "ujema": 77,
+ "razlike": 0,
  "nepreverjeno": 0,
- "athletes": [
-  {
-   "n": "Jan Lavtar",
-   "id": 152456,
-   "sport": "Telemark",
-   "status": "razlika",
-   "razlike": [
-    {
-     "s": "2008/09",
-     "nase": [
-      0,
-      0,
-      0
-     ],
-     "fis": [
-      0,
-      2,
-      0
-     ]
-    }
-   ]
-  },
-  {
-   "n": "Jure Ales",
-   "id": 180020,
-   "sport": "Telemark",
-   "status": "razlika",
-   "razlike": [
-    {
-     "s": "2015/16",
-     "nase": [
-      2,
-      0,
-      1
-     ],
-     "fis": [
-      0,
-      0,
-      1
-     ]
-    }
-   ]
-  }
- ]
+ "athletes": []
 }
