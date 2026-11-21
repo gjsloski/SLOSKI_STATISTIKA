@@ -410,6 +410,14 @@ def parse_team_page(soup):
 NOT_SLO_CC = {"2575", "3323", "37158", "70424", "7912", "101716"}
 
 
+# mesane ekipe 'SLO/RUS' (nat FIS): clani brez drzavljanstva, zato steje samo znan slovenski clan
+MIXED_SLO = {"73501"}  # Damjan Vtic, NK ekipna tekma Pragelato 2005 (SLO/RUS, 14. mesto)
+
+
+def is_mixed_slo(t):
+    return "SLO" in [x.strip().upper() for x in str(t.get("name", "")).split("/")]
+
+
 def is_slo_team(t):
     """FIS je v nekaterih starih tekmah Slovaska zapisal z oznako SLO (npr. Davos 2007: 'SLOVAKIA SLO')."""
     return t["nat"] == "SLO" and not str(t.get("name", "")).upper().startswith("SLOVAK")
@@ -425,7 +433,10 @@ def team_result(soup, extra_names):
     for m in persons:
         cur = m["team"]
         if m["nat"] is None and cur is not None:
-            if not is_slo_team(cur) and m["cid"] not in EXTRA_SLO:
+            if is_mixed_slo(cur):
+                if m["cid"] not in MIXED_SLO and m["cid"] not in EXTRA_SLO:
+                    continue
+            elif not is_slo_team(cur) and m["cid"] not in EXTRA_SLO:
                 continue
             rank = cur["rank"]
         else:
@@ -608,11 +619,11 @@ def parse_race(html, sport_key, raceid, extra_names, cat="WC", trusted=False):
         if cfg["code"] == "CC" and any(y.get("id") == int(r["cid"] or 0) for y in res):
             continue  # ista oseba dvakrat (npr. razdelek za 'Did not qualify')
         if (r["nat"] == "SLO" or r["cid"] in EXTRA_SLO or (cfg["code"] == "SB" and r["nat"] == "" and r["cid"] in SB_NONAT_SLO) or (cfg["code"] == "CC" and date < EXTRA_SLO_CC.get(r["cid"], "0000"))) and r["rank"] <= 30:
-            if r.get("unv") or cfg["code"] in ("TM", "FS"):
+            if r.get("unv") or cfg["code"] in ("TM", "FS", "NK"):
                 # telemark/freestyle: na strani prireditve so skupaj svetovni pokal in mladinski SP (iste strani, isti naslovi),
                 # zato vsako slovensko uvrstitev potrdimo na strani sportnika v isti kategoriji (juniorske tekme tam niso)
                 ar = athlete_results(cfg["code"], str(r["cid"]), season_code_of(date), cat)
-                if ar is None and cfg["code"] in ("TM", "FS") and not r.get("unv"):
+                if ar is None and cfg["code"] in ("TM", "FS", "NK") and not r.get("unv"):
                     pass  # strani sportnika ni bilo mogoce brati - uvrstitev ostane, preverjanje jo bo po potrebi javilo
                 else:
                     prow = ar.get(str(raceid)) if ar else None
