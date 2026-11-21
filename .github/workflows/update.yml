@@ -14,7 +14,7 @@ on:
         description: "weekly = samo tekoča sezona, backfill = vsa zgodovina od 1991/92"
         default: "weekly"
         type: choice
-        options: [weekly, backfill, biathlon, list-names, reset-jumping, reset-alpine, reset-all, refilter, fill-startlists, add-extra, teams, champs, redo, recheck-levi, probe-cat, probe-find, probe-ibu, check-ibu, probe-team, probe-team2, probe-xc, probe-sb, reset-sb, probe-new, reset-tm, reset-fs, probe-spec, xc, reset-xc, check, validate, probe]
+        options: [weekly, backfill, biathlon, list-names, reset-jumping, reset-alpine, reset-nk, probe-para, reset-all, refilter, fill-startlists, add-extra, teams, champs, redo, recheck-levi, probe-cat, probe-find, probe-ibu, check-ibu, probe-team, probe-team2, probe-xc, probe-sb, reset-sb, probe-new, reset-tm, reset-fs, probe-spec, xc, reset-xc, check, validate, probe]
   push:
     branches: [main]
     paths: [index.html, scripts/**, .github/workflows/update.yml]
@@ -57,6 +57,10 @@ jobs:
             python scripts/update.py --probe-cat "SB:2026:WC,SB:2018:WC,SB:2010:WC,SB:1996:WC,SB:2022:OWG,SB:2025:WSC" && python scripts/update.py --probe-team "SB:2026,SB:2022"
           elif [ "$MODE" = "probe-new" ]; then
             python scripts/update.py --probe-cat "TM:2026:WC,TM:2018:WC,TM:2010:WC,TM:2003:WC,TM:2025:WSC,FS:2026:WC,FS:2018:WC,FS:2010:WC,FS:2002:WC,FS:2025:WSC,FS:2022:OWG" && python scripts/update.py --probe-team "TM:2026,FS:2026"
+          elif [ "$MODE" = "probe-para" ]; then
+            python scripts/update.py --mode backfill --probe-spec "PC:PAL:2026:WC,PC:PAL:2026:PWG,PC:PCC:2026:WC,PC:PCC:2026:PWG,AT:PAL:290453:,AT:PAL:290453:2026,AT:PAL:289319:,AT:PAL:289319:2014,AT:PAL:289318:,AT:PAL:289320:,AT:PCC:291544:,AT:PCC:291544:2026"
+          elif [ "$MODE" = "reset-nk" ]; then
+            python scripts/update.py --mode backfill --reset-sport nordic --max-minutes 330
           elif [ "$MODE" = "reset-tm" ]; then
             python scripts/update.py --mode backfill --reset-sport telemark --max-minutes 330
           elif [ "$MODE" = "reset-fs" ]; then
