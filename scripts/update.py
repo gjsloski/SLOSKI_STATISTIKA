@@ -1735,12 +1735,14 @@ def update_milestones(races, today):
 
 
 _MESECI = {"jan": 1, "feb": 2, "mar": 3, "apr": 4, "may": 5, "jun": 6, "jul": 7, "aug": 8, "sep": 9, "oct": 10, "nov": 11, "dec": 12}
-_DATE_RANGE = re.compile(r"^(\d{1,2})\s*([A-Za-z]{3})?\s*-\s*(\d{1,2})\s*([A-Za-z]{3})$")
-_DATE_ONE = re.compile(r"^(\d{1,2})\s*([A-Za-z]{3})$")
+_DATE_RANGE = re.compile(r"^(\d{1,2})\s*([A-Za-z]{3})?\s*-\s*(\d{1,2})\s*([A-Za-z]{3})\s*(\d{4})?$")
+_DATE_ONE = re.compile(r"^(\d{1,2})\s*([A-Za-z]{3})\s*(\d{4})?$")
+_CAL_SKIP = re.compile(r"[DPCQ](?:\s+[DPCQ])*|[A-Z]{1,3}|(?:[A-Z]{2,3}\s+)?[WM](?:\s+[WM])?")
 
 
 def parse_calendar_rows(html, cat, season, sport_key):
-    """Iz koledarja FIS prebere tekme svetovnega pokala (kategorija WC ali GP): datum, kraj, drzava, discipline, spol."""
+    """Iz koledarja FIS prebere tekme svetovnega pokala (kategorija WC ali GP): datum, kraj, drzava, discipline, spol.
+    Vrstica dogodka ima celice: 'D P C C' | '10-12 Dec 2025' | 'Kraj WC 2xSL' | 'Kraj' | 'Kraj' | 'AUT' | 'PAL' | 'WC 2xSL' | 'PAL W M' | 'W M'."""
     soup = BeautifulSoup(html, "lxml") if _has_lxml() else BeautifulSoup(html, "html.parser")
     groups = {}
     for a in soup.find_all("a", href=True):
@@ -1751,7 +1753,7 @@ def parse_calendar_rows(html, cat, season, sport_key):
         if not eid:
             continue
         g = groups.setdefault(eid, {"url": urljoin(BASE, href), "t": []})
-        txt = a.get_text(" ", strip=True)
+        txt = re.sub(r"\s+", " ", a.get_text(" ", strip=True))
         if txt and txt not in g["t"]:
             g["t"].append(txt)
     cat_re = re.compile(r"\b" + (r"S?WC" if cat == "WC" else cat) + r"\b\s*(.*)$")
@@ -1763,34 +1765,40 @@ def parse_calendar_rows(html, cat, season, sport_key):
             continue
         date = nat = gender = None
         rest = []
-        for t in texts:
-            tt = t.strip()
+        for tt in texts:
             m = _DATE_RANGE.match(tt)
-            m1 = _DATE_ONE.match(tt)
+            m1 = _DATE_ONE.match(tt) if not m else None
             if date is None and (m or m1):
                 if m:
-                    d1, m1_, d2, m2 = m.group(1), (m.group(2) or m.group(4)), m.group(3), m.group(4)
+                    d1, mon1, d2, mon2, yr = m.group(1), (m.group(2) or m.group(4)), m.group(3), m.group(4), m.group(5)
                 else:
-                    d1, m1_, d2, m2 = m1.group(1), m1.group(2), m1.group(1), m1.group(2)
-                a_m, b_m = _MESECI.get(m1_.lower()[:3]), _MESECI.get(m2.lower()[:3])
+                    d1, mon1, d2, mon2, yr = m1.group(1), m1.group(2), m1.group(1), m1.group(2), m1.group(3)
+                a_m, b_m = _MESECI.get(mon1.lower()[:3]), _MESECI.get(mon2.lower()[:3])
                 if not a_m or not b_m:
                     continue
-                ya = season - 1 if a_m >= 7 else season
-                yb = season - 1 if b_m >= 7 else season
+                if yr:
+                    yb = int(yr)
+                    ya = yb - 1 if a_m > b_m else yb
+                else:
+                    ya = season - 1 if a_m >= 7 else season
+                    yb = season - 1 if b_m >= 7 else season
                 date = (datetime.date(ya, a_m, int(d1)).isoformat(), datetime.date(yb, b_m, int(d2)).isoformat())
-            elif re.fullmatch(r"[WM](?:\s+[WM])?", tt):
-                gender = tt
-            elif re.fullmatch(r"[A-Z]{3}", tt) and nat is None:
+                continue
+            gm = re.fullmatch(r"(?:[A-Z]{2,3}\s+)?([WM](?:\s+[WM])?)", tt)
+            if gm:
+                gender = gender or gm.group(1)
+            elif re.fullmatch(r"[A-Z]{3}", tt) and nat is None and tt not in ("PAL", "PCC"):
                 nat = tt
-            elif cat_re.search(tt) or re.fullmatch(r"[A-Z]{2}|[A-Z]", tt):
+            elif cat_re.search(tt) or _CAL_SKIP.fullmatch(tt):
                 continue
             else:
                 rest.append(tt)
         if not date or not rest:
             continue
         place = min(rest, key=len)
+        disc = " ".join(x for x in evt.group(1).replace("•", " ").split() if x not in ("COM", "TRA"))
         out.append({"s": sport_key, "c": cat, "a": date[0], "b": date[1], "p": place, "n": nat or "",
-                    "e": evt.group(1).strip(), "g": gender or "", "u": g["url"]})
+                    "e": disc, "g": gender or "", "u": g["url"]})
     return out
 
 
@@ -1801,11 +1809,15 @@ def build_calendar(season):
         for cat in (("WC", "GP") if key == "jumping" else ("WC",)):
             url = f"{BASE}/DB/{cfg['path']}/calendar-results.html?sectorcode={cfg['code']}&seasoncode={season}&categorycode={cat}"
             html = get(url)
+            if not html or "eventid=" not in html:  # nekatere panoge (npr. freestyle) imajo koledar na skupni poti
+                h2 = get(url.replace(f"/DB/{cfg['path']}/", "/DB/general/"))
+                if h2 and "eventid=" in h2:
+                    html = h2
             if not html:
                 log(f"KOLEDAR {cfg['label']} ({cat}): ni dosegljiv")
                 continue
             rows = parse_calendar_rows(html, cat, season, key)
-            log(f"KOLEDAR {cfg['label']} ({cat}): {len(rows)} tekem")
+            log(f"KOLEDAR v2 {cfg['label']} ({cat}): {len(rows)} tekem (povezav na dogodke: {html.count('eventid=')}, dolzina strani: {len(html)})")
             events += rows
     if not events:
         log("KOLEDAR: nic najdenega, obstojeca datoteka ostane")
@@ -1901,16 +1913,20 @@ def collect_para(races, extra_names):
             parsed = {k: v for k, v in parse_athlete_results(html).items() if v["code"] == cat}
             finals = {(v["date"], v["disc"].replace("Qualification", "Final")) for v in parsed.values() if "Final" in v["disc"]}
             log(f"PARA {sec}:{cid} {name} {cat}: {len(parsed)} vrstic")
+            skip = {"pos": 0, "kval": 0, "spol": 0}
             for rid, v in parsed.items():
                 pos = v["pos"]
                 if not pos.isdigit() or int(pos) > 30:
+                    skip["pos"] += 1
                     continue
                 if "Qualification" in v["disc"] and (v["date"], v["disc"].replace("Qualification", "Final")) in finals:
+                    skip["kval"] += 1
                     continue  # kvalifikacije in finale sta ena tekma: stejemo finale
                 g, cls = para_race_info(sec, rid)
                 g = g or gender
                 if not g:
                     log(f"PARA {sec}:{cid} raceid={rid}: spola ni bilo mogoce ugotoviti, preskoceno")
+                    skip["spol"] += 1
                     continue
                 dd, mm, yy = v["date"].split("-")
                 disc = None
@@ -1933,6 +1949,9 @@ def collect_para(races, extra_names):
                     race["res"].sort(key=lambda x: x["r"])
                     added += 1
                 races[rec_id] = race
+            if parsed:
+                ex = next(iter(parsed.items()))
+                log(f"PARA {sec}:{cid} {cat}: preskoceno {skip}; primer vrstice {ex[0]}: {ex[1]}")
     log(f"PARA: dodanih uvrstitev {added}")
 
 
