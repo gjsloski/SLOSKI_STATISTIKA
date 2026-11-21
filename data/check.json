@@ -1,46 +1,20 @@
 {
  "updated": "2026-11-21",
- "preverjenih_sezon": 2399,
+ "preverjenih_sezon": 2398,
  "nepreverjenih": 0,
  "nesklad": [
   {
-   "n": "Damjan Vtic",
-   "sezona": "2004/05",
-   "raceid": "948",
-   "d": "2005-02-12",
-   "place": "Pragelato (ITA)",
-   "disc": "Velika skakalnica",
-   "nase": 28,
-   "fis": null,
-   "cid": "73501",
-   "cat": "WC",
-   "sec": "NK"
-  },
-  {
-   "n": "Damjan Vtic",
-   "sezona": "2004/05",
-   "raceid": "947",
-   "d": "11-02-2005",
+   "n": "Neja Dvornik",
+   "sezona": "2026/27",
+   "raceid": "131581",
+   "d": "21-11-2026",
    "place": "",
-   "disc": "Team",
+   "disc": "Slalom",
    "nase": null,
-   "fis": "14",
-   "cid": "73501",
+   "fis": "18",
+   "cid": "221143",
    "cat": "WC",
-   "sec": "NK"
-  },
-  {
-   "n": "Dejan Plevnik",
-   "sezona": "2006/07",
-   "raceid": "1104",
-   "d": "2007-03-09",
-   "place": "Lahti (FIN)",
-   "disc": "Gundersen",
-   "nase": 3,
-   "fis": null,
-   "cid": "73497",
-   "cat": "WC",
-   "sec": "NK"
+   "sec": "AL"
   }
  ]
 }
