@@ -6,7 +6,8 @@
    "xc": "v teku",
    "snowboard": "v teku",
    "telemark": "v teku",
-   "freestyle": "v teku"
+   "freestyle": "v teku",
+   "nordic": "v teku"
   },
   "Poletje 2026": {
    "jumping": "popolno",
@@ -18,7 +19,8 @@
    "xc": "popolno",
    "snowboard": "popolno",
    "telemark": "popolno",
-   "freestyle": "popolno"
+   "freestyle": "popolno",
+   "nordic": "popolno"
   },
   "2024/25": {
    "alpine": "popolno",
@@ -26,7 +28,8 @@
    "xc": "popolno",
    "snowboard": "popolno",
    "telemark": "popolno",
-   "freestyle": "popolno"
+   "freestyle": "popolno",
+   "nordic": "popolno"
   },
   "2023/24": {
    "alpine": "popolno",
@@ -34,7 +37,8 @@
    "xc": "popolno",
    "snowboard": "popolno",
    "telemark": "popolno",
-   "freestyle": "popolno"
+   "freestyle": "popolno",
+   "nordic": "popolno"
   },
   "2022/23": {
    "alpine": "popolno",
@@ -42,7 +46,8 @@
    "xc": "popolno",
    "snowboard": "popolno",
    "telemark": "popolno",
-   "freestyle": "popolno"
+   "freestyle": "popolno",
+   "nordic": "popolno"
   },
   "2021/22": {
    "alpine": "popolno",
@@ -50,7 +55,8 @@
    "xc": "popolno",
    "snowboard": "popolno",
    "telemark": "popolno",
-   "freestyle": "popolno"
+   "freestyle": "popolno",
+   "nordic": "popolno"
   },
   "2020/21": {
    "alpine": "popolno",
@@ -58,7 +64,8 @@
    "xc": "popolno",
    "snowboard": "popolno",
    "telemark": "popolno",
-   "freestyle": "popolno"
+   "freestyle": "popolno",
+   "nordic": "popolno"
   },
   "2019/20": {
    "alpine": "popolno",
@@ -66,7 +73,8 @@
    "xc": "popolno",
    "snowboard": "popolno",
    "telemark": "popolno",
-   "freestyle": "popolno"
+   "freestyle": "popolno",
+   "nordic": "popolno"
   },
   "2018/19": {
    "alpine": "popolno",
@@ -74,7 +82,8 @@
    "xc": "popolno",
    "snowboard": "popolno",
    "telemark": "popolno",
-   "freestyle": "popolno"
+   "freestyle": "popolno",
+   "nordic": "popolno"
   },
   "2017/18": {
    "alpine": "popolno",
@@ -82,7 +91,8 @@
    "xc": "popolno",
    "snowboard": "popolno",
    "telemark": "popolno",
-   "freestyle": "popolno"
+   "freestyle": "popolno",
+   "nordic": "popolno"
   },
   "2016/17": {
    "alpine": "popolno",
@@ -90,7 +100,8 @@
    "xc": "popolno",
    "snowboard": "popolno",
    "telemark": "popolno",
-   "freestyle": "popolno"
+   "freestyle": "popolno",
+   "nordic": "popolno"
   },
   "2015/16": {
    "alpine": "popolno",
@@ -98,7 +109,8 @@
    "xc": "popolno",
    "snowboard": "popolno",
    "telemark": "popolno",
-   "freestyle": "popolno"
+   "freestyle": "popolno",
+   "nordic": "delno"
   },
   "2014/15": {
    "alpine": "popolno",
@@ -106,7 +118,8 @@
    "xc": "popolno",
    "snowboard": "popolno",
    "telemark": "popolno",
-   "freestyle": "popolno"
+   "freestyle": "popolno",
+   "nordic": "popolno"
   },
   "2013/14": {
    "alpine": "popolno",
@@ -114,7 +127,8 @@
    "xc": "popolno",
    "snowboard": "popolno",
    "telemark": "popolno",
-   "freestyle": "popolno"
+   "freestyle": "popolno",
+   "nordic": "popolno"
   },
   "2012/13": {
    "alpine": "popolno",
@@ -122,7 +136,8 @@
    "xc": "popolno",
    "snowboard": "popolno",
    "telemark": "popolno",
-   "freestyle": "popolno"
+   "freestyle": "popolno",
+   "nordic": "popolno"
   },
   "2011/12": {
    "alpine": "popolno",
@@ -130,7 +145,8 @@
    "xc": "popolno",
    "snowboard": "popolno",
    "telemark": "popolno",
-   "freestyle": "popolno"
+   "freestyle": "popolno",
+   "nordic": "popolno"
   },
   "2010/11": {
    "alpine": "popolno",
@@ -138,7 +154,8 @@
    "xc": "popolno",
    "snowboard": "popolno",
    "telemark": "popolno",
-   "freestyle": "popolno"
+   "freestyle": "popolno",
+   "nordic": "popolno"
   },
   "2009/10": {
    "alpine": "popolno",
@@ -146,7 +163,8 @@
    "xc": "popolno",
    "snowboard": "popolno",
    "telemark": "popolno",
-   "freestyle": "popolno"
+   "freestyle": "popolno",
+   "nordic": "popolno"
   },
   "2008/09": {
    "alpine": "popolno",
@@ -154,7 +172,8 @@
    "xc": "popolno",
    "snowboard": "popolno",
    "telemark": "popolno",
-   "freestyle": "popolno"
+   "freestyle": "popolno",
+   "nordic": "popolno"
   },
   "2007/08": {
    "alpine": "popolno",
@@ -162,7 +181,8 @@
    "xc": "popolno",
    "snowboard": "popolno",
    "telemark": "popolno",
-   "freestyle": "popolno"
+   "freestyle": "popolno",
+   "nordic": "popolno"
   },
   "2006/07": {
    "alpine": "popolno",
@@ -170,7 +190,8 @@
    "xc": "popolno",
    "snowboard": "popolno",
    "telemark": "popolno",
-   "freestyle": "popolno"
+   "freestyle": "popolno",
+   "nordic": "popolno"
   },
   "2005/06": {
    "alpine": "popolno",
@@ -178,7 +199,8 @@
    "xc": "popolno",
    "snowboard": "popolno",
    "telemark": "popolno",
-   "freestyle": "popolno"
+   "freestyle": "popolno",
+   "nordic": "popolno"
   },
   "2004/05": {
    "alpine": "popolno",
@@ -186,7 +208,8 @@
    "xc": "popolno",
    "snowboard": "popolno",
    "telemark": "popolno",
-   "freestyle": "popolno"
+   "freestyle": "popolno",
+   "nordic": "popolno"
   },
   "2003/04": {
    "alpine": "popolno",
@@ -194,7 +217,8 @@
    "xc": "popolno",
    "snowboard": "popolno",
    "telemark": "popolno",
-   "freestyle": "popolno"
+   "freestyle": "popolno",
+   "nordic": "popolno"
   },
   "2002/03": {
    "alpine": "popolno",
@@ -202,7 +226,8 @@
    "xc": "popolno",
    "snowboard": "popolno",
    "telemark": "popolno",
-   "freestyle": "popolno"
+   "freestyle": "popolno",
+   "nordic": "popolno"
   },
   "2001/02": {
    "alpine": "popolno",
@@ -210,7 +235,8 @@
    "xc": "popolno",
    "snowboard": "popolno",
    "telemark": "popolno",
-   "freestyle": "popolno"
+   "freestyle": "popolno",
+   "nordic": "popolno"
   },
   "2000/01": {
    "alpine": "popolno",
@@ -218,7 +244,8 @@
    "xc": "popolno",
    "snowboard": "popolno",
    "telemark": "popolno",
-   "freestyle": "popolno"
+   "freestyle": "popolno",
+   "nordic": "popolno"
   },
   "1999/00": {
    "alpine": "popolno",
@@ -226,7 +253,8 @@
    "xc": "popolno",
    "snowboard": "popolno",
    "telemark": "popolno",
-   "freestyle": "popolno"
+   "freestyle": "popolno",
+   "nordic": "popolno"
   },
   "1998/99": {
    "alpine": "popolno",
@@ -234,7 +262,8 @@
    "xc": "popolno",
    "snowboard": "popolno",
    "telemark": "delno",
-   "freestyle": "popolno"
+   "freestyle": "popolno",
+   "nordic": "popolno"
   },
   "1997/98": {
    "alpine": "popolno",
@@ -242,7 +271,8 @@
    "xc": "popolno",
    "snowboard": "popolno",
    "telemark": "delno",
-   "freestyle": "popolno"
+   "freestyle": "popolno",
+   "nordic": "popolno"
   },
   "1996/97": {
    "alpine": "popolno",
@@ -250,7 +280,8 @@
    "xc": "popolno",
    "snowboard": "popolno",
    "telemark": "delno",
-   "freestyle": "popolno"
+   "freestyle": "popolno",
+   "nordic": "popolno"
   },
   "1995/96": {
    "alpine": "popolno",
@@ -258,7 +289,8 @@
    "xc": "popolno",
    "snowboard": "popolno",
    "telemark": "delno",
-   "freestyle": "popolno"
+   "freestyle": "popolno",
+   "nordic": "popolno"
   },
   "1994/95": {
    "alpine": "popolno",
@@ -266,7 +298,8 @@
    "xc": "popolno",
    "snowboard": "popolno",
    "telemark": "delno",
-   "freestyle": "popolno"
+   "freestyle": "popolno",
+   "nordic": "popolno"
   },
   "1993/94": {
    "alpine": "popolno",
@@ -274,7 +307,8 @@
    "xc": "popolno",
    "snowboard": "delno",
    "telemark": "delno",
-   "freestyle": "popolno"
+   "freestyle": "popolno",
+   "nordic": "popolno"
   },
   "1992/93": {
    "alpine": "popolno",
@@ -282,7 +316,8 @@
    "xc": "popolno",
    "snowboard": "delno",
    "telemark": "delno",
-   "freestyle": "popolno"
+   "freestyle": "popolno",
+   "nordic": "popolno"
   },
   "1991/92": {
    "alpine": "popolno",
@@ -290,655 +325,656 @@
    "xc": "popolno",
    "snowboard": "delno",
    "telemark": "delno",
-   "freestyle": "popolno"
+   "freestyle": "popolno",
+   "nordic": "popolno"
   },
   "Olimpijske igre 2027": {
    "alpine": "v teku",
    "jumping": "v teku",
-   "nordic": "v teku",
    "xc": "v teku",
    "snowboard": "v teku",
    "telemark": "v teku",
-   "freestyle": "delno"
+   "freestyle": "delno",
+   "nordic": "v teku"
   },
   "Svetovno prvenstvo 2027": {
    "alpine": "v teku",
    "jumping": "v teku",
-   "nordic": "v teku",
    "xc": "v teku",
    "snowboard": "v teku",
    "telemark": "v teku",
-   "freestyle": "v teku"
+   "freestyle": "v teku",
+   "nordic": "v teku"
   },
   "Olimpijske igre 2026": {
    "alpine": "popolno",
    "jumping": "popolno",
-   "nordic": "popolno",
    "xc": "popolno",
    "snowboard": "popolno",
    "telemark": "delno",
-   "freestyle": "popolno"
+   "freestyle": "popolno",
+   "nordic": "popolno"
   },
   "Svetovno prvenstvo 2026": {
    "alpine": "delno",
    "jumping": "delno",
-   "nordic": "delno",
    "xc": "delno",
    "snowboard": "delno",
    "telemark": "delno",
-   "freestyle": "delno"
+   "freestyle": "delno",
+   "nordic": "delno"
   },
   "Olimpijske igre 2025": {
    "alpine": "delno",
    "jumping": "delno",
-   "nordic": "delno",
    "xc": "delno",
    "snowboard": "delno",
    "telemark": "delno",
-   "freestyle": "delno"
+   "freestyle": "delno",
+   "nordic": "delno"
   },
   "Svetovno prvenstvo 2025": {
    "alpine": "popolno",
    "jumping": "popolno",
-   "nordic": "popolno",
    "xc": "popolno",
    "snowboard": "popolno",
    "telemark": "popolno",
-   "freestyle": "popolno"
+   "freestyle": "popolno",
+   "nordic": "popolno"
   },
   "Olimpijske igre 2024": {
    "alpine": "delno",
    "jumping": "delno",
-   "nordic": "delno",
    "xc": "delno",
    "snowboard": "delno",
    "telemark": "delno",
-   "freestyle": "delno"
+   "freestyle": "delno",
+   "nordic": "delno"
   },
   "Svetovno prvenstvo 2024": {
    "alpine": "delno",
    "jumping": "delno",
-   "nordic": "delno",
    "xc": "delno",
    "snowboard": "delno",
    "telemark": "delno",
-   "freestyle": "delno"
+   "freestyle": "delno",
+   "nordic": "delno"
   },
   "Olimpijske igre 2023": {
    "alpine": "delno",
    "jumping": "delno",
-   "nordic": "delno",
    "xc": "delno",
    "snowboard": "delno",
    "telemark": "delno",
-   "freestyle": "delno"
+   "freestyle": "delno",
+   "nordic": "delno"
   },
   "Svetovno prvenstvo 2023": {
    "alpine": "popolno",
    "jumping": "popolno",
-   "nordic": "popolno",
    "xc": "popolno",
    "snowboard": "popolno",
    "telemark": "popolno",
-   "freestyle": "popolno"
+   "freestyle": "popolno",
+   "nordic": "popolno"
   },
   "Olimpijske igre 2022": {
    "alpine": "popolno",
    "jumping": "popolno",
-   "nordic": "popolno",
    "xc": "popolno",
    "snowboard": "popolno",
    "telemark": "delno",
-   "freestyle": "popolno"
+   "freestyle": "popolno",
+   "nordic": "popolno"
   },
   "Svetovno prvenstvo 2022": {
    "alpine": "delno",
    "jumping": "delno",
-   "nordic": "delno",
    "xc": "delno",
    "snowboard": "delno",
    "telemark": "delno",
-   "freestyle": "delno"
+   "freestyle": "delno",
+   "nordic": "delno"
   },
   "Olimpijske igre 2021": {
    "alpine": "delno",
    "jumping": "delno",
-   "nordic": "delno",
    "xc": "delno",
    "snowboard": "delno",
    "telemark": "delno",
-   "freestyle": "delno"
+   "freestyle": "delno",
+   "nordic": "delno"
   },
   "Svetovno prvenstvo 2021": {
    "alpine": "popolno",
    "jumping": "popolno",
-   "nordic": "popolno",
    "xc": "popolno",
    "snowboard": "popolno",
    "telemark": "popolno",
-   "freestyle": "popolno"
+   "freestyle": "popolno",
+   "nordic": "popolno"
   },
   "Olimpijske igre 2020": {
    "alpine": "delno",
    "jumping": "delno",
-   "nordic": "delno",
    "xc": "delno",
    "snowboard": "delno",
    "telemark": "delno",
-   "freestyle": "delno"
+   "freestyle": "delno",
+   "nordic": "delno"
   },
   "Svetovno prvenstvo 2020": {
    "alpine": "delno",
    "jumping": "delno",
-   "nordic": "delno",
    "xc": "delno",
    "snowboard": "delno",
    "telemark": "delno",
-   "freestyle": "delno"
+   "freestyle": "delno",
+   "nordic": "delno"
   },
   "Olimpijske igre 2019": {
    "alpine": "delno",
    "jumping": "delno",
-   "nordic": "delno",
    "xc": "delno",
    "snowboard": "delno",
    "telemark": "delno",
-   "freestyle": "delno"
+   "freestyle": "delno",
+   "nordic": "delno"
   },
   "Svetovno prvenstvo 2019": {
    "alpine": "popolno",
    "jumping": "popolno",
-   "nordic": "popolno",
    "xc": "popolno",
    "snowboard": "popolno",
    "telemark": "popolno",
-   "freestyle": "popolno"
+   "freestyle": "popolno",
+   "nordic": "popolno"
   },
   "Olimpijske igre 2018": {
    "alpine": "popolno",
    "jumping": "popolno",
-   "nordic": "popolno",
    "xc": "popolno",
    "snowboard": "popolno",
    "telemark": "delno",
-   "freestyle": "popolno"
+   "freestyle": "popolno",
+   "nordic": "popolno"
   },
   "Svetovno prvenstvo 2018": {
    "alpine": "delno",
    "jumping": "delno",
-   "nordic": "delno",
    "xc": "delno",
    "snowboard": "delno",
    "telemark": "delno",
-   "freestyle": "delno"
+   "freestyle": "delno",
+   "nordic": "delno"
   },
   "Olimpijske igre 2017": {
    "alpine": "delno",
    "jumping": "delno",
-   "nordic": "delno",
    "xc": "delno",
    "snowboard": "delno",
    "telemark": "delno",
-   "freestyle": "delno"
+   "freestyle": "delno",
+   "nordic": "delno"
   },
   "Svetovno prvenstvo 2017": {
    "alpine": "popolno",
    "jumping": "popolno",
-   "nordic": "popolno",
    "xc": "popolno",
    "snowboard": "popolno",
    "telemark": "popolno",
-   "freestyle": "popolno"
+   "freestyle": "popolno",
+   "nordic": "popolno"
   },
   "Olimpijske igre 2016": {
    "alpine": "delno",
    "jumping": "delno",
-   "nordic": "delno",
    "xc": "delno",
    "snowboard": "delno",
    "telemark": "delno",
-   "freestyle": "delno"
+   "freestyle": "delno",
+   "nordic": "delno"
   },
   "Svetovno prvenstvo 2016": {
    "alpine": "delno",
    "jumping": "delno",
-   "nordic": "delno",
    "xc": "delno",
    "snowboard": "delno",
    "telemark": "delno",
-   "freestyle": "delno"
+   "freestyle": "delno",
+   "nordic": "delno"
   },
   "Olimpijske igre 2015": {
    "alpine": "delno",
    "jumping": "delno",
-   "nordic": "delno",
    "xc": "delno",
    "snowboard": "delno",
    "telemark": "delno",
-   "freestyle": "delno"
+   "freestyle": "delno",
+   "nordic": "delno"
   },
   "Svetovno prvenstvo 2015": {
    "alpine": "popolno",
    "jumping": "popolno",
-   "nordic": "popolno",
    "xc": "popolno",
    "snowboard": "popolno",
    "telemark": "popolno",
-   "freestyle": "popolno"
+   "freestyle": "popolno",
+   "nordic": "popolno"
   },
   "Olimpijske igre 2014": {
    "alpine": "popolno",
    "jumping": "popolno",
-   "nordic": "popolno",
    "xc": "popolno",
    "snowboard": "popolno",
    "telemark": "delno",
-   "freestyle": "popolno"
+   "freestyle": "popolno",
+   "nordic": "popolno"
   },
   "Svetovno prvenstvo 2014": {
    "alpine": "delno",
    "jumping": "delno",
-   "nordic": "delno",
    "xc": "delno",
    "snowboard": "delno",
    "telemark": "delno",
-   "freestyle": "delno"
+   "freestyle": "delno",
+   "nordic": "delno"
   },
   "Olimpijske igre 2013": {
    "alpine": "delno",
    "jumping": "delno",
-   "nordic": "delno",
    "xc": "delno",
    "snowboard": "delno",
    "telemark": "delno",
-   "freestyle": "delno"
+   "freestyle": "delno",
+   "nordic": "delno"
   },
   "Svetovno prvenstvo 2013": {
    "alpine": "popolno",
    "jumping": "popolno",
-   "nordic": "popolno",
    "xc": "popolno",
    "snowboard": "popolno",
    "telemark": "popolno",
-   "freestyle": "popolno"
+   "freestyle": "popolno",
+   "nordic": "popolno"
   },
   "Olimpijske igre 2012": {
    "alpine": "delno",
    "jumping": "delno",
-   "nordic": "delno",
    "xc": "delno",
    "snowboard": "delno",
    "telemark": "delno",
-   "freestyle": "delno"
+   "freestyle": "delno",
+   "nordic": "delno"
   },
   "Svetovno prvenstvo 2012": {
    "alpine": "delno",
    "jumping": "delno",
-   "nordic": "delno",
    "xc": "delno",
    "snowboard": "delno",
    "telemark": "delno",
-   "freestyle": "delno"
+   "freestyle": "delno",
+   "nordic": "delno"
   },
   "Olimpijske igre 2011": {
    "alpine": "delno",
    "jumping": "delno",
-   "nordic": "delno",
    "xc": "delno",
    "snowboard": "delno",
    "telemark": "delno",
-   "freestyle": "delno"
+   "freestyle": "delno",
+   "nordic": "delno"
   },
   "Svetovno prvenstvo 2011": {
    "alpine": "popolno",
    "jumping": "popolno",
-   "nordic": "popolno",
    "xc": "popolno",
    "snowboard": "popolno",
    "telemark": "popolno",
-   "freestyle": "popolno"
+   "freestyle": "popolno",
+   "nordic": "popolno"
   },
   "Olimpijske igre 2010": {
    "alpine": "popolno",
    "jumping": "popolno",
-   "nordic": "popolno",
    "xc": "popolno",
    "snowboard": "popolno",
    "telemark": "delno",
-   "freestyle": "popolno"
+   "freestyle": "popolno",
+   "nordic": "popolno"
   },
   "Svetovno prvenstvo 2010": {
    "alpine": "delno",
    "jumping": "delno",
-   "nordic": "delno",
    "xc": "delno",
    "snowboard": "delno",
    "telemark": "delno",
-   "freestyle": "delno"
+   "freestyle": "delno",
+   "nordic": "delno"
   },
   "Olimpijske igre 2009": {
    "alpine": "delno",
    "jumping": "delno",
-   "nordic": "delno",
    "xc": "delno",
    "snowboard": "delno",
    "telemark": "delno",
-   "freestyle": "delno"
+   "freestyle": "delno",
+   "nordic": "delno"
   },
   "Svetovno prvenstvo 2009": {
    "alpine": "popolno",
    "jumping": "popolno",
-   "nordic": "popolno",
    "xc": "popolno",
    "snowboard": "popolno",
    "telemark": "popolno",
-   "freestyle": "popolno"
+   "freestyle": "popolno",
+   "nordic": "popolno"
   },
   "Olimpijske igre 2008": {
    "alpine": "delno",
    "jumping": "delno",
-   "nordic": "delno",
    "xc": "delno",
    "snowboard": "delno",
    "telemark": "delno",
-   "freestyle": "delno"
+   "freestyle": "delno",
+   "nordic": "delno"
   },
   "Svetovno prvenstvo 2008": {
    "alpine": "delno",
    "jumping": "delno",
-   "nordic": "delno",
    "xc": "delno",
    "snowboard": "delno",
    "telemark": "delno",
-   "freestyle": "delno"
+   "freestyle": "delno",
+   "nordic": "delno"
   },
   "Olimpijske igre 2007": {
    "alpine": "delno",
    "jumping": "delno",
-   "nordic": "delno",
    "xc": "delno",
    "snowboard": "delno",
    "telemark": "delno",
-   "freestyle": "delno"
+   "freestyle": "delno",
+   "nordic": "delno"
   },
   "Svetovno prvenstvo 2007": {
    "alpine": "popolno",
    "jumping": "popolno",
-   "nordic": "popolno",
    "xc": "popolno",
    "snowboard": "popolno",
    "telemark": "popolno",
-   "freestyle": "popolno"
+   "freestyle": "popolno",
+   "nordic": "popolno"
   },
   "Olimpijske igre 2006": {
    "alpine": "popolno",
    "jumping": "popolno",
-   "nordic": "popolno",
    "xc": "popolno",
    "snowboard": "popolno",
    "telemark": "delno",
-   "freestyle": "popolno"
+   "freestyle": "popolno",
+   "nordic": "popolno"
   },
   "Svetovno prvenstvo 2006": {
    "alpine": "delno",
    "jumping": "delno",
-   "nordic": "delno",
    "xc": "delno",
    "snowboard": "delno",
    "telemark": "delno",
-   "freestyle": "delno"
+   "freestyle": "delno",
+   "nordic": "delno"
   },
   "Olimpijske igre 2005": {
    "alpine": "delno",
    "jumping": "delno",
-   "nordic": "delno",
    "xc": "delno",
    "snowboard": "delno",
    "telemark": "delno",
-   "freestyle": "delno"
+   "freestyle": "delno",
+   "nordic": "delno"
   },
   "Svetovno prvenstvo 2005": {
    "alpine": "popolno",
    "jumping": "popolno",
-   "nordic": "popolno",
    "xc": "popolno",
    "snowboard": "popolno",
    "telemark": "popolno",
-   "freestyle": "popolno"
+   "freestyle": "popolno",
+   "nordic": "popolno"
   },
   "Olimpijske igre 2004": {
    "alpine": "delno",
    "jumping": "delno",
-   "nordic": "delno",
    "xc": "delno",
    "snowboard": "delno",
    "telemark": "delno",
-   "freestyle": "delno"
+   "freestyle": "delno",
+   "nordic": "delno"
   },
   "Svetovno prvenstvo 2004": {
    "alpine": "delno",
    "jumping": "delno",
-   "nordic": "delno",
    "xc": "delno",
    "snowboard": "delno",
    "telemark": "delno",
-   "freestyle": "delno"
+   "freestyle": "delno",
+   "nordic": "delno"
   },
   "Olimpijske igre 2003": {
    "alpine": "delno",
    "jumping": "delno",
-   "nordic": "delno",
    "xc": "delno",
    "snowboard": "delno",
    "telemark": "delno",
-   "freestyle": "delno"
+   "freestyle": "delno",
+   "nordic": "delno"
   },
   "Svetovno prvenstvo 2003": {
    "alpine": "popolno",
    "jumping": "popolno",
-   "nordic": "popolno",
    "xc": "popolno",
    "snowboard": "popolno",
    "telemark": "delno",
-   "freestyle": "popolno"
+   "freestyle": "popolno",
+   "nordic": "popolno"
   },
   "Olimpijske igre 2002": {
    "alpine": "popolno",
    "jumping": "popolno",
-   "nordic": "popolno",
    "xc": "popolno",
    "snowboard": "popolno",
    "telemark": "delno",
-   "freestyle": "popolno"
+   "freestyle": "popolno",
+   "nordic": "popolno"
   },
   "Svetovno prvenstvo 2002": {
    "alpine": "delno",
    "jumping": "delno",
-   "nordic": "delno",
    "xc": "delno",
    "snowboard": "delno",
    "telemark": "delno",
-   "freestyle": "delno"
+   "freestyle": "delno",
+   "nordic": "delno"
   },
   "Olimpijske igre 2001": {
    "alpine": "delno",
    "jumping": "delno",
-   "nordic": "delno",
    "xc": "delno",
    "snowboard": "delno",
    "telemark": "delno",
-   "freestyle": "delno"
+   "freestyle": "delno",
+   "nordic": "delno"
   },
   "Svetovno prvenstvo 2001": {
    "alpine": "popolno",
    "jumping": "popolno",
-   "nordic": "popolno",
    "xc": "popolno",
    "snowboard": "popolno",
    "telemark": "delno",
-   "freestyle": "popolno"
+   "freestyle": "popolno",
+   "nordic": "popolno"
   },
   "Olimpijske igre 2000": {
    "alpine": "delno",
    "jumping": "delno",
-   "nordic": "delno",
    "xc": "delno",
    "snowboard": "delno",
    "telemark": "delno",
-   "freestyle": "delno"
+   "freestyle": "delno",
+   "nordic": "delno"
   },
   "Svetovno prvenstvo 2000": {
    "alpine": "delno",
    "jumping": "delno",
-   "nordic": "delno",
    "xc": "delno",
    "snowboard": "delno",
    "telemark": "delno",
-   "freestyle": "delno"
+   "freestyle": "delno",
+   "nordic": "delno"
   },
   "Olimpijske igre 1999": {
    "alpine": "delno",
    "jumping": "delno",
-   "nordic": "delno",
    "xc": "delno",
    "snowboard": "delno",
    "telemark": "delno",
-   "freestyle": "delno"
+   "freestyle": "delno",
+   "nordic": "delno"
   },
   "Svetovno prvenstvo 1999": {
    "alpine": "popolno",
    "jumping": "popolno",
-   "nordic": "popolno",
    "xc": "popolno",
    "snowboard": "popolno",
    "telemark": "delno",
-   "freestyle": "popolno"
+   "freestyle": "popolno",
+   "nordic": "popolno"
   },
   "Olimpijske igre 1998": {
    "alpine": "popolno",
    "jumping": "popolno",
-   "nordic": "popolno",
    "xc": "popolno",
    "snowboard": "popolno",
    "telemark": "delno",
-   "freestyle": "popolno"
+   "freestyle": "popolno",
+   "nordic": "popolno"
   },
   "Svetovno prvenstvo 1998": {
    "alpine": "delno",
    "jumping": "delno",
-   "nordic": "delno",
    "xc": "delno",
    "snowboard": "delno",
    "telemark": "delno",
-   "freestyle": "delno"
+   "freestyle": "delno",
+   "nordic": "delno"
   },
   "Olimpijske igre 1997": {
    "alpine": "delno",
    "jumping": "delno",
-   "nordic": "delno",
    "xc": "delno",
    "snowboard": "delno",
    "telemark": "delno",
-   "freestyle": "delno"
+   "freestyle": "delno",
+   "nordic": "delno"
   },
   "Svetovno prvenstvo 1997": {
    "alpine": "popolno",
    "jumping": "popolno",
-   "nordic": "popolno",
    "xc": "popolno",
    "snowboard": "popolno",
    "telemark": "delno",
-   "freestyle": "popolno"
+   "freestyle": "popolno",
+   "nordic": "popolno"
   },
   "Olimpijske igre 1996": {
    "alpine": "delno",
    "jumping": "delno",
-   "nordic": "delno",
    "xc": "delno",
    "snowboard": "delno",
    "telemark": "delno",
-   "freestyle": "delno"
+   "freestyle": "delno",
+   "nordic": "delno"
   },
   "Svetovno prvenstvo 1996": {
    "alpine": "popolno",
    "jumping": "delno",
-   "nordic": "delno",
    "xc": "delno",
    "snowboard": "popolno",
    "telemark": "delno",
-   "freestyle": "delno"
+   "freestyle": "delno",
+   "nordic": "delno"
   },
   "Olimpijske igre 1995": {
    "alpine": "delno",
    "jumping": "delno",
-   "nordic": "delno",
    "xc": "delno",
    "snowboard": "delno",
    "telemark": "delno",
-   "freestyle": "delno"
+   "freestyle": "delno",
+   "nordic": "delno"
   },
   "Svetovno prvenstvo 1995": {
    "alpine": "delno",
    "jumping": "popolno",
-   "nordic": "popolno",
    "xc": "popolno",
    "snowboard": "delno",
    "telemark": "delno",
-   "freestyle": "popolno"
+   "freestyle": "popolno",
+   "nordic": "popolno"
   },
   "Olimpijske igre 1994": {
    "alpine": "popolno",
    "jumping": "popolno",
-   "nordic": "popolno",
    "xc": "popolno",
    "snowboard": "delno",
    "telemark": "delno",
-   "freestyle": "popolno"
+   "freestyle": "popolno",
+   "nordic": "popolno"
   },
   "Svetovno prvenstvo 1994": {
    "alpine": "delno",
    "jumping": "delno",
-   "nordic": "delno",
    "xc": "delno",
    "snowboard": "delno",
    "telemark": "delno",
-   "freestyle": "delno"
+   "freestyle": "delno",
+   "nordic": "delno"
   },
   "Olimpijske igre 1993": {
    "alpine": "delno",
    "jumping": "delno",
-   "nordic": "delno",
    "xc": "delno",
    "snowboard": "delno",
    "telemark": "delno",
-   "freestyle": "delno"
+   "freestyle": "delno",
+   "nordic": "delno"
   },
   "Svetovno prvenstvo 1993": {
    "alpine": "popolno",
    "jumping": "popolno",
-   "nordic": "popolno",
    "xc": "popolno",
    "snowboard": "delno",
    "telemark": "delno",
-   "freestyle": "popolno"
+   "freestyle": "popolno",
+   "nordic": "popolno"
   },
   "Olimpijske igre 1992": {
    "alpine": "popolno",
    "jumping": "popolno",
-   "nordic": "popolno",
    "xc": "popolno",
    "snowboard": "delno",
    "telemark": "delno",
-   "freestyle": "popolno"
+   "freestyle": "popolno",
+   "nordic": "popolno"
   },
   "Svetovno prvenstvo 1992": {
    "alpine": "delno",
    "jumping": "delno",
-   "nordic": "delno",
    "xc": "delno",
    "snowboard": "delno",
    "telemark": "delno",
-   "freestyle": "delno"
+   "freestyle": "delno",
+   "nordic": "delno"
   },
   "Biatlon 2026/27": {
    "biathlon": "v teku"
