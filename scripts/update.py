@@ -38,7 +38,7 @@ SPORTS = {
 }
 # koledar FIS: pot za posamezno panogo ni vedno enaka, zato poskusimo se splosno stran
 CAL_PATHS_FALLBACK = ["general"]
-WINTER_SPORTS = ["alpine", "jumping", "xc", "snowboard", "telemark", "freestyle"]
+WINTER_SPORTS = ["alpine", "jumping", "nordic", "xc", "snowboard", "telemark", "freestyle"]
 SUMMER_SPORTS = ["jumping", "nordic"]
 FIRST_SEASON = 1992  # prva sezona, ki jo zbiramo (1991/92)
 SUMMER_FROM = 2027  # koda sezone FIS (2027 = julij 2026 - junij 2027), torej poletje 2026
@@ -1186,7 +1186,7 @@ def probe_cat(spec):
     """Izpise dogodke in tekme drugih kategorij (OWG, WSC, ...): SEKTOR:SEZONA:KATEGORIJA, npr. JP:2022:OWG"""
     for item in [x.strip() for x in spec.split(",") if x.strip()]:
         sec, season, cat = item.split(":")
-        path = next(c["path"] for c in SPORTS.values() if c["code"] == sec)
+        path = next((c["path"] for c in SPORTS.values() if c["code"] == sec), None) or {"PAL": "para-snowsports/para-alpine", "PCC": "para-snowsports/para-cross-country"}.get(sec, "general")
         url = (f"{BASE}/DB/{path}/calendar-results.html?sectorcode={sec}&seasoncode={season}&categorycode={cat}")
         html = get(url)
         if not html or "eventid=" not in html:
