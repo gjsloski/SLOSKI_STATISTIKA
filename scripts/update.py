@@ -4,7 +4,7 @@
 Zimska sezona: alpsko smucanje (AL) in smucarski skoki (JP), posamicne tekme svetovnega pokala (WC).
 Poletna sezona: FIS Grand Prix (GP) v smucarskih skokih (JP) in nordijski kombinaciji (NK), od leta 2026 naprej.
 Nacini:
-  --mode weekly    samo tekoca sezona (vsak ponedeljek ob 5.00)
+  --mode weekly    samo tekoca sezona (petek in sobota 23.59, ponedeljek 5.00, od novembra do marca ob koncih tedna vsakih 30 minut)
   --mode backfill  vse sezone od --from-season (privzeto 1992 = sezona 1991/92) do danes
 Izhod: data/races.json, data/meta.json, data/state.json
 """
@@ -1734,6 +1734,211 @@ def update_milestones(races, today):
     log(f"Jubileji: {len(events)} skupaj, {len(feed)} v obvestilih")
 
 
+_MESECI = {"jan": 1, "feb": 2, "mar": 3, "apr": 4, "may": 5, "jun": 6, "jul": 7, "aug": 8, "sep": 9, "oct": 10, "nov": 11, "dec": 12}
+_DATE_RANGE = re.compile(r"^(\d{1,2})\s*([A-Za-z]{3})?\s*-\s*(\d{1,2})\s*([A-Za-z]{3})$")
+_DATE_ONE = re.compile(r"^(\d{1,2})\s*([A-Za-z]{3})$")
+
+
+def parse_calendar_rows(html, cat, season, sport_key):
+    """Iz koledarja FIS prebere tekme svetovnega pokala (kategorija WC ali GP): datum, kraj, drzava, discipline, spol."""
+    soup = BeautifulSoup(html, "lxml") if _has_lxml() else BeautifulSoup(html, "html.parser")
+    groups = {}
+    for a in soup.find_all("a", href=True):
+        href = a["href"]
+        if "event-details" not in href or "eventid=" not in href:
+            continue
+        eid = parse_qs(urlparse(href).query).get("eventid", [None])[0]
+        if not eid:
+            continue
+        g = groups.setdefault(eid, {"url": urljoin(BASE, href), "t": []})
+        txt = a.get_text(" ", strip=True)
+        if txt and txt not in g["t"]:
+            g["t"].append(txt)
+    cat_re = re.compile(r"\b" + (r"S?WC" if cat == "WC" else cat) + r"\b\s*(.*)$")
+    out = []
+    for eid, g in groups.items():
+        texts = g["t"]
+        evt = next((cat_re.search(t) for t in texts if cat_re.search(t)), None)
+        if not evt:
+            continue
+        date = nat = gender = None
+        rest = []
+        for t in texts:
+            tt = t.strip()
+            m = _DATE_RANGE.match(tt)
+            m1 = _DATE_ONE.match(tt)
+            if date is None and (m or m1):
+                if m:
+                    d1, m1_, d2, m2 = m.group(1), (m.group(2) or m.group(4)), m.group(3), m.group(4)
+                else:
+                    d1, m1_, d2, m2 = m1.group(1), m1.group(2), m1.group(1), m1.group(2)
+                a_m, b_m = _MESECI.get(m1_.lower()[:3]), _MESECI.get(m2.lower()[:3])
+                if not a_m or not b_m:
+                    continue
+                ya = season - 1 if a_m >= 7 else season
+                yb = season - 1 if b_m >= 7 else season
+                date = (datetime.date(ya, a_m, int(d1)).isoformat(), datetime.date(yb, b_m, int(d2)).isoformat())
+            elif re.fullmatch(r"[WM](?:\s+[WM])?", tt):
+                gender = tt
+            elif re.fullmatch(r"[A-Z]{3}", tt) and nat is None:
+                nat = tt
+            elif cat_re.search(tt) or re.fullmatch(r"[A-Z]{2}|[A-Z]", tt):
+                continue
+            else:
+                rest.append(tt)
+        if not date or not rest:
+            continue
+        place = min(rest, key=len)
+        out.append({"s": sport_key, "c": cat, "a": date[0], "b": date[1], "p": place, "n": nat or "",
+                    "e": evt.group(1).strip(), "g": gender or "", "u": g["url"]})
+    return out
+
+
+def build_calendar(season):
+    """Zapise data/koledar.json: koledar svetovnega pokala (WC) za vse panoge + Grand Prix v skokih, urejen po datumu."""
+    events = []
+    for key, cfg in SPORTS.items():
+        for cat in (("WC", "GP") if key == "jumping" else ("WC",)):
+            url = f"{BASE}/DB/{cfg['path']}/calendar-results.html?sectorcode={cfg['code']}&seasoncode={season}&categorycode={cat}"
+            html = get(url)
+            if not html:
+                log(f"KOLEDAR {cfg['label']} ({cat}): ni dosegljiv")
+                continue
+            rows = parse_calendar_rows(html, cat, season, key)
+            log(f"KOLEDAR {cfg['label']} ({cat}): {len(rows)} tekem")
+            events += rows
+    if not events:
+        log("KOLEDAR: nic najdenega, obstojeca datoteka ostane")
+        return
+    uniq = {(e["s"], e["c"], e["a"], e["p"]): e for e in events}
+    events = sorted(uniq.values(), key=lambda e: (e["a"], e["b"], e["s"], e["p"]))
+    for e in events:
+        e["l"] = SPORTS[e["s"]]["label"]
+    DATA.mkdir(exist_ok=True)
+    body = {"season": season, "updated": datetime.date.today().isoformat(), "ev": events}
+    (DATA / "koledar.json").write_text(json.dumps(body, ensure_ascii=False, indent=0) + "\n", encoding="utf-8")
+    log(f"KOLEDAR: zapisanih {len(events)} tekem")
+
+
+# ---------- Parasmucanje (FIS: PAL = para alpsko smucanje, PCC = para smucarski teki) ----------
+# FIS za para tekmovalce nima ustreznih startnih list, zato uvrstitve beremo s strani tekmovalcev (kategorije WC, WSC, PWG).
+PARA_SPORTS = {"PAL": ("Para alpsko smučanje", "pal"), "PCC": ("Para smučarski teki", "pcc")}
+PARA_ATHLETES = [  # (sektor, competitorid, ime ali '?Priimek' = ime preberemo s strani, spol ali None = iz naslova tekme)
+    ("PAL", "290453", "Jernej Slivnik", "M"),
+    ("PAL", "289318", "?Breznik", None),
+    ("PAL", "289319", "?Jakić", None),
+    ("PAL", "289320", "?Prušek", None),
+    ("PCC", "291544", "Tabea Dolžan", "Ž"),
+]
+PARA_CATS = ("WC", "WSC", "PWG")
+PARA_CLASS = {"Sitting": "sedeči", "Standing": "stoječi", "Vision Impaired": "slabovidni"}
+PARA_RACE_CACHE = {}
+
+
+def _ascii(t):
+    import unicodedata
+    return "".join(c for c in unicodedata.normalize("NFD", t) if unicodedata.category(c) != "Mn").lower()
+
+
+def para_athlete_name(html, surname):
+    """Ime s strani tekmovalca: poiscemo besedilo, ki vsebuje pricakovani priimek (brez sumnikov) in eno ali dve imeni."""
+    soup = BeautifulSoup(html, "html.parser")
+    cand = [e.get_text(" ", strip=True) for e in soup.select("h1, h2, .athlete-profile__name, .heading")[:12]]
+    if soup.title:
+        cand.append(soup.title.get_text(" ", strip=True))
+    for t in cand:
+        w = re.sub(r"\s+", " ", t).strip().split()
+        if not 2 <= len(w) <= 4 or _ascii(surname) not in [_ascii(x) for x in w]:
+            continue
+        first = [x for x in w if _ascii(x) != _ascii(surname)]
+        if first and all(re.fullmatch(r"[^\W\d_]+(?:-[^\W\d_]+)*", x) for x in first):
+            return " ".join(x.capitalize() for x in first) + " " + surname
+    return None
+
+
+def para_race_info(sec, rid):
+    """(spol, razred) iz naslova tekme ('Women's 1.5km Sprint Final Classic Standing')."""
+    key = (sec, rid)
+    if key in PARA_RACE_CACHE:
+        return PARA_RACE_CACHE[key]
+    g, cls = None, ""
+    html = get(f"{BASE}/DB/general/results.html?sectorcode={sec}&raceid={rid}")
+    if html:
+        soup = BeautifulSoup(html, "html.parser")
+        head = " ".join(l for l in soup.get_text("\n", strip=True).split("\n")[:60])
+        if re.search(r"\bWomen'?s\b|\bLadies\b", head):
+            g = "Ž"
+        elif re.search(r"\bMen'?s\b", head):
+            g = "M"
+        for k in PARA_CLASS:
+            if k in head:
+                cls = k
+                break
+    PARA_RACE_CACHE[key] = (g, cls)
+    return g, cls
+
+
+def collect_para(races, extra_names):
+    """Prebere uvrstitve slovenskih para tekmovalcev (top 30) s strani FIS in jih doda med tekme."""
+    added = 0
+    for sec, cid, name0, gender in PARA_ATHLETES:
+        name = extra_names.get(cid, name0)
+        label, pre = PARA_SPORTS[sec]
+        for cat in PARA_CATS:
+            html = get(f"{BASE}/DB/general/athlete-biography.html?sectorcode={sec}&seasoncode=&competitorid={cid}"
+                       f"&type=result&categorycode={cat}&sort=&place=&disciplinecode=&position=&limit=100")
+            if not html:
+                log(f"PARA {sec}:{cid} {cat}: stran ni dosegljiva")
+                continue
+            if name.startswith("?"):
+                found = para_athlete_name(html, name[1:])
+                log(f"PARA {sec}:{cid}: ime s strani = {found!r}")
+                if not found:
+                    log(f"PARA {sec}:{cid}: imena ni bilo mogoce potrditi, tekmovalec preskocen (dodaj ga v data/names.json)")
+                    break
+                name = found
+            cells = athlete_row_cells(html)
+            parsed = {k: v for k, v in parse_athlete_results(html).items() if v["code"] == cat}
+            finals = {(v["date"], v["disc"].replace("Qualification", "Final")) for v in parsed.values() if "Final" in v["disc"]}
+            log(f"PARA {sec}:{cid} {name} {cat}: {len(parsed)} vrstic")
+            for rid, v in parsed.items():
+                pos = v["pos"]
+                if not pos.isdigit() or int(pos) > 30:
+                    continue
+                if "Qualification" in v["disc"] and (v["date"], v["disc"].replace("Qualification", "Final")) in finals:
+                    continue  # kvalifikacije in finale sta ena tekma: stejemo finale
+                g, cls = para_race_info(sec, rid)
+                g = g or gender
+                if not g:
+                    log(f"PARA {sec}:{cid} raceid={rid}: spola ni bilo mogoce ugotoviti, preskoceno")
+                    continue
+                dd, mm, yy = v["date"].split("-")
+                disc = None
+                table = DISC if sec == "PAL" else DISC_CC
+                for en, sl in table:
+                    if en.lower() in v["disc"].lower():
+                        disc = sl
+                        break
+                disc = disc or v["disc"]
+                if cls:
+                    disc += " (" + PARA_CLASS[cls] + ")"
+                place = (cells.get(rid) or ["", ""])[1] if len(cells.get(rid) or []) > 1 else ""
+                rec_id = f"{pre}-{rid}"
+                race = races.get(rec_id) or {"id": rec_id, "fis": int(rid), "d": f"{yy}-{mm}-{dd}", "place": place,
+                                             "sport": label, "disc": disc, "g": g, "t": "posamicno", "res": []}
+                if cat != "WC":
+                    race["c"] = cat
+                if all(x.get("id") != int(cid) for x in race["res"]):
+                    race["res"].append({"n": name, "r": int(pos), "id": int(cid)})
+                    race["res"].sort(key=lambda x: x["r"])
+                    added += 1
+                races[rec_id] = race
+    log(f"PARA: dodanih uvrstitev {added}")
+
+
+_CAL_DONE = [False]
+
+
 def save_all(races, state, meta, today):
     DATA.mkdir(exist_ok=True)
     ind = {}
@@ -1751,9 +1956,37 @@ def save_all(races, state, meta, today):
     body = "[\n" + ",\n".join(json.dumps(r, ensure_ascii=False) for r in rs) + "\n]\n"
     (DATA / "races.json").write_text(body, encoding="utf-8")
     meta["updated"] = today.isoformat()
-    nxt = today + datetime.timedelta(days=(0 - today.weekday()) % 7 or 7)  # naslednji ponedeljek
-    meta["next"] = nxt.isoformat()
+    try:  # naslednja osvezitev: petek 23.59, sobota 23.59, ponedeljek 5.00 (slovenski cas)
+        from zoneinfo import ZoneInfo
+        tz = ZoneInfo("Europe/Ljubljana")
+        now_l = datetime.datetime.now(tz)
+        slots = []
+        for dd in range(0, 9):
+            day = (now_l + datetime.timedelta(days=dd)).date()
+            wd = day.weekday()
+            times = []
+            if wd in (4, 5, 6):
+                times += [datetime.time(h, 0) for h in (12, 15, 17, 19, 21, 23)]
+            if wd == 0:
+                times.append(datetime.time(6, 0))
+            for tm in times:
+                dt_ = datetime.datetime.combine(day, tm, tzinfo=tz)
+                if dt_ > now_l:
+                    slots.append(dt_)
+        nx = min(slots)
+        meta["next"] = nx.date().isoformat()
+        meta["next_time"] = nx.strftime("%H:%M")
+    except Exception:
+        nxt = today + datetime.timedelta(days=(0 - today.weekday()) % 7 or 7)  # naslednji ponedeljek
+        meta["next"] = nxt.isoformat()
+        meta.pop("next_time", None)
     (DATA / "meta.json").write_text(json.dumps(meta, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+    if not _CAL_DONE[0]:
+        _CAL_DONE[0] = True
+        try:  # koledar svetovnega pokala za stran; napaka ne sme ustaviti zbiranja
+            build_calendar(current_season_code(today))
+        except Exception as ex:
+            log(f"Koledar: napaka {ex!r}")
     (DATA / "state.json").write_text(json.dumps(state, ensure_ascii=False) + "\n", encoding="utf-8")
     try:
         update_milestones(races, today)
@@ -1935,8 +2168,13 @@ def main():
     ap.add_argument("--only-validate", action="store_true", help="samo preveri, brez zbiranja")
     ap.add_argument("--add-extra", action="store_true", help="doda tekme iz EXTRA_RACES (letalnice SFWC+WC), ki jih koledar ne navaja")
     ap.add_argument("--teams", action="store_true", help="ponovno obdela strani, ki so bile prej preskocene (ekipne tekme), brez brisanja posamicnih")
+    ap.add_argument("--para", action="store_true", help="samo para tekmovalci (PAL, PCC): uvrstitve s strani sportnikov")
+    ap.add_argument("--calendar", action="store_true", help="samo osvezi koledar svetovnega pokala (data/koledar.json)")
     ap.add_argument("--force", action="store_true", help="ponovno obdela tudi sezone, oznacene kot popolne")
     args = ap.parse_args()
+    if args.calendar:
+        build_calendar(current_season_code(datetime.date.today()))
+        return 0
     if args.probe_ibu:
         probe_ibu(args.probe_ibu)
         return 0
@@ -1980,6 +2218,10 @@ def main():
             if "id" in x:
                 x["n"] = fix_name(x["n"], x["id"], extra_names)
     deadline = time.time() + args.max_minutes * 60
+    if args.para:
+        collect_para(races, extra_names)
+        save_all(races, state, meta, today)
+        return 0
 
     if args.recheck:
         n_rc = 0
@@ -2107,6 +2349,10 @@ def main():
             return 0
         cov[sk] = result
         save_all(races, state, meta, today)
+    try:
+        collect_para(races, extra_names)
+    except Exception as ex:  # para ne sme ustaviti zbiranja ostalih panog
+        log(f"PARA: napaka {ex!r}")
     add_extra_races(races, state, extra_names)
     if TEAMS_DONE is not None:
         state.pop("teams_done", None)
