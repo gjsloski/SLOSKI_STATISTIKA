@@ -1,42 +1,7 @@
 {
  "updated": "2026-11-21",
  "ujema": 78,
- "razlike": 1,
+ "razlike": 0,
  "nepreverjeno": 0,
- "athletes": [
-  {
-   "n": "Dejan Plevnik",
-   "id": 73497,
-   "sport": "Nordijska kombinacija",
-   "status": "razlika",
-   "razlike": [
-    {
-     "s": "2004/05",
-     "nase": [
-      0,
-      0,
-      0
-     ],
-     "fis": [
-      0,
-      0,
-      2
-     ]
-    },
-    {
-     "s": "2006/07",
-     "nase": [
-      0,
-      0,
-      1
-     ],
-     "fis": [
-      0,
-      0,
-      0
-     ]
-    }
-   ]
-  }
- ]
+ "athletes": []
 }
