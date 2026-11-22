@@ -1837,9 +1837,9 @@ def build_calendar(season):
 PARA_SPORTS = {"PAL": ("Para alpsko smučanje", "pal"), "PCC": ("Para smučarski teki", "pcc")}
 PARA_ATHLETES = [  # (sektor, competitorid, ime ali '?Priimek' = ime preberemo s strani, spol ali None = iz naslova tekme)
     ("PAL", "290453", "Jernej Slivnik", "M"),
-    ("PAL", "289318", "?Breznik", None),
-    ("PAL", "289319", "?Jakić", None),
-    ("PAL", "289320", "?Prušek", None),
+    ("PAL", "289318", "?Breznik", "M"),
+    ("PAL", "289319", "?Jakič", "M"),
+    ("PAL", "289320", "?Prušek", "M"),
     ("PCC", "291544", "Tabea Dolžan", "Ž"),
 ]
 PARA_CATS = ("WC", "WSC", "PWG")
@@ -1877,7 +1877,10 @@ def para_race_info(sec, rid):
     html = get(f"{BASE}/DB/general/results.html?sectorcode={sec}&raceid={rid}")
     if html:
         soup = BeautifulSoup(html, "html.parser")
-        head = " ".join(l for l in soup.get_text("\n", strip=True).split("\n")[:60])
+        lines = soup.get_text("\n", strip=True).split("\n")
+        # naslov tekme ('Women's 1.5km Sprint Final Classic Standing'); drugje na strani se 'Women's' pojavi tudi v menijih
+        title = next((l for l in lines[:120] if re.search(r"\b(Men'?s|Women'?s)\b", l) and re.search(r"\d+(?:\.\d+)?\s*km|Slalom|Super|Downhill|Combined|Sprint|Interval|Mass", l)), "")
+        head = title or " ".join(lines[:60])
         if re.search(r"\bWomen'?s\b|\bLadies\b", head):
             g = "Ž"
         elif re.search(r"\bMen'?s\b", head):
@@ -1922,8 +1925,11 @@ def collect_para(races, extra_names):
                 if "Qualification" in v["disc"] and (v["date"], v["disc"].replace("Qualification", "Final")) in finals:
                     skip["kval"] += 1
                     continue  # kvalifikacije in finale sta ena tekma: stejemo finale
-                g, cls = para_race_info(sec, rid)
-                g = g or gender
+                if gender and sec == "PAL":
+                    g, cls = gender, ""
+                else:
+                    g, cls = para_race_info(sec, rid)
+                    g = gender or g  # spol tekmovalca (ce je znan) ima prednost pred branjem naslova
                 if not g:
                     log(f"PARA {sec}:{cid} raceid={rid}: spola ni bilo mogoce ugotoviti, preskoceno")
                     skip["spol"] += 1
@@ -1942,8 +1948,12 @@ def collect_para(races, extra_names):
                 rec_id = f"{pre}-{rid}"
                 race = races.get(rec_id) or {"id": rec_id, "fis": int(rid), "d": f"{yy}-{mm}-{dd}", "place": place,
                                              "sport": label, "disc": disc, "g": g, "t": "posamicno", "res": []}
+                race["g"], race["disc"] = g, disc  # popravi ze shranjene tekme (npr. napacen spol)
                 if cat != "WC":
                     race["c"] = cat
+                for x in race["res"]:
+                    if x.get("id") == int(cid):
+                        x["n"] = name  # popravi ime ze shranjene uvrstitve
                 if all(x.get("id") != int(cid) for x in race["res"]):
                     race["res"].append({"n": name, "r": int(pos), "id": int(cid)})
                     race["res"].sort(key=lambda x: x["r"])
