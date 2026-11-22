@@ -664,6 +664,8 @@ def parse_race(html, sport_key, raceid, extra_names, cat="WC", trusted=False):
 
 
 ATH_CACHE = {}
+FORCE_SEEN = False  # --force-current: tekoca sezona znova prebere tudi ze obdelane tekme
+SKIPPED_SEEN = 0
 TEAMS_DONE = None  # mnozica kljucev, ki so ze bili ponovno obdelani v nacinu --teams
 
 
@@ -1128,6 +1130,7 @@ def process_biathlon(code, races, state, extra_names, deadline, finished, label)
             log(f"  {race['d']} {race['place']} {race['disc']} {race['g']}"
                 f"{' (' + race['c'] + ')' if race.get('c') else ''}: "
                 f"{', '.join(str(x['r']) + '. ' + x['n'] for x in race['res']) or '-'}")
+    log(f"  {cfg['label']}: ze obdelanih tekem preskocenih: {SKIPPED_SEEN}")
     if not finished:
         return "v teku"
     return "popolno" if failures == 0 else "delno"
@@ -2060,8 +2063,10 @@ def process_season(code, sport_key, races, state, cat, label, finished, extra_na
             if key in EXCLUDE_RACES:
                 state["seen"][key] = "skip"
                 continue
-            if key in state["seen"]:
+            if key in state["seen"] and not FORCE_SEEN:
                 if TEAMS_DONE is None or key in TEAMS_DONE or state["seen"][key] not in ("skip", "empty"):
+                    global SKIPPED_SEEN
+                    SKIPPED_SEEN += 1
                     continue
             if TEAMS_DONE is not None:
                 TEAMS_DONE.add(key)
@@ -2199,6 +2204,7 @@ def main():
     ap.add_argument("--teams", action="store_true", help="ponovno obdela strani, ki so bile prej preskocene (ekipne tekme), brez brisanja posamicnih")
     ap.add_argument("--para", action="store_true", help="samo para tekmovalci (PAL, PCC): uvrstitve s strani sportnikov")
     ap.add_argument("--calendar", action="store_true", help="samo osvezi koledar svetovnega pokala (data/koledar.json)")
+    ap.add_argument("--force-current", action="store_true", help="tekoca sezona: znova prebere vse tekme, tudi ze obdelane")
     ap.add_argument("--force", action="store_true", help="ponovno obdela tudi sezone, oznacene kot popolne")
     args = ap.parse_args()
     if args.calendar:
@@ -2251,6 +2257,11 @@ def main():
         collect_para(races, extra_names)
         save_all(races, state, meta, today)
         return 0
+
+    if args.force_current:
+        global FORCE_SEEN
+        FORCE_SEEN = True
+        log("--force-current: tekoca sezona se prebere znova (seznam obdelanih se ignorira)")
 
     if args.recheck:
         n_rc = 0
