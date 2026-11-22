@@ -1130,7 +1130,6 @@ def process_biathlon(code, races, state, extra_names, deadline, finished, label)
             log(f"  {race['d']} {race['place']} {race['disc']} {race['g']}"
                 f"{' (' + race['c'] + ')' if race.get('c') else ''}: "
                 f"{', '.join(str(x['r']) + '. ' + x['n'] for x in race['res']) or '-'}")
-    log(f"  {cfg['label']}: ze obdelanih tekem preskocenih: {SKIPPED_SEEN}")
     if not finished:
         return "v teku"
     return "popolno" if failures == 0 else "delno"
@@ -2108,6 +2107,7 @@ def process_season(code, sport_key, races, state, cat, label, finished, extra_na
             else:
                 failures += 1
                 log(f"  NAPAKA razclenjevanja: {rurl}")
+    log(f"  {cfg['label']}: ze obdelanih tekem preskocenih: {SKIPPED_SEEN}")
     if not finished:
         return "v teku"
     return "popolno" if failures == 0 else "delno"
