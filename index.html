@@ -252,7 +252,7 @@ function addPerson(p,r,x){const k=pkey(r,x),id=(SPFX[r.sport]||r.sport)+"|"+(x.i
   if(r.g!=="X"&&q.g==="X")q.g=r.g;q.sports.add(r.sport);if(x.id)q.ids.add(id);q.items.push({r:x.r,x:x.x,race:r})}
 let MODE="winter";
 const SUMMER_SPORTS=["Smučarski skoki","Nordijska kombinacija"];
-const CHAMP_SPORTS=["Alpsko smučanje","Smučarski skoki","Smučarski teki","Nordijska kombinacija","Biatlon","Deskanje na snegu","Freestyle","Telemark"];
+const CHAMP_SPORTS=["Alpsko smučanje","Smučarski skoki","Smučarski teki","Nordijska kombinacija","Biatlon","Deskanje na snegu","Freestyle","Telemark","Para alpsko smučanje","Para smučarski teki"];
 const isChamp=()=>MODE==="wsc"||MODE==="owg";
 function inMode(r){return MODE==="owg"?(r.c==="OWG"||r.c==="PWG"):MODE==="wsc"?r.c==="WSC":MODE==="summer"?!!r.summer&&!r.c:!r.summer&&!r.c}
 function seasonOfRace(r){return r.c?(r.c==="OWG"?"Olimpijske igre ":r.c==="PWG"?"Paralimpijske igre ":"Svetovno prvenstvo ")+r.d.slice(0,4):r.summer?"Poletje "+r.d.slice(0,4):seasonOf(r.d)}
@@ -349,7 +349,7 @@ function hlDetail(which,st){
     const tot=[0,1,2].map(i=>st.med.WSC[i]+st.med.OWG[i]);
     const tr=el("tr");tr.appendChild(el("td","l name","Skupaj"));tot.forEach(n=>tr.appendChild(cell(n,false)));tr.appendChild(cell(sum(tot),true));tr.appendChild(el("td"));tb.appendChild(tr);
     table.appendChild(tb);box.appendChild(table);
-    box.appendChild(el("p","note","Tapni na tekmovanje za športnike z medaljami, nato na športnika za njegove medalje. Ekipna medalja šteje kot ena medalja. Zajeti so športi, ki so že vneseni v podatke (alpsko smučanje, skoki, nordijska kombinacija, teki, biatlon, deskanje na snegu, freestyle, telemark); paraskijanje še ni vključeno."));
+    box.appendChild(el("p","note","Tapni na tekmovanje za športnike z medaljami, nato na športnika za njegove medalje. Ekipna medalja šteje kot ena medalja. Zajeti so športi, ki so že vneseni v podatke (alpsko smučanje, skoki, nordijska kombinacija, teki, biatlon, deskanje na snegu, freestyle, telemark); vključeno je tudi paraskijanje (para alpsko smučanje in para smučarski teki)."));
   }
   box.hidden=false;
 }
@@ -379,7 +379,7 @@ function seasonLabels(){
   if(MODE==="summer")return [...new Set(RACES.filter(r=>r.summer).map(seasonOfRace))].sort().reverse();
   return Array.from({length:LAST-FIRST+1},(_,i)=>{const s=LAST-i;return s+"/"+String(s+1).slice(2)});
 }
-const SPORTS=["Alpsko smučanje","Smučarski skoki","Smučarski teki","Nordijska kombinacija","Biatlon","Deskanje na snegu","Freestyle","Telemark"];
+const SPORTS=["Alpsko smučanje","Smučarski skoki","Smučarski teki","Nordijska kombinacija","Biatlon","Deskanje na snegu","Freestyle","Telemark","Para alpsko smučanje","Para smučarski teki"];
 const TOPS=[5,10,15,30];
 const $=id=>document.getElementById(id);
 const el=(tag,cls,txt)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(txt!==undefined)e.textContent=txt;return e};
