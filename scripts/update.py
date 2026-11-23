@@ -2062,7 +2062,10 @@ def process_season(code, sport_key, races, state, cat, label, finished, extra_na
             if key in EXCLUDE_RACES:
                 state["seen"][key] = "skip"
                 continue
-            if key in state["seen"] and not FORCE_SEEN:
+            _rec = state.get("recent", {}).get(key)
+            if _rec and (datetime.date.today() - datetime.date.fromisoformat(_rec)).days <= 4:
+                pass  # tekma je sveza (zadnji 4 dnevi): rezultati so lahko objavljeni sele pozneje, zato jo preberemo znova
+            elif key in state["seen"] and not FORCE_SEEN:
                 if TEAMS_DONE is None or key in TEAMS_DONE or state["seen"][key] not in ("skip", "empty"):
                     global SKIPPED_SEEN
                     SKIPPED_SEEN += 1
@@ -2079,6 +2082,13 @@ def process_season(code, sport_key, races, state, cat, label, finished, extra_na
                 if race["res"]:
                     races[race["id"]] = race
                 state["seen"][key] = "ok"
+                try:
+                    if (datetime.date.today() - datetime.date.fromisoformat(race["d"])).days <= 4:
+                        state.setdefault("recent", {})[key] = race["d"]
+                    else:
+                        state.get("recent", {}).pop(key, None)
+                except Exception:
+                    pass
                 log(f"  {race['d']} {race['place']} {race['disc']} {race['g']}: "
                     f"{', '.join(str(x['r']) + '. ' + x['n'] for x in race['res']) or '-'}")
             elif status == "startlist":
