@@ -1,20 +1,6 @@
 {
- "updated": "2026-11-22",
- "preverjenih_sezon": 2398,
+ "updated": "2026-11-23",
+ "preverjenih_sezon": 2407,
  "nepreverjenih": 0,
- "nesklad": [
-  {
-   "n": "Neja Dvornik",
-   "sezona": "2026/27",
-   "raceid": "131581",
-   "d": "21-11-2026",
-   "place": "",
-   "disc": "Slalom",
-   "nase": null,
-   "fis": "18",
-   "cid": "221143",
-   "cat": "WC",
-   "sec": "AL"
-  }
- ]
+ "nesklad": []
 }
