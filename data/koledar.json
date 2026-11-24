@@ -1,6 +1,6 @@
 {
 "season": 2027,
-"updated": "2026-11-23",
+"updated": "2026-11-24",
 "ev": [
 {
 "s": "jumping",
@@ -97,6 +97,18 @@
 "g": "W M",
 "u": "https://www.fis-ski.com/DB/general/event-details.html?sectorcode=AL&eventid=62773&seasoncode=2027",
 "l": "Alpsko smučanje"
+},
+{
+"s": "biathlon",
+"c": "WC",
+"a": "2026-11-23",
+"b": "2026-11-29",
+"p": "Kontiolahti",
+"n": "FIN",
+"e": "Individualna, Enojna mešana štafeta, Štafeta, Šprint",
+"g": "W M",
+"u": "https://biathlonresults.com/",
+"l": "Biatlon"
 },
 {
 "s": "freestyle",
@@ -219,6 +231,18 @@
 "l": "Deskanje na snegu"
 },
 {
+"s": "biathlon",
+"c": "WC",
+"a": "2026-11-30",
+"b": "2026-12-06",
+"p": "Hochfilzen",
+"n": "AUT",
+"e": "Šprint, Zasledovanje, Štafeta",
+"g": "W M",
+"u": "https://biathlonresults.com/",
+"l": "Biatlon"
+},
+{
 "s": "alpine",
 "c": "WC",
 "a": "2026-12-01",
@@ -313,6 +337,18 @@
 "g": "W M",
 "u": "https://www.fis-ski.com/DB/general/event-details.html?sectorcode=SB&eventid=62791&seasoncode=2027",
 "l": "Deskanje na snegu"
+},
+{
+"s": "biathlon",
+"c": "WC",
+"a": "2026-12-07",
+"b": "2026-12-13",
+"p": "Le Grand Bornand",
+"n": "FRA",
+"e": "Šprint, Zasledovanje, Skupinski start",
+"g": "W M",
+"u": "https://biathlonresults.com/",
+"l": "Biatlon"
 },
 {
 "s": "freestyle",
@@ -699,6 +735,18 @@
 "l": "Smučarski skoki"
 },
 {
+"s": "biathlon",
+"c": "WC",
+"a": "2026-12-31",
+"b": "2027-01-03",
+"p": "Pokljuka",
+"n": "SLO",
+"e": "Šprint, Štafeta",
+"g": "W M",
+"u": "https://biathlonresults.com/",
+"l": "Biatlon"
+},
+{
 "s": "xc",
 "c": "WC",
 "a": "2027-01-01",
@@ -757,6 +805,18 @@
 "g": "W",
 "u": "https://www.fis-ski.com/DB/general/event-details.html?sectorcode=AL&eventid=62877&seasoncode=2027",
 "l": "Alpsko smučanje"
+},
+{
+"s": "biathlon",
+"c": "WC",
+"a": "2027-01-04",
+"b": "2027-01-10",
+"p": "Ruhpolding",
+"n": "GER",
+"e": "Štafeta, Šprint, Zasledovanje",
+"g": "W M",
+"u": "https://biathlonresults.com/",
+"l": "Biatlon"
 },
 {
 "s": "jumping",
@@ -889,6 +949,18 @@
 "g": "W",
 "u": "https://www.fis-ski.com/DB/general/event-details.html?sectorcode=JP&eventid=63034&seasoncode=2027",
 "l": "Smučarski skoki"
+},
+{
+"s": "biathlon",
+"c": "WC",
+"a": "2027-01-11",
+"b": "2027-01-17",
+"p": "Antholz-Anterselva",
+"n": "ITA",
+"e": "Individualna, Enojna mešana štafeta, Štafeta, Skupinski start",
+"g": "W M",
+"u": "https://biathlonresults.com/",
+"l": "Biatlon"
 },
 {
 "s": "alpine",
@@ -1045,6 +1117,18 @@
 "g": "W M",
 "u": "https://www.fis-ski.com/DB/general/event-details.html?sectorcode=SB&eventid=62762&seasoncode=2027",
 "l": "Deskanje na snegu"
+},
+{
+"s": "biathlon",
+"c": "WC",
+"a": "2027-01-18",
+"b": "2027-01-24",
+"p": "Nove Mesto na Morave",
+"n": "CZE",
+"e": "Šprint, Skupinski start, Štafeta",
+"g": "W M",
+"u": "https://biathlonresults.com/",
+"l": "Biatlon"
 },
 {
 "s": "alpine",
@@ -1599,6 +1683,18 @@
 "l": "Deskanje na snegu"
 },
 {
+"s": "biathlon",
+"c": "WC",
+"a": "2027-03-01",
+"b": "2027-03-07",
+"p": "Oberhof",
+"n": "GER",
+"e": "Šprint, Zasledovanje, Štafeta",
+"g": "W M",
+"u": "https://biathlonresults.com/",
+"l": "Biatlon"
+},
+{
 "s": "freestyle",
 "c": "WC",
 "a": "2027-03-03",
@@ -1645,6 +1741,18 @@
 "g": "W",
 "u": "https://www.fis-ski.com/DB/general/event-details.html?sectorcode=AL&eventid=62935&seasoncode=2027",
 "l": "Alpsko smučanje"
+},
+{
+"s": "biathlon",
+"c": "WC",
+"a": "2027-03-08",
+"b": "2027-03-14",
+"p": "Oestersund",
+"n": "SWE",
+"e": "Individualna, Enojna mešana štafeta, Štafeta, Skupinski start",
+"g": "W M",
+"u": "https://biathlonresults.com/",
+"l": "Biatlon"
 },
 {
 "s": "alpine",
@@ -1705,6 +1813,18 @@
 "g": "W M",
 "u": "https://www.fis-ski.com/DB/general/event-details.html?sectorcode=CC&eventid=63010&seasoncode=2027",
 "l": "Smučarski teki"
+},
+{
+"s": "biathlon",
+"c": "WC",
+"a": "2027-03-15",
+"b": "2027-03-21",
+"p": "Oslo Holmenkollen",
+"n": "NOR",
+"e": "Šprint, Zasledovanje, Skupinski start",
+"g": "W M",
+"u": "https://biathlonresults.com/",
+"l": "Biatlon"
 },
 {
 "s": "xc",
