@@ -244,7 +244,7 @@ const DIA={"Micunovic":"Mičunovič","Lacen":"Lačen","Joze": "Jože", "Natasa":
 function fixDia(n){if(!n||/[čšžČŠŽ]/.test(n))return n;const t=n.split(' ');return t.map((w,i)=>{if(DIA[w])return DIA[w];if(i===t.length-1&&t.length>1&&/[^c]ic$/i.test(w)&&!/^(Eric|Frick)$/i.test(w))return w.slice(0,-2)+'ič';if(i===t.length-1&&t.length>1&&/cic$/i.test(w))return w.slice(0,-3)+'čič';return w}).join(' ')}
 let RACES=[];
 let LINK={},PNAME={};
-const SPFX={"Alpsko smučanje":"al","Smučarski skoki":"jp","Nordijska kombinacija":"nk","Biatlon":"bt","Smučarski teki":"cc","Deskanje na snegu":"sb","Freestyle":"fs","Telemark":"tm"};
+const SPFX={"Alpsko smučanje":"al","Smučarski skoki":"jp","Nordijska kombinacija":"nk","Biatlon":"bt","Smučarski teki":"cc","Deskanje na snegu":"sb","Prosti slog":"fs","Telemark":"tm"};
 const FISSEC={al:"AL",jp:"JP",nk:"NK",cc:"CC",sb:"SB",fs:"FS",tm:"TM"};
 function pkey(r,x){const id=(SPFX[r.sport]||r.sport)+"|"+(x.id||x.n);return LINK[id]||id}
 function addPerson(p,r,x){const k=pkey(r,x),id=(SPFX[r.sport]||r.sport)+"|"+(x.id||x.n);
@@ -252,7 +252,7 @@ function addPerson(p,r,x){const k=pkey(r,x),id=(SPFX[r.sport]||r.sport)+"|"+(x.i
   if(r.g!=="X"&&q.g==="X")q.g=r.g;q.sports.add(r.sport);if(x.id)q.ids.add(id);q.items.push({r:x.r,x:x.x,race:r})}
 let MODE="winter";
 const SUMMER_SPORTS=["Smučarski skoki","Nordijska kombinacija"];
-const CHAMP_SPORTS=["Alpsko smučanje","Smučarski skoki","Smučarski teki","Nordijska kombinacija","Biatlon","Deskanje na snegu","Freestyle","Telemark","Para alpsko smučanje","Para smučarski teki"];
+const CHAMP_SPORTS=["Alpsko smučanje","Smučarski skoki","Smučarski teki","Nordijska kombinacija","Biatlon","Deskanje na snegu","Prosti slog","Telemark","Para alpsko smučanje","Para smučarski teki"];
 const isChamp=()=>MODE==="wsc"||MODE==="owg";
 function inMode(r){return MODE==="owg"?(r.c==="OWG"||r.c==="PWG"):MODE==="wsc"?r.c==="WSC":MODE==="summer"?!!r.summer&&!r.c:!r.summer&&!r.c}
 function seasonOfRace(r){return r.c?(r.c==="OWG"?"Olimpijske igre ":r.c==="PWG"?"Paralimpijske igre ":"Svetovno prvenstvo ")+r.d.slice(0,4):r.summer?"Poletje "+r.d.slice(0,4):seasonOf(r.d)}
@@ -349,7 +349,7 @@ function hlDetail(which,st){
     const tot=[0,1,2].map(i=>st.med.WSC[i]+st.med.OWG[i]);
     const tr=el("tr");tr.appendChild(el("td","l name","Skupaj"));tot.forEach(n=>tr.appendChild(cell(n,false)));tr.appendChild(cell(sum(tot),true));tr.appendChild(el("td"));tb.appendChild(tr);
     table.appendChild(tb);box.appendChild(table);
-    box.appendChild(el("p","note","Tapni na tekmovanje za športnike z medaljami, nato na športnika za njegove medalje. Ekipna medalja šteje kot ena medalja. Zajeti so športi, ki so že vneseni v podatke (alpsko smučanje, skoki, nordijska kombinacija, teki, biatlon, deskanje na snegu, freestyle, telemark); vključeno je tudi paraskijanje (para alpsko smučanje in para smučarski teki)."));
+    box.appendChild(el("p","note","Tapni na tekmovanje za športnike z medaljami, nato na športnika za njegove medalje. Ekipna medalja šteje kot ena medalja. Zajeti so športi, ki so že vneseni v podatke (alpsko smučanje, skoki, nordijska kombinacija, teki, biatlon, deskanje na snegu, prosti slog, telemark); vključeno je tudi paraskijanje (para alpsko smučanje in para smučarski teki)."));
   }
   box.hidden=false;
 }
@@ -379,12 +379,19 @@ function seasonLabels(){
   if(MODE==="summer")return [...new Set(RACES.filter(r=>r.summer).map(seasonOfRace))].sort().reverse();
   return Array.from({length:LAST-FIRST+1},(_,i)=>{const s=LAST-i;return s+"/"+String(s+1).slice(2)});
 }
-const SPORTS=["Alpsko smučanje","Smučarski skoki","Smučarski teki","Nordijska kombinacija","Biatlon","Deskanje na snegu","Freestyle","Telemark","Para alpsko smučanje","Para smučarski teki"];
+const SPORTS=["Alpsko smučanje","Smučarski skoki","Smučarski teki","Nordijska kombinacija","Biatlon","Deskanje na snegu","Prosti slog","Telemark","Para alpsko smučanje","Para smučarski teki"];
 const TOPS=[5,10,15,30];
 const $=id=>document.getElementById(id);
 const el=(tag,cls,txt)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(txt!==undefined)e.textContent=txt;return e};
 let tab="name";
 let CAL={ev:[]};
+const SP_ALIAS={"Freestyle":"Prosti slog"};
+function normSports(){
+  RACES.forEach(r=>{if(SP_ALIAS[r.sport])r.sport=SP_ALIAS[r.sport]});
+  [GLOBES,MALI].forEach(a=>(a||[]).forEach(g=>{if(SP_ALIAS[g.panoga])g.panoga=SP_ALIAS[g.panoga]}));
+  ((CAL&&CAL.ev)||[]).forEach(e=>{if(SP_ALIAS[e.l])e.l=SP_ALIAS[e.l]});
+}
+
 /* slovenski mnozinski sklon: 1 = ednina, 2 = dvojina, 3-4 = mnozina, ostalo = rodilnik mnozine */
 function pl(n,f){const m=n%100;return m===1?f[0]:m===2?f[1]:(m===3||m===4)?f[2]:f[3]}
 const L_RACE=["tekma z uvrstitvijo","tekmi z uvrstitvama","tekme z uvrstitvami","tekem z uvrstitvami"];
@@ -404,7 +411,7 @@ async function refreshData(){
     const changed=nm.updated!==META.updated||nr.length!==RACES.length;
     RACES=nr;META=nm;
     try{const gj=await g.json();GLOBES=gj.globusi||[];MALI=gj.mali||[]}catch(e){}
-    renderHL();setUpd();render();
+    normSports();renderHL();setUpd();render();
     msg.textContent=changed?"Podatki so osveženi.":"Imate že najnovejše objavljene podatke.";
   }catch(e){msg.textContent="Osvežitev ni uspela, poskusite znova."}
   b.disabled=false;setTimeout(()=>{msg.textContent=""},5000);
@@ -427,7 +434,7 @@ const FIRST=1991,LAST=2026;
 function covText(lab){
   const c=(META.coverage||{})[lab];
   if(!c)return "še ni vneseno";
-  const names={alpine:"alpsko",jumping:"skoki",nordic:"kombinacija",biathlon:"biatlon",xc:"teki",snowboard:"deskanje",freestyle:"freestyle",telemark:"telemark"};
+  const names={alpine:"alpsko",jumping:"skoki",nordic:"kombinacija",biathlon:"biatlon",xc:"teki",snowboard:"deskanje",freestyle:"prosti slog",telemark:"telemark"};
   return Object.keys(c).map(k=>(names[k]||k)+": "+c[k]).join(" · ");
 }
 function seasonOf(d){const y=+d.slice(0,4),m=+d.slice(5,7),s=m>=8?y:y-1;return s+"/"+String(s+1).slice(2)}
@@ -463,7 +470,7 @@ function sortRows(rows,nameOf,cOf){
 function counts(ranks){return [1,2,3].map(n=>ranks.filter(r=>r===n).length).concat(TOPS.map(n=>ranks.filter(r=>r<=n).length))}
 function cell(v,first){const td=el("td","num",String(v));if(v===0)td.classList.add("zero");else if(first)td.classList.add("hi");return td}
 function head(cols){const tr=el("tr");cols.forEach(c=>{const m=/^Top (\d+)$/.exec(c);if(m){const th=el("th");th.appendChild(document.createTextNode("Top "));th.appendChild(document.createElement("br"));th.appendChild(document.createTextNode(m[1]));tr.appendChild(th)}else tr.appendChild(el("th",null,c))});const th=el("thead");th.appendChild(tr);return th}
-const SHORT={"Alpsko smučanje":"Alpsko","Smučarski skoki":"Skoki","Smučarski teki":"Teki","Nordijska kombinacija":"Nord. komb.","Biatlon":"Biatlon","Deskanje na snegu":"Snowboard","Freestyle":"Freestyle","Telemark":"Telemark","Para alpsko smučanje":"Para alpsko","Para smučarski teki":"Para teki"};
+const SHORT={"Alpsko smučanje":"Alpsko","Smučarski skoki":"Skoki","Smučarski teki":"Teki","Nordijska kombinacija":"Nord. komb.","Biatlon":"Biatlon","Deskanje na snegu":"Snowboard","Prosti slog":"Prosti slog","Telemark":"Telemark","Para alpsko smučanje":"Para alpsko","Para smučarski teki":"Para teki"};
 function cardHead(p){
   const box=el("div","cardhead");
   const seas=[...new Set(p.items.map(i=>i.race.d.slice(0,4)))].sort();
@@ -701,6 +708,7 @@ async function boot(){
   }catch(e){}
   try{const gj=await (await fetch("data/globusi.json?"+Date.now())).json();GLOBES=gj.globusi||[];MALI=gj.mali||[]}catch(e){}
   try{CAL=await (await fetch("data/koledar.json?"+Date.now())).json()}catch(e){}
+  normSports();
   init();
   jubInit();
   try{
