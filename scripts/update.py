@@ -1804,6 +1804,37 @@ def parse_calendar_rows(html, cat, season, sport_key):
     return out
 
 
+def build_calendar_biathlon(season):
+    """Koledar svetovnega pokala v biatlonu (IBU): ena vrstica na dogodek (kraj, datumi, discipline, spol)."""
+    evs = ibu_json(f"Events?SeasonId={ibu_season_id(season)}&Level=1")
+    if not evs:
+        log("KOLEDAR Biatlon (IBU): dogodki niso dosegljivi")
+        return []
+    out = []
+    for e in evs:
+        eid = e.get("EventId", "")
+        if not IBU_EVENT_RE.match(eid) or ibu_cat(eid) != "WC":
+            continue
+        a, b = (e.get("StartDate") or "")[:10], (e.get("EndDate") or e.get("StartDate") or "")[:10]
+        if not a:
+            continue
+        comps = ibu_json(f"Competitions?EventId={eid}") or []
+        discs, gens = [], []
+        for c in comps:
+            d, cat = c.get("DisciplineId"), c.get("catId")
+            if d in IBU_DISC and IBU_DISC[d] not in discs:
+                discs.append(IBU_DISC[d])
+            g = {"SW": "W", "SM": "M"}.get(cat)
+            if g and g not in gens:
+                gens.append(g)
+        place = (e.get("ShortDescription") or e.get("Description") or "").strip()
+        out.append({"s": "biathlon", "c": "WC", "a": a, "b": b, "p": place, "n": (e.get("Nat") or "").strip(),
+                    "e": ", ".join(discs), "g": " ".join(sorted(gens, reverse=True)) if gens else "W M",
+                    "u": "https://biathlonresults.com/"})
+    log(f"KOLEDAR v2 Biatlon (WC): {len(out)} tekem")
+    return out
+
+
 def build_calendar(season):
     """Zapise data/koledar.json: koledar svetovnega pokala (WC) za vse panoge + Grand Prix v skokih, urejen po datumu."""
     events = []
@@ -1821,13 +1852,17 @@ def build_calendar(season):
             rows = parse_calendar_rows(html, cat, season, key)
             log(f"KOLEDAR v2 {cfg['label']} ({cat}): {len(rows)} tekem (povezav na dogodke: {html.count('eventid=')}, dolzina strani: {len(html)})")
             events += rows
+    try:
+        events += build_calendar_biathlon(season)
+    except Exception as ex:  # biatlon ne sme podreti koledarja drugih panog
+        log(f"KOLEDAR Biatlon: napaka {ex}")
     if not events:
         log("KOLEDAR: nic najdenega, obstojeca datoteka ostane")
         return
     uniq = {(e["s"], e["c"], e["a"], e["p"]): e for e in events}
     events = sorted(uniq.values(), key=lambda e: (e["a"], e["b"], e["s"], e["p"]))
     for e in events:
-        e["l"] = SPORTS[e["s"]]["label"]
+        e["l"] = BIATHLON if e["s"] == "biathlon" else SPORTS[e["s"]]["label"]
     DATA.mkdir(exist_ok=True)
     body = {"season": season, "updated": datetime.date.today().isoformat(), "ev": events}
     (DATA / "koledar.json").write_text(json.dumps(body, ensure_ascii=False, indent=0) + "\n", encoding="utf-8")
