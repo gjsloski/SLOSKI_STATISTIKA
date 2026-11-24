@@ -159,6 +159,18 @@
 "l": "Telemark"
 },
 {
+"s": "jumping",
+"c": "WC",
+"a": "2026-11-27",
+"b": "2026-11-29",
+"p": "Ruka",
+"n": "FIN",
+"e": "QUA 4xIND",
+"g": "M",
+"u": "https://www.fis-ski.com/DB/general/event-details.html?sectorcode=JP&eventid=63025&seasoncode=2027",
+"l": "Smučarski skoki"
+},
+{
 "s": "xc",
 "c": "WC",
 "a": "2026-11-27",
@@ -204,18 +216,6 @@
 "e": "QUA 3xIND",
 "g": "W",
 "u": "https://www.fis-ski.com/DB/general/event-details.html?sectorcode=JP&eventid=63029&seasoncode=2027",
-"l": "Smučarski skoki"
-},
-{
-"s": "jumping",
-"c": "WC",
-"a": "2026-11-28",
-"b": "2026-11-29",
-"p": "Ruka",
-"n": "FIN",
-"e": "QUA 3xIND",
-"g": "M",
-"u": "https://www.fis-ski.com/DB/general/event-details.html?sectorcode=JP&eventid=63025&seasoncode=2027",
 "l": "Smučarski skoki"
 },
 {
