@@ -41,6 +41,10 @@ select,input[type=search]{box-sizing:border-box;width:100%;padding:9px 8px;borde
 .scroll{overflow-x:auto}
 table{border-collapse:collapse;width:100%;font-size:14px;min-width:580px}
 th br{display:none}
+table.jub{min-width:0;table-layout:fixed}
+table.jub th:nth-child(1){width:15%}table.jub th:nth-child(2){width:50%}table.jub th:nth-child(3){width:35%}
+table.jub td{overflow-wrap:anywhere;vertical-align:top}
+table.jub th{text-align:left}
 table.cal{min-width:0}
 table.cal th,table.cal td{text-align:left}
 table.cal td.calD{white-space:nowrap;font-weight:600;text-align:left;width:1%}
@@ -69,6 +73,9 @@ table.cal tr.mon td{background:var(--head);color:var(--headtext);font-size:13px;
   table.stat td.sp{display:none}
   td.name small .msp{display:inline}
   table.cal{font-size:12.5px}
+  table.jub{font-size:12px}
+  table.jub th:nth-child(1){width:19%}table.jub th:nth-child(2){width:47%}table.jub th:nth-child(3){width:34%}
+  table.jub td{padding:7px 4px}
 }
 td.name .msp{display:none}
 
@@ -232,7 +239,7 @@ footer{font-size:12px;color:var(--muted);padding:0 4px}
   <footer>
     <p id="upd"></p>
     <p><button class="tab" id="refBtn" type="button">↻ Osveži prikaz</button> <span class="note" id="refMsg" aria-live="polite"></span></p>
-    <p>Vir rezultatov: FIS (fis-ski.com). Zimska sezona šteje posamične tekme svetovnega pokala v alpskem smučanju in smučarskih skokih, poletna sezona pa posamične tekme FIS Grand Prix v smučarskih skokih in nordijski kombinaciji (od leta 2026 naprej, brez preteklih let). Privzeto so prikazane posamične tekme; z izbiro »Vrsta tekme« lahko prikažete ekipne tekme (vsak slovenski član ekipe dobi mesto ekipe) ali oboje. Stolpci 1., 2. in 3. štejejo točno to mesto, stolpci Top 5, Top 10, Top 15 in Top 30 pa so kumulativni (2. mesto šteje tudi v Top 5). Podatki se posodobijo ob petkih, sobotah in nedeljah ob 12., 15., 17., 19., 21. in 23. uri ter ob ponedeljkih ob 6. uri. Zgodovina sega do sezone 1991/92; stolpec »Stanje« v pogledu »Po sezonah« pove, ali je sezona popolna.</p>
+    <p>Vir rezultatov: FIS (fis-ski.com). Zimska sezona šteje posamične tekme svetovnega pokala v alpskem smučanju in smučarskih skokih, poletna sezona pa posamične tekme FIS Grand Prix v smučarskih skokih in nordijski kombinaciji (od leta 2026 naprej, brez preteklih let). Privzeto so prikazane posamične tekme; z izbiro »Vrsta tekme« lahko prikažete ekipne tekme (vsak slovenski član ekipe dobi mesto ekipe) ali oboje. Stolpci 1., 2. in 3. štejejo točno to mesto, stolpci Top 5, Top 10, Top 15 in Top 30 pa so kumulativni (2. mesto šteje tudi v Top 5). Podatki se posodobijo ob četrtkih ob 19. uri, ob petkih, sobotah in nedeljah ob 12., 15., 17., 19., 21. in 23. uri ter ob ponedeljkih ob 6. uri. Zgodovina sega do sezone 1991/92; stolpec »Stanje« v pogledu »Po sezonah« pove, ali je sezona popolna.</p>
   </footer>
   <p style="text-align:center;margin:18px 0 28px"><button class="tab" id="toTop" type="button" aria-label="Nazaj na vrh strani">↑ Na vrh</button></p>
 </main>
@@ -751,7 +758,7 @@ async function jubInit(){
     {const a=$("jubSub");if(BREVO_URL){a.href=BREVO_URL;a.target="_blank";a.rel="noopener"}else a.href="mailto:press@sloski.si?subject="+encodeURIComponent("Prijava na E-Jubilej")+"&body="+encodeURIComponent("Prosim za prijavo na E-Jubilej (obvestila o jubilejih slovenskih športnikov).")}
     const draw=()=>{
       const lv=$("jubLvl").value;const rows=ev.filter(e=>!lv||e.level===lv);
-      const t=document.createElement("table");t.style.minWidth="480px";
+      const t=document.createElement("table");t.className="jub";
       const th=document.createElement("thead"),tr=document.createElement("tr");
       ["Datum","Jubilej","Tekma"].forEach(h=>{const c=document.createElement("th");c.textContent=h;tr.appendChild(c)});th.appendChild(tr);t.appendChild(th);
       const tb=document.createElement("tbody");
