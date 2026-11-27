@@ -27,7 +27,7 @@ Naslov: https://gjsloski.github.io/SLOSKI_STATISTIKA/
 
 ## Samodejno osveževanje
 
-Ob petkih, sobotah in nedeljah ob 12.00, 15.00, 17.00, 19.00, 21.00 in 23.00 ter ob ponedeljkih ob 6.00 (slovenski čas). Na strani gumb »Osveži prikaz« prebere že objavljene podatke brez ponovnega nalaganja strani; novega zbiranja ne sproži.
+Ob četrtkih ob 19.00, ob petkih, sobotah in nedeljah ob 12.00, 15.00, 17.00, 19.00, 21.00 in 23.00 ter ob ponedeljkih ob 6.00 (slovenski čas). Na strani gumb »Osveži prikaz« prebere že objavljene podatke brez ponovnega nalaganja strani; novega zbiranja ne sproži.
 
 ## Ročni zagon (Actions → Posodobitev statistike → Run workflow → mode)
 
