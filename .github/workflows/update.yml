@@ -4,6 +4,8 @@ on:
   schedule:
     - cron: "0 12,15,17,19,21,23 * * 5,6,0"   # petek, sobota, nedelja ob 12.00, 15.00, 17.00, 19.00, 21.00 in 23.00
       timezone: "Europe/Ljubljana"
+    - cron: "0 19 * * 4"       # vsak četrtek ob 19.00
+      timezone: "Europe/Ljubljana"
     - cron: "0 6 * * 1"        # vsak ponedeljek ob 6.00
       timezone: "Europe/Ljubljana"
   workflow_dispatch:
