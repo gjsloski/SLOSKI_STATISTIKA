@@ -2035,6 +2035,8 @@ def save_all(races, state, meta, today):
                 times += [datetime.time(h, 0) for h in (12, 15, 17, 19, 21, 23)]
             if wd == 0:
                 times.append(datetime.time(6, 0))
+            if wd == 3:
+                times.append(datetime.time(19, 0))
             for tm in times:
                 dt_ = datetime.datetime.combine(day, tm, tzinfo=tz)
                 if dt_ > now_l:
