@@ -1,7 +1,29 @@
 {
  "updated": "2026-11-28",
- "ujema": 78,
- "razlike": 0,
+ "ujema": 77,
+ "razlike": 1,
  "nepreverjeno": 0,
- "athletes": []
+ "athletes": [
+  {
+   "n": "Nika Prevc",
+   "id": 222153,
+   "sport": "Smučarski skoki",
+   "status": "razlika",
+   "razlike": [
+    {
+     "s": "2026/27",
+     "nase": [
+      0,
+      0,
+      0
+     ],
+     "fis": [
+      0,
+      1,
+      0
+     ]
+    }
+   ]
+  }
+ ]
 }
